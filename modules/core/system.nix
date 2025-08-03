@@ -25,5 +25,5 @@ in
     };
   };
   console.keymap = consoleKeyMap;
-  system.stateversion = "25.05";
+  system.stateVersion = "25.05";
 }
