@@ -1,7 +1,8 @@
-{ ...
+{ inputs
+, ...
 }:
 {
   imports = [
-    "./vm-guest-services.nix"
+    "${inputs.self}/modules/drivers/vm-guest-services.nix"
   ];
 }
