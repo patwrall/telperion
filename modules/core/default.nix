@@ -1,8 +1,10 @@
-{ inputs
-, host
-, ...
+{ ...
 }:
-let
-in {
-  imports = [ ./boot.nix ];
+{
+  imports = [
+    ./boot.nix
+    ./user.nix
+    ./network.nix
+    ./xserver.nix
+  ];
 }
