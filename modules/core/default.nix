@@ -6,6 +6,7 @@
     ./bluetooth.nix
     ./boot.nix
     ./display-manager.nix
+    ./input.nix
     ./network.nix
     ./printing.nix
     ./ssh.nix
