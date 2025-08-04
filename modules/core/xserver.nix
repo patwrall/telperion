@@ -12,4 +12,8 @@ in
       variant = keyboardVariant;
     };
   };
+
+  hardware.graphics = {
+    enable = true;
+  };
 }
