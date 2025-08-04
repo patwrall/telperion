@@ -6,5 +6,6 @@
     ./user.nix
     ./network.nix
     ./xserver.nix
+    ./system.nix
   ];
 }
