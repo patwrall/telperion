@@ -40,7 +40,7 @@ in
   };
 
   programs.fish.enable = true;
-  programs.command-not-found = false;
+  programs.command-not-found.enable = false;
 
   console.keyMap = consoleKeyMap;
   system.stateVersion = "25.05";
