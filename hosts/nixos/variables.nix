@@ -7,8 +7,11 @@
   terminal = "kitty";
 
   keyboardLayout = "us";
-  keyboardVariant = ""; # eg: "colemak"
+  keyboardVariant = "";
   consoleKeyMap = "us";
+
+  printEnable = true;
+  bluetoothEnable = true;
 
   hostId = "565bd63f";
 }
