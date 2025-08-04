@@ -30,7 +30,6 @@ in
   users.mutableUsers = true;
   users.users.${username} = {
     isNormalUser = true;
-    initialPassword = "CPFTW";
     description = "${gitUsername}";
     extraGroups = [
       "docker"
