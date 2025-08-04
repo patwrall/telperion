@@ -3,9 +3,10 @@
 {
   imports = [
     ./boot.nix
-    ./user.nix
+    ./display-manager.nix
     ./network.nix
-    ./xserver.nix
     ./system.nix
+    ./user.nix
+    ./xserver.nix
   ];
 }
