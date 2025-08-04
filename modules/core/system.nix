@@ -39,6 +39,8 @@ in
     LC_TIME = "en_US.UTF-8";
   };
 
+  programs.fish.enable = true;
+
   console.keyMap = consoleKeyMap;
   system.stateVersion = "25.05";
 }
