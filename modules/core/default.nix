@@ -13,6 +13,7 @@
     ./printing.nix
     ./security.nix
     ./ssh.nix
+    ./syncthing.nix
     ./system.nix
     ./user.nix
     ./xserver.nix
