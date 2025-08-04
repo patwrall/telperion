@@ -8,6 +8,7 @@
     ./display-manager.nix
     ./network.nix
     ./printing.nix
+    ./ssh.nix
     ./system.nix
     ./user.nix
     ./xserver.nix

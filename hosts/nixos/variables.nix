@@ -12,6 +12,7 @@
 
   printEnable = true;
   bluetoothEnable = true;
+  sshEnable = true;
 
   hostId = "565bd63f";
 }
