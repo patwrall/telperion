@@ -7,7 +7,9 @@
     ./boot.nix
     ./display-manager.nix
     ./input.nix
+    ./monitoring.nix
     ./network.nix
+    ./optimizations.nix
     ./printing.nix
     ./security.nix
     ./ssh.nix
