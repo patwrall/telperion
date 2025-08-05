@@ -22,6 +22,9 @@ in
         "hyprland.cachix.org-1:a7pgxzmz7+chwvl3/pzj6jibmioijm7ypfp8pwtkugc="
       ];
       require-sigs = true;
+
+      max-jobs = "auto";
+      cores = 0;
     };
   };
 
