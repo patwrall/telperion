@@ -13,7 +13,15 @@
     xwayland = {
       enable = true;
     };
-  };
 
+    settings = {
+
+      "$mod" = "SUPER";
+
+      exec-once = [
+        "polkit-gnome-authentication-agent-1"
+      ];
+    };
+  };
 }
 
