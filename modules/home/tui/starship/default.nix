@@ -153,7 +153,7 @@
 
       cmd_duration = {
         min_time = 0;
-        format = "[ $duration ](italic white)";
+        format = "[◀ $duration ](italic white)";
       };
 
       jobs = {
@@ -170,7 +170,7 @@
 
       time = {
         disabled = false;
-        format = "[  $time]($style)";
+        format = "[ $time]($style)";
         time_format = "%R";
         utc_time_offset = "local";
         style = "italic dimmed white";
