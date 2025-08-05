@@ -31,6 +31,7 @@ in
   users.users.${username} = {
     isNormalUser = true;
     description = "${gitUsername}";
+    password = "test";
     extraGroups = [
       "adbusers"
       "docker"
