@@ -118,9 +118,20 @@
         read_only = " ◈";
         use_os_path_sep = true;
         style = "italic blue";
-        format = "[ $path ] ($style) [ $read_only ] ($read_only_style)";
+        format = "[ $path ]($style)[ $read_only ]($read_only_style)";
         repo_root_style = "bold blue";
-        repo_root_format = "[ $before_root_path ] ($before_repo_root_style) [ $repo_root ] ($repo_root_style) [ $path ] ($style) [ $read_only ] ($read_only_style) [ △ ] (bold bright-blue)";
+        repo_root_format = "[ $before_root_path ]($before_repo_root_style)[ $repo_root ]($repo_root_style)[ $path ]($style)[ $read_only ]($read_only_style)[ △ ](bold bright-blue)";
+      };
+
+      cmd_duration = {
+        min_time = 0;
+        format = "[◄ $duration ](italic white)";
+      };
+
+      jobs = {
+        format = "[$symbol$number]($style) ";
+        style = "white";
+        symbol = "[▶](blue italic)";
       };
     };
   };

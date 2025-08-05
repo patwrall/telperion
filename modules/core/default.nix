@@ -6,6 +6,7 @@
     ./bluetooth.nix
     ./boot.nix
     ./display-manager.nix
+    ./fonts.nix
     ./input.nix
     ./monitoring.nix
     ./network.nix
