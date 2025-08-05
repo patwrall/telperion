@@ -3,6 +3,6 @@
 {
   imports = [
     ./fish
-    ./startship
+    ./starship
   ];
 }

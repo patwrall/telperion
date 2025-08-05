@@ -133,6 +133,89 @@
         style = "white";
         symbol = "[▶](blue italic)";
       };
+
+      localip = {
+        ssh_only = true;
+        format = " ◯[$localipv4](bold magenta)";
+        disabled = false;
+      };
+
+      time = {
+        disabled = false;
+        format = "[ $time]($style)";
+        time_format = "%R";
+        utc_time_offset = "local";
+        style = "italic dimmed white";
+      };
+
+      battery = {
+        format = "[ $percentage $symbol]($style)";
+        full_symbol = "█";
+        charging_symbol = "[↑](italic bold green)";
+        discharging_symbol = "↓";
+        unknown_symbol = "░";
+        empty_symbol = "▃";
+      };
+      battery = {
+        display = [
+          {
+            threshold = 20;
+            style = "italic bold red";
+          }
+          {
+            threshold = 60;
+            style = "italic dimmed bright-purple";
+          }
+          {
+            threshold = 70;
+            style = "italic dimmed yellow";
+          }
+        ];
+
+        git_branch = {
+          format = " [$branch(:$remote_branch)]($style)";
+          symbol = "[△](bold italic bright-blue)";
+          style = "italic bright-blue";
+          truncation_symbol = "⋯";
+          truncation_length = 11;
+          ignore_branches = [ "main" "master" ];
+          only_attached = true;
+        };
+
+        git_metrics = {
+          format = "([ ▴$added ]($added_style))([ ▿$deleted ]($deleted_style))";
+          added_style = "italic dimmed green";
+          deleted_style = "italic dimmed red";
+          ignore_submodules = true;
+          disabled = false;
+        };
+        git_status = {
+          style = "bold italic bright-blue";
+          format = "([$ahead_behind$staged$modified$untracked$renamed$deleted$conflicted$stashed]($style))";
+          conflicted = "[✖](italic bright-magenta)";
+          ahead = "⇡ ${count}](bold white)";
+          behind = "⇣ ${count}](bold white)";
+          diverged = "⇕ ${ahead_count}](regular white) ${behind_count}](italic bright-magenta)";
+          stashed = "[stash](italic white)";
+          modified = "●](italic yellow)";
+          staged = "[+](italic bold white)";
+          renamed = "⮁](italic bright-blue)";
+          deleted = "[✘](italic red)";
+        };
+
+
+        deno = {
+          format = "[deno](italic)[ ${version}](green bold)"; # <--- FIXED
+          version_format = "${raw}";
+        };
+
+        lua = {
+          format = "[lua](italic)[ ${symbol}${version}](bold bright-yellow)"; # <--- FIXED
+          version_format = "${raw}";
+          symbol = " ";
+          style = "bold bright-yellow";
+        };
+      };
     };
   };
 }
