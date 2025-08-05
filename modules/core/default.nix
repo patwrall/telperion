@@ -16,6 +16,7 @@
     ./syncthing.nix
     ./system.nix
     ./user.nix
+    ./virtualisation.nix
     ./xserver.nix
   ];
 }
