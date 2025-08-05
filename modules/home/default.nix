@@ -1,7 +1,8 @@
-{ host
-, ...
+{ ...
 }: {
   imports = [
-    ./fish
+    ./gui
+    ./tui
+    ./wm
   ];
 }
