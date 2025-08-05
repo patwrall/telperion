@@ -3,6 +3,7 @@
 {
   imports = [
     ./fish
+    ./kitty
     ./starship
   ];
 }
