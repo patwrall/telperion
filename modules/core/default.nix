@@ -18,6 +18,7 @@
     ./system.nix
     ./user.nix
     ./virtualisation.nix
+    ./xdg-portal.nix
     ./xserver.nix
   ];
 }
