@@ -1,6 +1,9 @@
 { pkgs
+, profile
+, lib
 , ...
 }:
+lib.mkIf (profile != "vm")
 {
   virtualisation = {
     docker = {
