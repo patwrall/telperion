@@ -10,6 +10,7 @@
     ./monitoring.nix
     ./network.nix
     ./optimizations.nix
+    ./packages.nix
     ./printing.nix
     ./security.nix
     ./ssh.nix

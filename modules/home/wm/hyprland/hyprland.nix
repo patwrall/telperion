@@ -1,26 +1,18 @@
-{ config, pkgs, ... }:
+{ pkgs
+, ...
+}:
 {
-  programs.hyprland = {
+  wayland.windowManager.hyprland = {
     enable = true;
-
-    settings = {
-      monitor = "Virtual-1,1920x1080@60,0x0,1";
-
-      "$mod" = "SUPER";
-
-      exec-once = [ "kitty" ];
-
-      bind = [
-        "$mod, RETURN, exec, kitty"
-        "$mod_SHIFT, Q, exit"
-      ];
-
-      misc.vrr = 1;
+    package = pkgs.hyprland;
+    systemd = {
+      enable = true;
+      enableXdgAutostart = true;
+      variables = [ "--all" ];
+    };
+    xwayland = {
+      enable = true;
     };
   };
-
-  home.packages = with pkgs; [
-    hyprland
-    kitty
-  ];
 }
+
