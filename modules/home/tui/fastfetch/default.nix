@@ -1,4 +1,5 @@
-{ ...
+{ pkgs
+, ...
 }:
 {
   programs.fastfetch = {
@@ -37,7 +38,7 @@
         {
           type = "command";
           key = "│   uptime";
-          text = ''uptime -p | cut -d ' ' -f 2-'';
+          text = ''${pkgs.procps}/bin/uptime -p | ${pkgs.coreutils}/bin/cut -d ' ' -f 2-'';
           format = "{>22} │";
         }
 
@@ -50,7 +51,7 @@
         {
           type = "command";
           key = "│ {$3}{$1}  mem   ";
-          text = ''free -m | awk 'NR==2{printf "%.2f GiB / %.2f GiB",$3/1024,$2/1024}'';
+          text = ''${pkgs.procps}/bin/free -m | ${pkgs.gawk}/bin/awk '/^Mem:/ {printf "%.2f GiB / %.2f GiB", $3/1024, $2/1024}'';
           format = "{$3}{>22}{$1} │";
         }
 
@@ -62,15 +63,15 @@
 
         {
           type = "command";
-          key = "│ {$2}{$1}  user  ";
-          text = ''echo $USER'';
+          key = "│ {$2}{$1}  user  ";
+          text = ''${pkgs.coreutils}/bin/echo $USER'';
           format = "{$2}{>22}{$1} │";
         }
 
         {
           type = "command";
-          key = "│   hname ";
-          text = "hostnamectl hostname";
+          key = "│   hname ";
+          text = "${pkgs.systemd}/bin/hostnamectl hostname";
           format = "{>22} │";
         }
 
