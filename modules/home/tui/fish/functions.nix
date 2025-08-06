@@ -6,7 +6,7 @@
       echo "Usage: mkcd <directory>"
       return 1
     end
-    mkdir -p $argv[1] && cd $argv[2]
+    mkdir -p $argv[1] && cd $argv[1]
   '';
 
   extract = ''
