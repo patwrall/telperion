@@ -9,8 +9,8 @@
 
     functions = import ./functions.nix { inherit pkgs lib; };
 
+    # set -g fish_greeting
     shellInit = ''
-      set -g fish_greeting
       
       set -g fish_color_command blue
       set -g fish_color_param cyan
