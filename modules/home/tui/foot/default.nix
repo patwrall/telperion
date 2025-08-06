@@ -26,10 +26,6 @@
 
       colors = {
         alpha = 0.78;
-        # You'd typically define foreground/background/cursor colors here too,
-        # but they are not in your provided snippet.
-        # foreground = "000000";
-        # background = "FFFFFF";
       };
 
       "key-bindings" = {
