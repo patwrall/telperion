@@ -6,7 +6,6 @@
     ./fastfetch
     ./fish
     ./foot
-    ./kitty
     ./starship
   ];
 }
