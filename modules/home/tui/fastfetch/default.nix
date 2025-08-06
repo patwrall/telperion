@@ -5,80 +5,90 @@
     enable = true;
 
     settings = {
+      logo = null;
+
       display = {
-        separator = " ";
+        separator = "  ";
         color = "white";
-        constants = [ "\u001b[37m" "\u001b[38;5;16m" "\u001b[38;5;17m" "\u001b[38;5;18m" ];
+        # this ensures the raw color codes arent broken when the config is generated
+        constants = [
+          { _type = "literal"; text = "\"\\u001b[37m\""; }
+          { _type = "literal"; text = "\"\\u001b[38;5;16m\""; }
+          { _type = "literal"; text = "\"\\u001b[38;5;17m\""; }
+          { _type = "literal"; text = "\"\\u001b[38;5;18m\""; }
+        ];
       };
+
 
       modules = [
         "break"
+
         {
           type = "custom";
           key = "╭───────────────────────────────────╮";
         }
+
         {
           type = "kernel";
           key = "│ {$2}{$1}  kernel";
           format = "{$2}{release>22}{$1} │";
         }
+
         {
           type = "command";
           key = "│   uptime";
-          text = "uptime -p | cut -d ' ' -f 2-";
+          text = ''uptime -p | cut -d ' ' -f 2-'';
           format = "{>22} │";
         }
-        {
-          type = "kernel";
-          key = "│ ${"$2"}${"$1"}  kernel";
-          format = "${"$2"}{release>22}${ "$1"} │";
-        }
-        {
-          type = "command";
-          key = "│    uptime";
-          text = "uptime -p | cut -d ' ' -f 2-";
-          format = "{>22} │";
-        }
+
         {
           type = "shell";
-          key = "│ ${"$2"}${"$1"}  shell ";
-          format = "${"$2"}{pretty-name>22}${ "$1"} │";
+          key = "│ {$2}{$1}  shell ";
+          format = "{$2}{pretty-name>22}{$1} │";
         }
+
         {
           type = "command";
-          key = "│ ${"$3"}${"$1"}  mem   ";
-          text = "free -m | awk 'NR==2{printf \"%.2f GiB / %.2f GiB\",$3/1024,$2/1024}'";
-          format = "${"$3"}{>22}${ "$1"} │";
+          key = "│ {$3}{$1}  mem   ";
+          text = ''free -m | awk 'NR==2{printf "%.2f GiB / %.2f GiB",$3/1024,$2/1024}'';
+          format = "{$3}{>22}{$1} │";
         }
+
         {
           type = "packages";
-          key = "│    pkgs  ";
+          key = "│   pkgs  ";
           format = "{all>22} │";
         }
+
         {
           type = "command";
-          key = "│ ${"$2"}${"$1"}  user  ";
-          text = "echo $USER";
-          format = "${"$2"}{>22}${ "$1"} │";
+          key = "│ {$2}{$1}  user  ";
+          text = ''echo $USER'';
+          format = "{$2}{>22}{$1} │";
         }
+
         {
           type = "command";
-          key = "│    hname ";
+          key = "│   hname ";
           text = "hostnamectl hostname";
           format = "{>22} │";
         }
+
         {
           type = "os";
-          key = "│ ${"$4"}󰻀${"$1"}  distro";
-          format = "${"$4"}{pretty-name>22}${ "$1"} │";
+          key = "│ {$4}󰻀{$1}  distro";
+          format = "{$4}{pretty-name>22}{$1} │";
         }
+
         {
           type = "custom";
           key = "╰───────────────────────────────────╯";
         }
+
         "break"
       ];
     };
   };
 }
+
 
