@@ -1,33 +1,39 @@
-{ host
+{ config
+, host
 , ...
 }:
 let
-  inherit (import ../../../../hosts/${host}/variables.nix) terminal;
-  mkBind = mod: key: action: "${mod}, ${key}, ${action}";
   mod = "SUPER";
+
+  mkBind = mod: key: action: "${mod}, ${key}, ${action}";
+  wsaction = "${config.xdg.configHome}/hypr/scripts/wsaction.fish";
 in
 {
   wayland.windowManager.hyprland.settings = {
     bind = [
-      (mkBind mod "RETURN" "exec, ${terminal}")
-      (mkBind mod "Q" "killactive,")
+      # Go to workspace #
+      (mkBind mod "1" "exec, ${wsaction} workspace 1")
+      (mkBind mod "2" "exec, ${wsaction} workspace 2")
+      (mkBind mod "3" "exec, ${wsaction} workspace 3")
+      (mkBind mod "4" "exec, ${wsaction} workspace 4")
+      (mkBind mod "5" "exec, ${wsaction} workspace 5")
+      (mkBind mod "6" "exec, ${wsaction} workspace 6")
+      (mkBind mod "7" "exec, ${wsaction} workspace 7")
+      (mkBind mod "8" "exec, ${wsaction} workspace 8")
+      (mkBind mod "9" "exec, ${wsaction} workspace 9")
+      (mkBind mod "0" "exec, ${wsaction} workspace 10")
 
-      (mkBind mod "1" "workspace, 1")
-      (mkBind mod "2" "workspace, 2")
-      (mkBind mod "3" "workspace, 3")
-      (mkBind mod "4" "workspace, 4")
-      (mkBind mod "5" "workspace, 5")
-      (mkBind mod "6" "workspace, 6")
-      (mkBind mod "7" "workspace, 7")
-      (mkBind mod "8" "workspace, 8")
-      (mkBind mod "9" "workspace, 9")
-      (mkBind mod "0" "workspace, 10")
-
-      (mkBind "${mod}_SHIFT" "1" "movetoworkspace, 1")
-      (mkBind "${mod}_SHIFT" "2" "movetoworkspace, 2")
-      (mkBind "${mod}_SHIFT" "3" "movetoworkspace, 3")
-      (mkBind "${mod}_SHIFT" "4" "movetoworkspace, 4")
-      (mkBind "${mod}_SHIFT" "5" "movetoworkspace, 5")
+      # Go to workspace group #
+      (mkBind "CTRL_${mod}" "1" "exec, ${wsaction} -g workspace 1")
+      (mkBind "CTRL_${mod}" "2" "exec, ${wsaction} -g workspace 2")
+      (mkBind "CTRL_${mod}" "3" "exec, ${wsaction} -g workspace 3")
+      (mkBind "CTRL_${mod}" "4" "exec, ${wsaction} -g workspace 4")
+      (mkBind "CTRL_${mod}" "5" "exec, ${wsaction} -g workspace 5")
+      (mkBind "CTRL_${mod}" "6" "exec, ${wsaction} -g workspace 6")
+      (mkBind "CTRL_${mod}" "7" "exec, ${wsaction} -g workspace 7")
+      (mkBind "CTRL_${mod}" "8" "exec, ${wsaction} -g workspace 8")
+      (mkBind "CTRL_${mod}" "9" "exec, ${wsaction} -g workspace 9")
+      (mkBind "CTRL_${mod}" "0" "exec, ${wsaction} -g workspace 10")
     ];
 
     bindl = [ ];
