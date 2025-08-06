@@ -11,7 +11,7 @@
 
   extract = ''
     if test (count $argv) -ne 1
-      echo "Usage: extract <file>
+      echo "Usage: extract <file>"
       return 1
     end
 

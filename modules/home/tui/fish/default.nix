@@ -1,5 +1,4 @@
-{ config
-, pkgs
+{ pkgs
 , lib
 , ...
 }: {
@@ -23,7 +22,6 @@
       set -g fish_color_quote yellow
       set -g fish_color_autosuggestion brblack
       set -g fish_color_valid_path --underline
-
 
       fish_vi_key_bindings
     '';
