@@ -4,7 +4,7 @@
 
   browser = "zen";
 
-  terminal = "kitty";
+  terminal = "foot";
 
   keyboardLayout = "us";
   keyboardVariant = "";
