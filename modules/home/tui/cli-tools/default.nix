@@ -8,6 +8,11 @@
 
     yazi
 
+    zip
+    xz
+    unzip
+    p7zip
+
     eza
     fzf
   ];
