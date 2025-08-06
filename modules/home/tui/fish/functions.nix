@@ -44,7 +44,7 @@
       case "*.7z"
         7z x $file
       case "*"
-        echo "Error: '$file' cannot be extracted or unsupported"
+        echo "Error: '$file' cannot be extracted or is unsupported"
     end
   '';
 
