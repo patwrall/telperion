@@ -27,7 +27,6 @@
     , ...
     } @ inputs:
     let
-      system = "x86_64-linux";
       host = "nixos";
       profile = "vm";
       username = "pat";
@@ -35,20 +34,25 @@
     flake-parts.lib.mkFlake { inherit inputs; }
       {
         imports = [
-          ./modules/flake/packages.nix
+          # ./flake/packages.nix
         ];
-        nixosConfigurations = {
-          vm = nixpkgs.lib.nixosSystem {
-            inherit system;
-            specialArgs = {
-              inherit inputs;
-              inherit username;
-              inherit host;
-              inherit profile;
+
+        systems = [ "x86_64-linux" "aarch64-linux" ];
+
+        flake = {
+          nixosConfigurations = {
+            vm = nixpkgs.lib.nixosSystem {
+              system = "x86_64-linux";
+              specialArgs = {
+                inherit inputs;
+                inherit username;
+                inherit host;
+                inherit profile;
+              };
+              modules = [
+                ./profiles/vm
+              ];
             };
-            modules = [
-              ./profiles/vm
-            ];
           };
         };
       };
