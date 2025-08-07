@@ -5,5 +5,12 @@ in
 {
   imports = [ ./hardware.nix ];
 
+  telperion = {
+
+    system = {
+      boot = enabled;
+    };
+  };
+
   system.stateVersion = "25.05";
 }
