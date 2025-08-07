@@ -1,22 +1,44 @@
-{ self
-, inputs
+{ inputs
+, lib
 , ...
 }:
 {
-  imports = [ inputs.flake-parts.flakeModules.easyOverlay ];
-
   perSystem =
-    { config
-    , self'
-    , inputs'
-    , pkgs
-    , stable
-    , small
-    , system
-    , ...
-    }: {
-      packages = (import ../pkgs { inherit pkgs stable small; });
+    { pkgs, ... }:
+    let
 
-      overlayAttrs = config.packages;
+      packageFunctions = lib.filesystem.packagesFromDirectoryRecursive {
+        directory = ../packages;
+        callPackage = file: _args: import file;
+      };
+
+      builtPackages = lib.fix (
+        self:
+        lib.mapAttrs
+          (
+            _name: packageData:
+              let
+                packageFn = packageData.default or packageData;
+              in
+              pkgs.callPackage packageFn (
+                self
+                // {
+                  inherit inputs;
+                }
+              )
+          )
+          packageFunctions
+      );
+
+      supportedPackages = lib.filterAttrs
+        (
+          _name: package:
+            package != null
+            && (!(package ? meta.platforms) || lib.meta.availableOn pkgs.stdenv.hostPlatform package)
+        )
+        builtPackages;
+    in
+    {
+      packages = supportedPackages;
     };
 }
