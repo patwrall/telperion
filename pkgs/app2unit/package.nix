@@ -14,7 +14,7 @@ stdenv.mkDerivation {
     owner = "Vladimir-csp";
     repo = "app2unit";
     rev = "d951c2b277a32cd2c57659c363bee4872c989969";
-    hash = "";
+    hash = "sha256-iR/qS1kgrbPECVcOQa8mv2nMSs4DAmNgAPqswDPLBUs=";
   };
 
   buildInputs = [
