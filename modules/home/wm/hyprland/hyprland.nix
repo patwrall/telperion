@@ -103,5 +103,11 @@
     source = ./scripts/wsaction.fish;
     executable = true;
   };
-}
 
+  home.packages = with pkgs; [
+    app2unit
+    hyprland
+    foot
+    wl-clipboard
+  ];
+}
