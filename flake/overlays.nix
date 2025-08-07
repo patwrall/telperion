@@ -55,7 +55,7 @@ in
       {
         pkgs = pkgs.extend (lib.composeManyExtensions allOverlays);
 
-        packages = config.pkgs.khanelinix;
+        packages = config.pkgs.telperion;
       };
   };
 }
