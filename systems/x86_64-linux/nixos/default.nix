@@ -16,6 +16,10 @@ in
       time = enabled;
       xkb = enabled;
     };
+
+    suites = {
+      common = enabled;
+    };
   };
   services.displayManager.defaultSession = "hyprland-uwsm";
 
