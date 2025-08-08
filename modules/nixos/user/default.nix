@@ -43,7 +43,7 @@ in
       group = "users";
       home = "/home/${cfg.name}";
       isNormalUser = true;
-      shell = pkgs.zsh;
+      shell = pkgs.fish;
       uid = 1000;
     }
     // cfg.extraOptions;

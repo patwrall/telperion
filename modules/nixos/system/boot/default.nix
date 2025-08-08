@@ -10,7 +10,7 @@ let
   cfg = config.telperion.system.boot;
 in
 {
-  options.khanelinix.system.boot = {
+  options.telperion.system.boot = {
     enable = lib.mkEnableOption "booting";
     secureBoot = lib.mkEnableOption "secure boot";
     silentBoot = lib.mkEnableOption "silent boot";
