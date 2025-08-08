@@ -6,6 +6,7 @@ in
   imports = [ ./hardware.nix ];
 
   telperion = {
+    nix = enabled;
 
     system = {
       boot = enabled;
