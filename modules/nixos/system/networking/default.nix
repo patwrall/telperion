@@ -156,7 +156,7 @@ in
       ];
 
       useDHCP = mkDefault false;
-      usePredictableInterfaceNames = true;
+      usePredictableInterfaceNames = mkDefault true;
     };
   };
 }
