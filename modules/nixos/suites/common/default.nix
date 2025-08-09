@@ -59,7 +59,7 @@ in
         logind = mkDefault enabled;
         logrotate = mkDefault enabled;
         oomd = mkDefault enabled;
-        openssh = mkDefault enabled;
+        # openssh = mkDefault enabled;
         printing = mkDefault enabled;
       };
 
