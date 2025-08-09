@@ -6,7 +6,7 @@
     ../lib
     ./configs.nix
     ./home.nix
-    # ./overlays.nix
+    ./overlays.nix
     ./packages.nix
     # ./templates.nix
     inputs.flake-parts.flakeModules.partitions
