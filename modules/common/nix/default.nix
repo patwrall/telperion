@@ -62,20 +62,22 @@ in
       {
         inherit (cfg) package;
 
-        buildMachines =
-          let
-            sshUser = "telperion";
-            # TODO: update when ssh-ng isn't so slow
-            # protocol = if pkgs.stdenv.hostPlatform.isLinux then "ssh-ng" else "ssh";
-            protocol = "ssh";
-            supportedFeatures = [
-              "benchmark"
-              "big-parallel"
-              "nixos-test"
-            ];
-          in
-          # Linux builders
-          lib.optionals config.telperion.security.sops.enable [ ];
+        # TODO: build machines
+
+        # buildMachines =
+        #   let
+        #     sshUser = "telperion";
+        #     # TODO: update when ssh-ng isn't so slow
+        #     # protocol = if pkgs.stdenv.hostPlatform.isLinux then "ssh-ng" else "ssh";
+        #     protocol = "ssh";
+        #     supportedFeatures = [
+        #       "benchmark"
+        #       "big-parallel"
+        #       "nixos-test"
+        #     ];
+        #   in
+        #   # Linux builders
+        #   lib.optionals config.telperion.security.sops.enable [ ];
 
         checkConfig = true;
         distributedBuilds = true;
