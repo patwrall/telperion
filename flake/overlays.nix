@@ -34,7 +34,7 @@ let
         self:
         prev.lib.mapAttrs
           (
-            _name: func: final.callPackage func (self // { inherit inputs; })
+            _name: packageData: final.callPackage (packageData.default or packageData) (self // { inherit inputs; })
           )
           packageFunctions
       );
