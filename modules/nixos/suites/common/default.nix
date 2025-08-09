@@ -25,7 +25,6 @@ in
         lshw
         pciutils
         rsync
-        usbimager
         util-linux
         wget
       ];
@@ -44,7 +43,6 @@ in
           tools = {
             bandwhich = mkDefault enabled;
             nix-ld = mkDefault enabled;
-            ssh = mkDefault enabled;
           };
         };
       };
