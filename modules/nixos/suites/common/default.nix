@@ -48,9 +48,7 @@ in
       };
 
       security = {
-        # auditd = mkDefault enabled;
         clamav = mkDefault enabled;
-        gpg = mkDefault enabled;
         pam = mkDefault enabled;
         usbguard = mkDefault enabled;
       };
@@ -63,7 +61,6 @@ in
         oomd = mkDefault enabled;
         openssh = mkDefault enabled;
         printing = mkDefault enabled;
-        # resources-limiter = mkDefault enabled;
       };
 
       system = {
