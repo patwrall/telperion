@@ -11,18 +11,18 @@ let
 in
 {
   options.telperion.suites.wlroots = {
-    enable = lib.mkEnableOption "common wlroots config";
+    enable = lib.mkEnableOption "common wlroots configuration";
   };
 
   config = mkIf cfg.enable {
+
     telperion = {
       services = {
         seatd = mkDefault enabled;
       };
     };
-
     programs = {
-      xwayland.enabled = mkDefault true;
+      xwayland.enable = mkDefault true;
 
       wshowkeys = {
         enable = mkDefault true;
