@@ -20,7 +20,7 @@ in
           addons = { };
 
           apps = {
-            # _1password = mkDefault enabled;
+            _1password = mkDefault enabled;
           };
         };
       };
