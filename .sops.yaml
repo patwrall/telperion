@@ -1,0 +1,13 @@
+keys:
+  - &admin_pat age12jzdvycz84445t9jdxl7vpdudy0vc7e3dkntw44r9fc7g5aqdp6sq87rlc
+  - &user_CORE_nixos age1qh2epukpmcg69386v5shr3w9l2tvryan4xr8npdk8tkth62jtpwqg4u0n3
+creation_rules:
+  - path_regex: secrets/[^/]+\.(yaml|json|env|ini)$
+    key_groups:
+      - age:
+          - *admin_pat
+  - path_regex: secrets/CORE/nixos/[^/]+\.(yaml|json|env|ini)$
+    key_groups:
+      - age:
+          - *user_CORE_nixos
+ 
