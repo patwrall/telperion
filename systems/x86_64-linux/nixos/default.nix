@@ -20,6 +20,10 @@ in
     suites = {
       common = enabled;
     };
+
+    user = {
+      initialPassword = "test";
+    };
   };
   services.displayManager.defaultSession = "hyprland-uwsm";
 
