@@ -8,7 +8,7 @@ let
   cfg = config.telperion.programs.graphical.addons.uwsm;
 in
 {
-  options.telpeion.programs.graphical.addons.uwsm = {
+  options.telperion.programs.graphical.addons.uwsm = {
     enable = lib.mkEnableOption "uwsm";
   };
 
