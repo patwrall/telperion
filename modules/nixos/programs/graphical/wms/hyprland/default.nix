@@ -54,12 +54,6 @@ in
     };
 
     telperion = {
-      display-managers = {
-        sddm = {
-          enable = true;
-        };
-      };
-
       home = {
         configFile = { }
           // lib.optionalAttrs config.programs.hyprland.withUWSM {
