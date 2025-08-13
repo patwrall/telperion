@@ -10,13 +10,10 @@ let
 in
 {
   options.telperion.programs.graphical.file-managers.dolphin = {
-    enable = lib.mkEnableOption "Dolphin";
+    enable = lib.mkEnableOption "Dolphin File Manager";
   };
 
   config = mkIf cfg.enable {
-    environment.systemPackages = with pkgs; [ dolphin-emu ];
-
-    # Enable GameCube controller support.
-    services.udev.packages = [ pkgs.dolphinEmu ];
+    environment.systemPackages = with pkgs; [ libsForQt5.dolphin ];
   };
 }
