@@ -8,6 +8,14 @@ in
   telperion = {
     nix = enabled;
 
+    programs = {
+      graphical = {
+        wms = {
+          hyprland.enable = true;
+        };
+      };
+    };
+
     system = {
       boot = enabled;
       fonts = enabled;

@@ -118,23 +118,17 @@ in
           };
 
           file-managers = {
-            doplphin = enabled;
+            dolphin = enabled;
           };
         };
       };
 
       security = {
-        keyring = enabled;
         polkit = enabled;
       };
 
       suites = {
         wlroots = enabled;
-      };
-
-      theme = {
-        gtk = enabled;
-        qt = enabled;
       };
     };
   };
