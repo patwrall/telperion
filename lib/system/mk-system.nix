@@ -55,7 +55,6 @@ inputs.nixpkgs.lib.nixosSystem {
     inputs.sops-nix.nixosModules.sops
     inputs.disko.nixosModules.disko
     inputs.stylix.nixosModules.stylix
-    inputs.caelestia-shell.nixosModules.caelestia-shell
     inputs.nix-index-database.nixosModules.nix-index
     inputs.nix-flatpak.nixosModules.nix-flatpak
 
