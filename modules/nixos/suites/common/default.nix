@@ -27,6 +27,7 @@ in
         rsync
         util-linux
         wget
+        neovim
       ];
     };
 

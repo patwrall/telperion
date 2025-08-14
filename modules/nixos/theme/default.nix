@@ -31,12 +31,14 @@ in
 
 
   config = lib.mkIf cfg.enable {
-    environment.systemPackages = [ cfg.cursor.package ];
+    environment = {
+      sessionVariables = {
+        CURSOR_THEME = cfg.cursor.name;
+        XCURSOR_THEME = cfg.cursor.name;
+        XCURSOR_SIZE = toString cfg.cursor.size;
+      };
 
-    environment.sessionVariables = {
-      CURSOR_THEME = cfg.cursor.name;
-      XCURSOR_THEME = cfg.cursor.name;
-      XCURSOR_SIZE = toString cfg.cursor.size;
+      systemPackages = [ cfg.cursor.package ];
     };
   };
 }

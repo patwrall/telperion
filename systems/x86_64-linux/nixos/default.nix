@@ -8,25 +8,47 @@ in
   telperion = {
     nix = enabled;
 
+    hardware = { };
+
     programs = {
       graphical = {
+        addons = { };
         wms = {
           hyprland.enable = true;
         };
       };
     };
 
+    security = { };
+
+    services = {
+      avahi = enabled;
+      geoclue = enabled;
+      power = enabled;
+    };
+
     system = {
-      boot = enabled;
-      fonts = enabled;
-      locale = enabled;
-      networking = enabled;
-      time = enabled;
+      boot = {
+        enable = true;
+        secureBoot = true;
+        silentBoot = true;
+      };
+
+      networking = {
+        enable = true;
+        optimizeTcp = true;
+      };
       xkb = enabled;
     };
 
     suites = {
       common = enabled;
+      desktop = enabled;
+
+      development = {
+        enable = true;
+        dockerEnable = true;
+      };
     };
 
     user = {
