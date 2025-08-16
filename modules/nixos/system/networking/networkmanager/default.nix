@@ -33,8 +33,8 @@ in
           "interface-name:rndis*"
         ]
         ++ lib.optionals config.telperion.services.tailscale.enable [ "interface-name:tailscale*" ]
-        ++ lib.optionals config.telperion.virtualisation.podman.enable [ "interface-name:docker*" ];
-        # ++ lib.optionals config.telperion.virtualisation.kvm.enable [ "interface-name:virbr*" ];
+        ++ lib.optionals config.telperion.virtualisation.podman.enable [ "interface-name:docker*" ]
+        ++ lib.optionals config.telperion.virtualisation.kvm.enable [ "interface-name:virbr*" ];
       };
     };
     # Slows down rebuilds timing out for network.
