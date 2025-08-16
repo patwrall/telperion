@@ -8,16 +8,15 @@ in
   imports = [ ./hardware.nix ];
 
   telperion = {
-    nix = enabled;
+    archetypes = {
+      personal = enabled;
+    };
 
     hardware = { };
 
-    programs = {
-      graphical = {
-        addons = { };
-        wms = {
-          hyprland.enable = true;
-        };
+    programs.graphical = {
+      wms = {
+        hyprland.enable = true;
       };
     };
 
@@ -35,22 +34,15 @@ in
         secureBoot = true;
         silentBoot = true;
       };
-
       networking = {
         enable = true;
         optimizeTcp = true;
       };
-      xkb = enabled;
     };
 
-    suites = {
-      common = enabled;
-      desktop = enabled;
-
-      development = {
-        enable = true;
-        dockerEnable = true;
-      };
+    suites.development = {
+      enable = true;
+      dockerEnable = true;
     };
 
     user = {
