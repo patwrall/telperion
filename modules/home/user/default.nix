@@ -54,6 +54,7 @@ in
           "Downloads/.keep".text = "";
           "Music/.keep".text = "";
           "Pictures/.keep".text = "";
+          "Projects/.keep".text = "";
           "Videos/.keep".text = "";
         };
 
