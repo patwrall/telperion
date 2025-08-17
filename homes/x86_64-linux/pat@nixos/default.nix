@@ -15,10 +15,11 @@ in
 
     programs = {
       graphical = {
+        quickshell = {
+          caelestia = enabled;
+        };
         wms = {
-          hyprland = {
-            enable = true;
-          };
+          hyprland = enabled;
         };
       };
     };

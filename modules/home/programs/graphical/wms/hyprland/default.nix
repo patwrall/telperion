@@ -50,9 +50,9 @@ in
 
   config = mkIf cfg.enable {
     home = {
-      pointerCursor.hyprcursor = {
-        enable = true;
-      };
+      # pointerCursor.hyprcursor = {
+      #   enable = true;
+      # };
 
       sessionVariables = lib.mkIf (!(osConfig.programs.uwsm.enable or false)) (
         {
@@ -119,7 +119,6 @@ in
             osConfig ? programs.hyprland.portalPackage
           )
           osConfig.programs.hyprland.portalPackage;
-
 
         settings = { };
 
