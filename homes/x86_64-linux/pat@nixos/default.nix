@@ -13,6 +13,16 @@ in
       name = "pat";
     };
 
+    programs = {
+      graphical = {
+        wms = {
+          hyprland = {
+            enable = true;
+          };
+        };
+      };
+    };
+
     system = {
       xdg = enabled;
     };
