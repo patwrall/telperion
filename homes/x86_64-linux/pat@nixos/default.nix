@@ -1,5 +1,6 @@
 { config
 , lib
+, pkgs
 , ...
 }:
 let
@@ -27,5 +28,11 @@ in
     system = {
       xdg = enabled;
     };
+
+    suites = {
+      common = enabled;
+    };
   };
+
+  home.stateVersion = "25.05";
 }
