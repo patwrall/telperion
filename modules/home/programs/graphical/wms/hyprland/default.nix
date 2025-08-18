@@ -120,7 +120,11 @@ in
           )
           osConfig.programs.hyprland.portalPackage;
 
-        settings = { };
+        settings = {
+          exec-once = lib.mkIf config.telperion.programs.graphical.quickshell.caelestia.enable [
+            "caelestia-shell -d"
+          ];
+        };
 
         systemd = {
           enable = !(osConfig.programs.uwsm.enable or false);

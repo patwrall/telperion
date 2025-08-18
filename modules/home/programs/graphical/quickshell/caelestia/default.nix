@@ -1,14 +1,17 @@
 { config
 , inputs
 , lib
-, pkgs
+, system
 , ...
 }:
 let
-  inherit (lib) mkIf mkEnableOption getExe;
-  inherit (inputs) caelestia-shell;
+  inherit (lib) mkIf mkEnableOption;
 
   cfg = config.telperion.programs.graphical.quickshell.caelestia;
+
+  caelestia-shell = inputs.caelestia-shell.packages.${system}.default.override {
+    withCli = true;
+  };
 in
 {
   options.telperion.programs.graphical.quickshell.caelestia = {
@@ -16,7 +19,7 @@ in
   };
 
   config = mkIf cfg.enable {
-    home.packages = with pkgs; [
+    home.packages = [
       caelestia-shell
     ];
   };
