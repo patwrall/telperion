@@ -71,8 +71,10 @@ in
       };
     };
 
-    programs.fish = {
+    programs.zsh = {
       enable = true;
+      autosuggestions.enable = true;
+      histFile = "$XDG_CACHE_HOME/zsh.history";
     };
 
     zramSwap.enable = true;
