@@ -10,7 +10,7 @@ let
 in
 {
   options.telperion.programs.terminal.emulators.foot = {
-    enable = lib.mkenableoption "foot";
+    enable = lib.mkEnableOption "foot";
   };
 
 
