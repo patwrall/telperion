@@ -17,7 +17,7 @@ in
   config = mkIf cfg.enable {
     home.packages = with pkgs; [ libsixel ];
 
-    home.foot = {
+    programs.foot = {
       enable = true;
       package = pkgs.foot;
 
