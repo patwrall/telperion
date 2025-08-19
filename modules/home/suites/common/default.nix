@@ -41,11 +41,29 @@ in
     telperion = {
       programs = {
         terminal = {
+          emulators = {
+            foot = enabled;
+          };
+
           shell = {
             fish = enabled;
           };
         };
       };
     };
+
+    programs = {
+      # FIXME: breaks zsh aliases
+      # pay-respects = mkDefault enabled;
+      readline = {
+        enable = mkDefault true;
+
+        extraConfig = ''
+          set completion-ignore-case on
+        '';
+      };
+    };
+
+    xdg.configFile.wgetrc.text = "";
   };
 }
