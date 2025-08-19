@@ -12,6 +12,8 @@ let
   caelestia-shell = inputs.caelestia-shell.packages.${system}.default.override {
     withCli = true;
   };
+
+  caelestia-cli = inputs.caelestia-cli.packages.${system}.caelestia-cli;
 in
 {
   options.telperion.programs.graphical.quickshell.caelestia = {
@@ -21,6 +23,7 @@ in
   config = mkIf cfg.enable {
     home.packages = [
       caelestia-shell
+      caelestia-cli
     ];
   };
 }
