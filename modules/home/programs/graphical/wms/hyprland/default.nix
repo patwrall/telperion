@@ -5,7 +5,7 @@
 , ...
 }:
 let
-  inherit (lib) mkIf mkEnableOption getExe;
+  inherit (lib) mkIf mkEnableOption;
   inherit (lib.telperion) enabled;
 
   cfg = config.telperion.programs.graphical.wms.hyprland;
@@ -46,7 +46,10 @@ in
     };
   };
 
-  imports = [ ];
+  imports = [
+    ./binds.nix
+    ./variables.nix
+  ];
 
   config = mkIf cfg.enable {
     home = {
