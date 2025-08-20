@@ -164,13 +164,58 @@ in
           background_color = "rgb($surfaceContainer)";
         };
 
-        "$mainMod" = "SUPER";
-
-        "$term" = "${getExe pkgs.foot}";
-        "$browser" = "${getExe config.programs.zen-browser}";
+        "$terminal" = "${getExe pkgs.foot}";
+        "$browser" = "";
         "$editor" = "${getExe pkgs.neovim}";
-        "$explorer" = "${getExe pkgs.dolphin}";
+        "$fileExplorer" = "";
 
+        "$volumeStep" = "10";
+
+        # Workspaces
+        "$kbMoveWinToWs" = "SUPER_ALT";
+        "$kbMoveWinToWsGroup" = "CTRL_SUPER_ALT";
+        "$kbGoToWs" = "SUPER";
+        "$kbGoToWsGroup" = "CTRL_SUPER";
+
+        "$kbNextWs" = "CTRL_SUPER, right";
+        "$kbPrevWs" = "CTRL_SUPER, left";
+
+        "$kbToggleSpecialWs" = "SUPER, S";
+
+        # Window Groups
+        "$kbWindowGroupCycleNext" = "ALT, Tab";
+        "$kbWindowGroupCyclePrev" = "SHIFT_ALT, Tab";
+        "$kbUngroup" = "SUPER, U";
+        "$kbToggleGroup" = "SUPER, Comma";
+
+        # Window Actions
+        "$kbMoveWindow" = "SUPER, Z";
+        "$kbResizeWindow" = "SUPER, X";
+        "$kbWindowPip" = "SUPER_ALT, Backslash";
+        "$kbPinWindow" = "SUPER, P";
+        "$kbWindowFullscreen" = "SUPER, F";
+        "$kbWindowBorderedFullscreen" = "SUPER_ALT, F";
+        "$kbToggleWindowFloating" = "SUPER_ALT, Space";
+        "$kbCloseWindow" = "SUPER, Q";
+
+        # Special Workspace Toggles
+        "$kbSystemMonitor" = "CTRL_SHIFT, Escape";
+        "$kbMusic" = "SUPER, M";
+        "$kbCommunication" = "SUPER, D";
+        "$kbTodo" = "SUPER, R";
+
+        # Apps
+        "$kbTerminal" = "SUPER, T";
+        "$kbBrowser" = "SUPER, W";
+        "$kbEditor" = "SUPER, C";
+        "$kbFileExplorer" = "SUPER, E";
+
+        # Mics
+        "$kbSession" = "CTRL_ALT, Delete";
+        "$kbClearNotifs" = "CTRL_ALT, C";
+        "$kbShowPanels" = "SUPER, K";
+        "$kbLock" = "SUPER, L";
+        "$kbRestoreLock" = "SUPER_ALT, L";
       };
     };
   };
