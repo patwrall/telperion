@@ -118,7 +118,7 @@ in
           };
 
           file-managers = {
-            thunar = enabled;
+            nautilus = enabled;
           };
         };
       };

@@ -167,7 +167,7 @@ in
         "$terminal" = "${getExe pkgs.foot}";
         "$browser" = "";
         "$editor" = "${getExe pkgs.neovim}";
-        "$fileExplorer" = "${getExe pkgs.xfce.thunar}";
+        "$fileExplorer" = "${getExe pkgs.nautilus}";
 
         "$volumeStep" = "10";
 
