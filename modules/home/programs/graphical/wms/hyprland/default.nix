@@ -97,7 +97,12 @@ in
       // historicalCrashAliases;
     };
 
-    telperion = { };
+    telperion = {
+      theme = {
+        gtk = enabled;
+        qt = enabled;
+      };
+    };
 
     services.hyprpolkitagent = enabled;
 

@@ -7,8 +7,6 @@
 let
   inherit (lib) mkIf mkEnableOption;
 
-  inherit (lib.telperion) enabled;
-
   cfg = config.telperion.programs.graphical.quickshell.caelestia;
 
   caelestia-shell = inputs.caelestia-shell.packages.${system}.default.override {
@@ -27,7 +25,5 @@ in
       caelestia-shell
       caelestia-cli
     ];
-
-    telperion.programs.graphical.gtk = enabled;
   };
 }
