@@ -171,6 +171,7 @@ in
 
         "$volumeStep" = "10";
 
+
         # Workspaces
         "$kbMoveWinToWs" = "SUPER_ALT";
         "$kbMoveWinToWsGroup" = "CTRL_SUPER_ALT";
@@ -209,6 +210,12 @@ in
         "$kbBrowser" = "SUPER, W";
         "$kbEditor" = "SUPER, C";
         "$kbFileExplorer" = "SUPER, E";
+
+        # Gaps
+        "$workspaceGaps" = "20";
+        "$windowGapsIn" = "10";
+        "$windowGapsOut" = "40";
+        "$singleWindowGapsOut" = "20";
 
         # Mics
         "$kbSession" = "CTRL_ALT, Delete";
