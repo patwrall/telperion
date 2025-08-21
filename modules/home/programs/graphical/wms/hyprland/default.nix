@@ -49,6 +49,7 @@ in
   imports = [
     ./binds.nix
     ./variables.nix
+    ./windowrules
   ];
 
   config = mkIf cfg.enable {
