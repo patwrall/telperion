@@ -10,7 +10,7 @@ let
     mkDefault
     types
     ;
-  inherit (lib.telperion) mkOpt boolToNum nested-default-attrs;
+  inherit (lib.telperion) mkOpt boolToNum;
 
   cfg = config.telperion.theme.gtk;
 in
@@ -20,24 +20,15 @@ in
     usePortal = lib.mkEnableOption "using the GTK Portal";
 
     cursor = {
-      name = mkOpt types.str "catppuccin-macchiato-blue-cursors" "The name of the cursor theme to apply.";
-      package = mkOpt types.package
-        (
-          if pkgs.stdenv.hostPlatform.isLinux then
-            pkgs.catppuccin-cursors.macchiatoBlue
-          else
-            pkgs.emptyDirectory
-        ) "The package to use for the cursor theme.";
-      size = mkOpt types.int 32 "The size of the cursor.";
+      name = mkOpt types.str "Bibata-Modern-Classic" "The name of the cursor theme to apply.";
+      package = mkOpt types.package pkgs.bibata-cursors "The package to use for the cursor theme.";
+      size = mkOpt types.int 24 "The size of the cursor."; # Adjusted to a more common size
     };
+
 
     icon = {
       name = mkOpt types.str "Papirus-Dark" "The name of the icon theme to apply.";
-      package = mkOpt types.package
-        (pkgs.catppuccin-papirus-folders.override {
-          accent = "blue";
-          flavor = "macchiato";
-        }) "The package to use for the icon theme.";
+      package = mkOpt types.package pkgs.papirus-icon-theme "The package to use for the icon theme.";
     };
   };
 
@@ -67,8 +58,6 @@ in
     };
 
     dbus.packages = [ pkgs.dconf ];
-
-
 
     gtk = {
       enable = true;

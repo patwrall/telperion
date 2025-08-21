@@ -38,7 +38,7 @@ in
       enable = true;
 
       platformTheme = {
-        name = mkDefault "qtct";
+        name = mkDefault "gtk3";
       };
 
       style = mkDefault { name = "qt6ct-style"; };
