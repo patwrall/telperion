@@ -118,7 +118,7 @@ in
           };
 
           file-managers = {
-            dolphin = enabled;
+            thunar = enabled;
           };
         };
       };
