@@ -53,6 +53,12 @@
         nixpkgs.follows = "nixpkgs";
       };
     };
+    hyprland = {
+      url = "github:hyprwm/hyprland";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+      };
+    };
     stylix = {
       url = "github:danth/stylix";
       inputs = {
