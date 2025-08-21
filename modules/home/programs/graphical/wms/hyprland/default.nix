@@ -152,8 +152,8 @@ in
         xwayland.enable = true;
       };
 
-    home.file.".config/hypr/scheme/default.conf" = {
-      source = ./scheme/default.conf;
+    home.file.".config/hypr/scheme/current.conf" = {
+      text = builtins.readFile ./scheme/default.conf;
     };
   };
 }
