@@ -71,6 +71,7 @@ in
           ++ [
             inputs.nix-index-database.homeModules.nix-index
             inputs.sops-nix.homeManagerModules.sops
+            inputs.opnix.homeManagerModules.default
           ]
           ++ (extendedLib.importModulesRecursive ../../modules/home);
           users = mapAttrs'

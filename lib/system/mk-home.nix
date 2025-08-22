@@ -36,6 +36,8 @@ inputs.home-manager.lib.homeManagerConfiguration {
     inputs.sops-nix.homeManagerModules.sops
     inputs.opnix.homeManagerModules.default
 
+    ../../secrets
+
     # Import all home modules recursively
   ]
   ++ (extendedLib.importModulesRecursive ../../modules/home)
