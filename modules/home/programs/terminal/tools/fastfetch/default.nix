@@ -1,6 +1,5 @@
 { config
 , lib
-, pkgs
 , ...
 }:
 let
@@ -17,7 +16,6 @@ in
   config = mkIf cfg.enable {
     programs.fastfetch = {
       enable = true;
-      package = pkgs.fastfetchMinimal;
 
       settings = lib.importJSON ./config.jsonc;
     };

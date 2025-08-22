@@ -151,8 +151,20 @@ in
         xwayland.enable = true;
       };
 
-    home.file.".config/hypr/scheme/current.conf" = {
-      text = builtins.readFile ./scheme/default.conf;
-    };
+    home.activation.createInitialThemeFile = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      # Define the path to the target file
+      THEME_FILE="$HOME/.config/hypr/scheme/current.conf"
+
+      # Check if the file does not already exist
+      if [ ! -f "$THEME_FILE" ]; then
+        # If it's missing, create the directory path
+        mkdir -p "$(dirname "$THEME_FILE")"
+      
+        # And copy the default config into place as a REAL file
+        cp ${./scheme/default.conf} "$THEME_FILE"
+      
+        echo "Created initial, writable theme file at $THEME_FILE"
+      fi
+    '';
   };
 }
