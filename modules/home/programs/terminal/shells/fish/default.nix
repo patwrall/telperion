@@ -25,7 +25,7 @@ in
       interactiveShellInit =
         # fish
         ''
-          cat ~/.local/state/caelestia/sequences.txt 2>/dev/null
+          command cat ~/.local/state/caelestia/sequences.txt 2>/dev/null
         ''
         +
         ''
