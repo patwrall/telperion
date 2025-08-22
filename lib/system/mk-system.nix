@@ -62,11 +62,10 @@ inputs.nixpkgs.lib.nixosSystem {
     # Auto-inject home configurations for this system+hostname
     homeManagerConfig
 
-    ../../secrets
-
     # Import all nixos modules recursively
   ]
   ++ (extendedLib.importModulesRecursive ../../modules/nixos)
+  ++ (extendedLib.importModulesRecursive ../../secrets)
   ++ [
     ../../systems/${system}/${hostname}
   ]
