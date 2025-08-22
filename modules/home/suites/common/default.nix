@@ -71,6 +71,10 @@ in
           };
         };
       };
+
+      services = {
+        udiskie.enable = mkDefault (pkgs.stdenv.hostPlatform.isLinux);
+      };
     };
 
     programs = {
