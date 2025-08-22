@@ -34,6 +34,7 @@ inputs.home-manager.lib.homeManagerConfiguration {
 
     inputs.nix-index-database.homeModules.nix-index
     inputs.sops-nix.homeManagerModules.sops
+    inputs.opnix.homeManagerModules.default
 
     # Import all home modules recursively
   ]

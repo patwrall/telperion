@@ -53,6 +53,7 @@ inputs.nixpkgs.lib.nixosSystem {
     inputs.home-manager.nixosModules.home-manager
     inputs.lanzaboote.nixosModules.lanzaboote
     inputs.sops-nix.nixosModules.sops
+    inputs.opnix.nixosModules.default
     inputs.disko.nixosModules.disko
     inputs.stylix.nixosModules.stylix
     inputs.nix-index-database.nixosModules.nix-index
