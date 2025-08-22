@@ -48,6 +48,27 @@ in
           shell = {
             fish = enabled;
           };
+
+          tools = {
+            atuin = mkDefault enabled;
+            bat = mkDefault enabled;
+            btop = mkDefault enabled;
+            carapace = mkDefault enabled;
+            comma = mkDefault enabled;
+            dircolors = mkDefault enabled;
+            direnv = mkDefault enabled;
+            eza = mkDefault enabled;
+            fastfetch = mkDefault enabled;
+            fzf = mkDefault enabled;
+            jq = mkDefault enabled;
+            navi = mkDefault enabled;
+            nix-search-tv = mkDefault enabled;
+            nh = mkDefault enabled;
+            ripgrep = mkDefault enabled;
+            starship = mkDefault enabled;
+            television = mkDefault enabled;
+            zoxide = mkDefault enabled;
+          };
         };
       };
     };
