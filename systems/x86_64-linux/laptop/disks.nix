@@ -32,7 +32,7 @@ in
                 mountpoint = "/boot";
                 mountOptions = [ "umask=0077" ];
                 extraArgs = [
-                  "-LEFI"
+                  "-nEFI"
                 ];
               };
             };
