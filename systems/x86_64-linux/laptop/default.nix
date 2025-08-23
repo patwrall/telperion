@@ -55,6 +55,7 @@ in
       networking = {
         enable = true;
         optimizeTcp = true;
+        manager = "networkmanager";
       };
       realtime = enabled;
     };
