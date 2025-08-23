@@ -22,7 +22,7 @@ in
         enable = true;
       };
 
-      flake = "${config.home.homeDirectory}/khanelinix";
+      flake = "${config.home.homeDirectory}/telperion";
     };
 
     launchd.agents.nh-clean.config = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {

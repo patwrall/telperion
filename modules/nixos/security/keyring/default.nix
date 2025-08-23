@@ -5,10 +5,10 @@
 let
   inherit (lib) mkIf;
 
-  cfg = config.khanelinix.security.keyring;
+  cfg = config.telperion.security.keyring;
 in
 {
-  options.khanelinix.security.keyring = {
+  options.telperion.security.keyring = {
     enable = lib.mkEnableOption "gnome keyring";
   };
 
