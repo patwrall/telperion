@@ -1,5 +1,4 @@
-{ config
-, disks ? [
+{ disks ? [
     "/dev/nvme0n1"
   ]
 , ...
