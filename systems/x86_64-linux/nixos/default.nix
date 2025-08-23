@@ -7,6 +7,12 @@ in
 {
   imports = [ ./hardware.nix ];
 
+  environment.loginShellInit = ''
+    if uwsm check may-start; then
+      exec uwsm start -- default
+    fi
+  '';
+
   telperion = {
     archetypes = {
       personal = enabled;
