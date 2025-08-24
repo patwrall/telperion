@@ -1,9 +1,7 @@
 { lib
-, pkgs
 , ...
 }:
 let
-  inherit (lib) getExe;
   inherit (lib.telperion) enabled;
 in
 {
@@ -26,7 +24,7 @@ in
             prependConfig = ''
               # Configure the built-in laptop display
               # Format: monitor = <name>,<resolution>,<offset>,<scale>
-              monitor = eDP-1, preferred, 0x0, 1
+              monitor = , 1920x1080@60, auto, .8
             '';
           };
         };
