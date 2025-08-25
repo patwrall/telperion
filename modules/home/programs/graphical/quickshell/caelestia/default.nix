@@ -14,7 +14,6 @@ in
   };
 
   config = mkIf cfg.enable {
-
     programs.caelestia = {
       enable = true;
       cli.enable = true;
