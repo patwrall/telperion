@@ -16,7 +16,7 @@ in
   };
 
   config = mkIf cfg.enable {
-    environment.systemPackages = [
+    home.packages = [
       inputs.zen-browser.packages.${system}.zen-browser
     ];
   };
