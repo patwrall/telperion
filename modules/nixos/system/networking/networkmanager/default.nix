@@ -39,9 +39,5 @@ in
     };
     # Slows down rebuilds timing out for network.
     systemd.services.NetworkManager-wait-online.enable = lib.mkForce false;
-
-    environment.systemPackages = with pkgs; [
-      nmtui
-    ];
   };
 }
