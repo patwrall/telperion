@@ -72,6 +72,7 @@ in
             inputs.nix-index-database.homeModules.nix-index
             inputs.sops-nix.homeManagerModules.sops
             inputs.opnix.homeManagerModules.default
+            inputs.caelestia-shell.homeManagerModules.default
           ]
           ++ (extendedLib.importModulesRecursive ../../modules/home);
           users = mapAttrs'
