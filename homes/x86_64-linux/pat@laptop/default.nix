@@ -20,12 +20,6 @@ in
           hyprland = {
             enable = true;
             enableDebug = true;
-
-            prependConfig = ''
-              # Configure the built-in laptop display
-              # Format: monitor = <name>,<resolution>,<offset>,<scale>
-              monitor = , 1920x1080@60, auto, 0.8
-            '';
           };
         };
       };
