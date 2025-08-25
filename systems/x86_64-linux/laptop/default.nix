@@ -49,7 +49,7 @@ in
     system = {
       boot = {
         enable = true;
-        secureBoot = true;
+        secureBoot = false;
         silentBoot = true;
       };
       networking = {
