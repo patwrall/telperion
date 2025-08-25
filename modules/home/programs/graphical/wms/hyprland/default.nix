@@ -128,7 +128,9 @@ in
           osConfig.programs.hyprland.portalPackage;
 
         settings = {
-          monitor = ", preferred, auto, 0.83";
+          monitor = [
+            ", preferred, auto, 0.83"
+          ];
           source = "${config.home.homeDirectory}/.config/hypr/scheme/current.conf";
           exec-once = lib.mkIf config.telperion.programs.graphical.quickshell.caelestia.enable [
             "caelestia-shell -d"
