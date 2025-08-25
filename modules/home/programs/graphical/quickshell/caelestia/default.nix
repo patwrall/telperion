@@ -26,5 +26,7 @@ in
         };
       };
     };
+
+    systemd.user.services.caelestia.enable = false;
   };
 }
