@@ -134,6 +134,7 @@ in
         settings = {
           monitor = [
             ", preferred, auto, 0.83"
+            "DP-4, preffered, auto, 0.8"
           ];
           source = "${config.home.homeDirectory}/.config/hypr/scheme/current.conf";
         };
