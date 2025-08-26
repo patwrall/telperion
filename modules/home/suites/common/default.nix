@@ -23,6 +23,7 @@ in
       sessionVariables = {
         LESSHISTFILE = "${config.xdg.cacheHome}/less.history";
         WGETRC = "${config.xdg.configHome}/wgetrc";
+        _JAVA_OPTIONS = "-Dawt.useSystemAAFontSettings=on -Dswing.aatext=true";
       };
 
       shellAliases = {
