@@ -33,6 +33,9 @@ in
           };
         };
       };
+      terminal = {
+        discordo = enabled;
+      };
     };
 
     system = {
