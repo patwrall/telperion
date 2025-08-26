@@ -1,0 +1,32 @@
+{ config
+, lib
+, ...
+}:
+let
+  inherit (lib) mkEnableOption mkIf;
+
+  cfg = config.telperion.programs.graphical.apps.zathura;
+in
+{
+  options.telperion.programs.graphical.apps.zathura = {
+    enable = mkEnableOption "zathura";
+  };
+
+  config = mkIf cfg.enable {
+    programs.zathura = {
+      enable = true;
+
+      options = {
+        adjust-open = "best-fit";
+        font = "MonaspaceNeon 14";
+        pages-per-row = "1";
+        scroll-full-overlap = "0.01";
+        scroll-page-aware = "true";
+        scroll-step = "100";
+        selection-clipboard = "clipboard";
+        selection-notification = true;
+        zoom-min = "10";
+      };
+    };
+  };
+}
