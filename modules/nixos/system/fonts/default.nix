@@ -26,6 +26,8 @@ in
         antialias = true;
         hinting.enable = true;
 
+        subpixel.rgba = "rgb";
+
         defaultFonts =
           let
             common = [

@@ -46,6 +46,7 @@ in
     environment.variables = {
       # Enable icons in tooling since we have nerdfonts.
       LOG_ICONS = "true";
+      _JAVA_OPTIONS = "-Dawt.useSystemAAFontSettings=on -Dswing.aatext=true -Dsun.java2d.xrender=true";
     };
   };
 }
