@@ -25,6 +25,12 @@ in
     };
 
     programs.graphical = {
+      apps = {
+        _1password = {
+          enable = true;
+          enableSshSocket = true;
+        };
+      };
       wms = {
         hyprland.enable = true;
       };
