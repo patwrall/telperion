@@ -34,6 +34,7 @@ in
 
     suites = {
       common = enabled;
+      development = enabled;
       music = enabled;
     };
   };
