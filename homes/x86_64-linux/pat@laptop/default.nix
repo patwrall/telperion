@@ -34,7 +34,9 @@ in
         };
       };
       terminal = {
-        discordo = enabled;
+        social = {
+          discordo = enabled;
+        };
       };
     };
 
