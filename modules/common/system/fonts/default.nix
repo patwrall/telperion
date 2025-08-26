@@ -38,7 +38,7 @@ in
         nerd-fonts.symbols-only
         nerd-fonts.jetbrains-mono
       ] "Custom font packages to install.";
-    default = mkOpt types.str "JetBrains Mono" "Default font name";
+    default = mkOpt types.str "MonaspaceNeon" "Default font name";
     size = mkOpt types.int 13 "Default font size";
   };
 

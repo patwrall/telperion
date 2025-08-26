@@ -97,6 +97,10 @@ in
     };
 
     telperion = {
+      suites = {
+        wlroots = enabled;
+      };
+
       theme = {
         gtk = enabled;
         qt = enabled;
