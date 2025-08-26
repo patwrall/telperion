@@ -13,6 +13,9 @@ in
 
     programs = {
       graphical = {
+        browsers = {
+          zen-browser = enabled;
+        };
         quickshell = {
           caelestia = enabled;
         };

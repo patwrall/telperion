@@ -165,7 +165,7 @@ in
         };
 
         "$terminal" = "${getExe pkgs.foot}";
-        "$browser" = "";
+        "$browser" = "${getExe pkgs.zen-browser}";
         "$editor" = "${getExe pkgs.neovim}";
         "$fileExplorer" = "${getExe pkgs.nautilus}";
 
