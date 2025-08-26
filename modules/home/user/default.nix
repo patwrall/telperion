@@ -53,7 +53,10 @@ in
           "Documents/.keep".text = "";
           "Downloads/.keep".text = "";
           "Music/.keep".text = "";
-          "Pictures/.keep".text = "";
+          "Pictures/Wallpapers" = {
+            source = pkgs.telperion.wallpapers;
+            recursive = true;
+          };
           "Projects/.keep".text = "";
           "Videos/.keep".text = "";
         };
