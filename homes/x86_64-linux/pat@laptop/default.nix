@@ -13,8 +13,15 @@ in
 
     programs = {
       graphical = {
+        apps = {
+          rnote = enabled;
+          zathura = enabled;
+        };
         browsers = {
           zen-browser = enabled;
+        };
+        editors = {
+          idea = enabled;
         };
         quickshell = {
           caelestia = enabled;
