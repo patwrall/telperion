@@ -18,10 +18,18 @@ in
       enable = true;
       cli.enable = true;
       settings = {
+        background = {
+          visualiser = {
+            enabled = false;
+          };
+        };
         bar = {
           workspaces = {
             label = "";
           };
+        };
+        services = {
+          useTwelveHourClock = false;
         };
       };
     };

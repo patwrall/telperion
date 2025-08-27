@@ -41,6 +41,6 @@ in
         ++ lib.optional config.services.dnsmasq.enable "dnsmasq.service";
     };
 
-    time.timeZone = "America/Chicago";
+    time.timeZone = "America/Indiana/Indianapolis";
   };
 }
