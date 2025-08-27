@@ -21,6 +21,7 @@ in
       _1password-gui = {
         enable = true;
         package = pkgs._1password-gui;
+        enableSshAgent = true;
 
         polkitPolicyOwners = [ config.telperion.user.name ];
       };
