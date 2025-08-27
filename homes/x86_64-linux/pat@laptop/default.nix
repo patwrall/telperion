@@ -37,6 +37,12 @@ in
         social = {
           discordo = enabled;
         };
+        tools = {
+          _1password-cli = {
+            enable = true;
+            enableSshSocket = true;
+          };
+        };
       };
     };
 
