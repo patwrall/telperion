@@ -39,14 +39,13 @@ in
         nerd-fonts.jetbrains-mono
       ] "Custom font packages to install.";
     default = mkOpt types.str "JetBrains Mono" "Default font name";
-    size = mkOpt types.int 13 "Default font size";
+    size = mkOpt types.int 9 "Default font size";
   };
 
   config = mkIf cfg.enable {
     environment.variables = {
       # Enable icons in tooling since we have nerdfonts.
       LOG_ICONS = "true";
-      _JAVA_OPTIONS = "-Dawt.useSystemAAFontSettings=on -Dswing.aatext=true -Dsun.java2d.xrender=true";
     };
   };
 }

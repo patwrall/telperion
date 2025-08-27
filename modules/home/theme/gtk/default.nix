@@ -22,7 +22,7 @@ in
     cursor = {
       name = mkOpt types.str "Bibata-Modern-Classic" "The name of the cursor theme to apply.";
       package = mkOpt types.package pkgs.bibata-cursors "The package to use for the cursor theme.";
-      size = mkOpt types.int 24 "The size of the cursor."; # Adjusted to a more common size
+      size = mkOpt types.int 19 "The size of the cursor."; # Adjusted to a more common size
     };
 
 
@@ -63,8 +63,8 @@ in
       enable = true;
 
       font = {
-        name = mkDefault (osConfig.telperion.system.fonts.default or "JetBrains Mono Nerd Font");
-        size = mkDefault (osConfig.telperion.system.fonts.size or 12);
+        name = mkDefault (osConfig.telperion.system.fonts.default or "JetBrains Mono");
+        size = mkDefault (osConfig.telperion.system.fonts.size or 9);
       };
 
       iconTheme = {
