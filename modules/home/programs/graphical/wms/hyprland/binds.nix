@@ -1,11 +1,10 @@
 { config
 , lib
-, pkgs
 , osConfig ? { }
 , ...
 }:
 let
-  inherit (lib) mkIf getExe;
+  inherit (lib) mkIf;
 
   cfg = config.telperion.programs.graphical.wms.hyprland;
 

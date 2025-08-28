@@ -13,9 +13,9 @@ in
       settings = {
         windowrule = [
           "workspace special:sysmon, class:btop"
-          "workspace special:music, class:feishin|Spotify|Supersonic"
+          "workspace special:music, class:feishin|Spotify|Supersonic|spotify_player"
           "workspace special:music, initialTitle:Spotify( Free)?" # Spotify wayland, it has no class for some reason
-          "workspace special:communication, class:discord|equibop|vesktop|whatsapp"
+          "workspace special:communication, class:discord|equibop|vesktop|whatsapp|discordo"
           "workspace special:todo, class:Todoist"
         ];
 
