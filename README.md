@@ -53,4 +53,4 @@ work of others in the Nix community.
 
 * [khaneliman/khanelinix](https://github.com/khaneliman/khanelinix) -Direct
 adaptation of structure
-* [soramanew/shell](https://github.com/caelestia-dots/shell)
+* [caelestia-dots/shell](https://github.com/caelestia-dots/shell)
