@@ -52,5 +52,5 @@ This configuration draws significant inspiration (and things to copy) from the
 work of others in the Nix community.
 
 * [khaneliman/khanelinix](https://github.com/khaneliman/khanelinix) -Direct
-adaptation of structure
+adaptation of structure (and excellent learning material)
 * [caelestia-dots/shell](https://github.com/caelestia-dots/shell)
