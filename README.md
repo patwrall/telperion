@@ -48,10 +48,9 @@ sudo nixos-rebuild switch --flake .#hostname
 
 ## Acknowledgements
 
-This configuration draws significant inspiration from the work of others in the
-Nix community.
+This configuration draws significant inspiration (and things to copy) from the
+work of others in the Nix community.
 
-* The overall structure is a direct adaptation of
-[khaneliman's khanelinix](https://github.com/khaneliman/khanelinix), modified to
-my needs.
-* The Quickshell and Hyprland configurations adapted from [soramanew's configs](https://github.com/caelestia-dots/shell).
+* [khaneliman/khanelinix](https://github.com/khaneliman/khanelinix) -Direct
+adaptation of structure
+* [soramanew/shell](https://github.com/caelestia-dots/shell)
