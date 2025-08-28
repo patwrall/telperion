@@ -8,7 +8,7 @@ The goal is a reproducible and modular setup for my machines.
 This configuration is built around a few key principles:
 
 * **Modularity**: The configuration is broken down into logical, reusable
-modules found in the modules/ directory. This allows for easy composition of different
+modules found in the `modules/` directory. This allows for easy composition of different
 features for different hosts. The structure is further organized into
 system-level (`nixos`), user-level (`home`), and shared (`common`) modules to maintain
 a clean separation of concerns.
