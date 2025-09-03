@@ -67,6 +67,9 @@ in
           # Navigation shortcuts
           home = "cd ~";
           dots = "cd $DOTS_DIR";
+          "v" = "nvim";
+          "vi" = "nvim";
+          "vi ." = "nvim";
           ".." = "cd ..";
           "..." = "cd ../..";
           "...." = "cd ../../..";
