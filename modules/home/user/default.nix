@@ -67,14 +67,14 @@ in
           # Navigation shortcuts
           home = "cd ~";
           dots = "cd $DOTS_DIR";
-          "v" = "nvim";
-          "vi" = "nvim";
-          "vi ." = "nvim";
           ".." = "cd ..";
           "..." = "cd ../..";
           "...." = "cd ../../..";
           "....." = "cd ../../../..";
           "......" = "cd ../../../../..";
+
+          "v" = "nvim";
+          "vi" = "nvim";
         };
 
         username = mkDefault cfg.name;
