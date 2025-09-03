@@ -59,12 +59,12 @@ in
     telperion = {
       programs = {
         terminal = {
-          # editors = {
-          #   neovim = {
-          #     enable = mkDefault true;
-          #     default = mkDefault true;
-          #   };
-          # };
+          editors = {
+            neovim = {
+              enable = mkDefault true;
+              default = mkDefault true;
+            };
+          };
 
           tools = {
             act = mkDefault enabled;
