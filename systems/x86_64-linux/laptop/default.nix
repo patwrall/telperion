@@ -37,9 +37,7 @@ in
     };
 
     security = {
-      keyring = {
-        enable = false;
-      };
+      keyring = enabled;
       sudo-rs = enabled;
     };
 
