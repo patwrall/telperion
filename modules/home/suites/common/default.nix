@@ -67,6 +67,7 @@ in
             ripgrep = mkDefault enabled;
             starship = mkDefault enabled;
             television = mkDefault enabled;
+            yazi = mkDefault enabled;
             zoxide = mkDefault enabled;
           };
         };
