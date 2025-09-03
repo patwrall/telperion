@@ -42,7 +42,7 @@ in
         Restart = "on-success";
       };
 
-      wantedBy = [ "graphical.target" ];
+      # wantedBy = [ "graphical.target" ];
     };
   };
 }

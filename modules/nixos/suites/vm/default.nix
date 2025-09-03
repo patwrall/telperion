@@ -15,6 +15,12 @@ in
 
   config = mkIf cfg.enable {
     telperion = {
+      virtualisation = {
+        kvm = {
+          enable = true;
+        };
+      };
+
       services = {
         spice-vdagentd = lib.mkDefault enabled;
         spice-webdav = lib.mkDefault enabled;
