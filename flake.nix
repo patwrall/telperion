@@ -69,6 +69,7 @@
         nixpkgs.follows = "nixpkgs";
       };
     };
+    laurelin.url = "github:patwrall/laurelin";
     caelestia-shell = {
       url = "github:caelestia-dots/shell";
       inputs = {
@@ -80,6 +81,10 @@
       inputs = {
         nixpkgs.follows = "nixpkgs";
       };
+    };
+    yazi-flavors = {
+      url = "github:yazi-rs/flavors";
+      flake = false;
     };
     zen-browser = {
       url = "github:youwen5/zen-browser-flake";
