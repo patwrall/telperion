@@ -26,7 +26,7 @@
             package = pkgs.eslint_d;
           };
           luacheck.enable = true;
-          pre-commit-hook-ensure-sops.enable = true;
+          # pre-commit-hook-ensure-sops.enable = true;
           statix.enable = true;
           treefmt.enable = true;
           typos = {
