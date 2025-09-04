@@ -10,8 +10,6 @@ let
     mkIf
     mkDefault
     mkMerge
-    getExe
-    getExe'
     ;
   inherit (lib.telperion) mkOpt enabled;
 

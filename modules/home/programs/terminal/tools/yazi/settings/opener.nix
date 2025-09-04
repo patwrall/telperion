@@ -93,12 +93,12 @@
         desc = "Show media info";
         for = "unix";
       }
-      (lib.mkIf (pkgs.stdenv.hostPlatform.isLinux) {
+      (lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
         run = "${lib.getExe config.programs.mpv.package} \"$@\"";
         orphan = true;
         for = "unix";
       })
-      (lib.mkIf (pkgs.stdenv.hostPlatform.isLinux) {
+      (lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
         run = "${lib.getExe config.programs.mpv.package} \"%1\"";
         orphan = true;
         for = "windows";

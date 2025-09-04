@@ -83,8 +83,7 @@ rustPlatform.buildRustPackage {
 
   buildNoDefaultFeatures = true;
 
-  buildFeatures = [ ]
-    ++ lib.optional (withAudioBackend != "") "${withAudioBackend}-backend"
+  buildFeatures = lib.optional (withAudioBackend != "") "${withAudioBackend}-backend"
     ++ lib.optional withMediaControl "media-control"
     ++ lib.optional withImage "image"
     ++ lib.optional withDaemon "daemon"

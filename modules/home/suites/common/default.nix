@@ -74,7 +74,7 @@ in
       };
 
       services = {
-        udiskie.enable = mkDefault (pkgs.stdenv.hostPlatform.isLinux);
+        udiskie.enable = mkDefault pkgs.stdenv.hostPlatform.isLinux;
       };
     };
 

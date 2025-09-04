@@ -3,7 +3,6 @@
 , lib
 , pkgs
 , self
-, host
 , ...
 }:
 let
