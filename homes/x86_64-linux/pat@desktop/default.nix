@@ -15,6 +15,7 @@ in
       graphical = {
         apps = {
           zathura = enabled;
+          vesktop = enabled;
         };
         browsers = {
           zen-browser = enabled;
@@ -33,9 +34,6 @@ in
         };
       };
       terminal = {
-        social = {
-          vesktop = enabled;
-        };
         tools = {
           _1password-cli = {
             enable = true;
