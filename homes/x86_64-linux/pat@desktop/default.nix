@@ -14,7 +14,6 @@ in
     programs = {
       graphical = {
         apps = {
-          rnote = enabled;
           zathura = enabled;
         };
         browsers = {
@@ -35,7 +34,7 @@ in
       };
       terminal = {
         social = {
-          discordo = enabled;
+          vesktop = enabled;
         };
         tools = {
           _1password-cli = {
