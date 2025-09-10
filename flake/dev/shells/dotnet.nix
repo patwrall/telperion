@@ -27,7 +27,7 @@ let
     ];
 
     shellHook = ''
-      export NUGET_PLUGIN_PATHS=${devPkgs.khanelinix.artifacts-credprovider}/bin/netcore/CredentialProvider.Microsoft/CredentialProvider.Microsoft.dll
+      export NUGET_PLUGIN_PATHS=${devPkgs.telperion.artifacts-credprovider}/bin/netcore/CredentialProvider.Microsoft/CredentialProvider.Microsoft.dll
     '';
   };
 
