@@ -4,9 +4,9 @@
     # 1: Fast Storage - 500GB Crucial NVMe
     "/dev/disk/by-id/nvme-CT500P2SSD8_2038E480F0B9"
     # 2: Bulk Storage - 1TB Seagate HDD
-    "/dev/disk/by-id/ata-ST1000DM003-1CH162_S1D80CD0"
+    "/dev/disk/by-id/sata-ST1000DM003-1CH162_S1D80CD0"
     # 3: Backup/Misc - 500GB Seagate HDD
-    "/dev/disk/by-id/ata-ST3500641AS_Z2AV0X1"
+    "/dev/disk/by-id/sata-ST3500641AS_Z2AV0X1"
   ]
 , ...
 }:
