@@ -36,7 +36,10 @@ in
   telperion.hardware = {
     audio = enabled;
 
-    bluetooth = enabled;
+    bluetooth = {
+      enable = true;
+      autoConnect = true;
+    };
     cpu.intel = enabled;
 
     fingerprint = enabled;
