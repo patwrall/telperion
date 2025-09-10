@@ -1,5 +1,6 @@
 { config
 , lib
+, osConfig ? { }
 , ...
 }:
 let
@@ -7,7 +8,8 @@ let
 
   cfg = config.telperion.programs.graphical.wms.hyprland;
 
-  mkStartCommand = cmd: "app2unit -- ${cmd}";
+  mkStartCommand = cmd:
+    if (osConfig.programs.uwsm.enable or false) then "uwsm app -- ${cmd}" else "app2unit -- ${cmd}";
 
   mkExecBind = bind:
     let
