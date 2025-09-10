@@ -98,7 +98,7 @@ in
               content = {
                 type = "filesystem";
                 format = "btrfs";
-                mountpoint = "/mnt/fast-storage";
+                mountpoint = "/fast-storage";
                 mountOptions = defaultBtrfsOpts;
                 extraArgs = [ "-LFastStorage" ];
               };
@@ -119,7 +119,7 @@ in
               content = {
                 type = "filesystem";
                 format = "btrfs";
-                mountpoint = "/mnt/bulk-storage";
+                mountpoint = "/bulk-storage";
                 mountOptions = defaultHddBtrfsOpts;
                 extraArgs = [ "-LBulkStorage" ];
               };
@@ -140,7 +140,7 @@ in
               content = {
                 type = "filesystem";
                 format = "btrfs";
-                mountpoint = "/mnt/backup";
+                mountpoint = "/backup";
                 mountOptions = defaultHddBtrfsOpts;
                 extraArgs = [ "-LBackup" ];
               };
