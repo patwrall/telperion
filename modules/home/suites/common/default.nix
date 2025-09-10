@@ -75,6 +75,7 @@ in
 
       services = {
         udiskie.enable = mkDefault pkgs.stdenv.hostPlatform.isLinux;
+        syncthing.enable = mkDefault pkgs.stdenv.hostPlatform.isLinux;
       };
     };
 
