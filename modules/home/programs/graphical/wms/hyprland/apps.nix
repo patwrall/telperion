@@ -16,10 +16,10 @@ in
         exec-once =
           let
             mkStartCommand =
-              cmd: if (osConfig.programs.uwsm.enable or false) then "uwsm app -- ${cmd}" else cmd;
+              cmd: "app2unit -- ${cmd}";
           in
           (map mkStartCommand [
-            "${getExe pkgs.discordo}"
+            "${getExe pkgs.vesktop}"
             "${getExe config.programs.spotify-player.package}"
             "${getExe  config.programs.btop.package}"
           ])

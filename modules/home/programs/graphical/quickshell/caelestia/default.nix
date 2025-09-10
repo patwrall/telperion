@@ -1,6 +1,5 @@
 { config
 , lib
-, osConfig ? { }
 , pkgs
 , ...
 }:
@@ -11,7 +10,7 @@ let
 
 
   mkStartCommand = cmd:
-    if (osConfig.programs.uwsm.enable or false) then "uwsm app -- ${cmd}" else "app2unit -- ${cmd}";
+    "app2unit -- ${cmd}";
 in
 {
   options.telperion.programs.graphical.quickshell.caelestia = {
@@ -25,17 +24,16 @@ in
         enable = true;
         settings = {
           theme = {
-            enableDiscord = false;
             enableSpicetify = false;
           };
           toggles = {
             communication = {
-              discordo = {
+              vesktop = {
                 enable = true;
                 match = [
-                  { class = "discordo"; }
+                  { class = "vesktop"; }
                 ];
-                command = [ "foot" "-a" "discordo" "-T" "discordo" "fish" "-C" "${mkStartCommand "${getExe pkgs.discordo}"}" ];
+                command = [ "foot" "-a" "vesktop" "-T" "vesktop" "fish" "-C" "${mkStartCommand "${getExe pkgs.vesktop}"}" ];
               };
             };
             music = {

@@ -22,6 +22,7 @@ let
       config.services.power-profiles-daemon.package
       systemd
       libnotify
+      app2unit
     ]
   );
 in
