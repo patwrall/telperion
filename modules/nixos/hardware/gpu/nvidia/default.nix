@@ -27,6 +27,8 @@ in
   config = mkIf cfg.enable {
     boot.blacklistedKernelModules = [ "nouveau" ];
 
+    services.xserver.videoDrivers = [ "nvidia" ];
+
     environment.systemPackages =
       with pkgs;
       [
