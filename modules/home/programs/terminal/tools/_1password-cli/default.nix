@@ -20,12 +20,19 @@ in
       _1password-cli
     ];
 
+    home.sessionVariables = mkIf cfg.enableSshSocket {
+      SSH_AUTH_SOCK = "${config.xdg.runtimeDir}/1password/agent.sock";
+    };
+
     programs = {
-      ssh.extraConfig = lib.optionalString cfg.enableSshSocket ''
-        Host *
-          AddKeysToAgent yes
-          IdentityAgent ~/.1password/agent.sock
-      '';
+      ssh = {
+        enable = true;
+        extraConfig = lib.optionalString cfg.enableSshSocket ''
+          Host *
+            AddKeysToAgent yes
+            IdentityAgent ~/.1password/agent.sock
+        '';
+      };
     };
   };
 }

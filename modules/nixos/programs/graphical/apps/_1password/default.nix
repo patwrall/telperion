@@ -25,11 +25,14 @@ in
         polkitPolicyOwners = [ config.telperion.user.name ];
       };
 
-      ssh.extraConfig = lib.optionalString cfg.enableSshSocket ''
-        Host *
-          AddKeysToAgent yes
-          IdentityAgent ~/.1password/agent.sock
-      '';
+      ssh = {
+        enable = true;
+        extraConfig = lib.optionalString cfg.enableSshSocket ''
+          Host *
+            AddKeysToAgent yes
+            IdentityAgent ~/.1password/agent.sock
+        '';
+      };
     };
   };
 }
