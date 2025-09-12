@@ -2,7 +2,7 @@
     # 0: OS Drive - 1TB Samsung NVMe
     "/dev/disk/by-id/nvme-Samsung_SSD_970_EVO_Plus_1TB_S6S1NS0W103926H"
     # 1: Fast Storage - 500GB Crucial NVMe
-    "/dev/disk/by-id/nvme-CT500P2SSD8_2038E4B0F889"
+    # "/dev/disk/by-id/nvme-gCT500P2SSD8_2038E4B0F889"
     # 2: Bulk Storage - 1TB Seagate HDD
     "/dev/disk/by-id/ata-ST1000DM003-1CH162_S1DB06CD"
     # 3: Backup/Misc - 500GB Seagate HDD
@@ -86,26 +86,26 @@ in
       # -- Additional Storage Drives --
       # -----------------------------------------------------
 
-      # Drive 1: 500GB NVMe for fast storage
-      nvme1 = {
-        device = builtins.elemAt disks 1;
-        type = "disk";
-        content = {
-          type = "gpt";
-          partitions = {
-            storage = {
-              size = "100%";
-              content = {
-                type = "filesystem";
-                format = "btrfs";
-                mountpoint = "/fast-storage";
-                mountOptions = defaultBtrfsOpts;
-                extraArgs = [ "-LFastStorage" ];
-              };
-            };
-          };
-        };
-      };
+      # # Drive 1: 500GB NVMe for fast storage
+      # nvme1 = {
+      #   device = builtins.elemAt disks 1;
+      #   type = "disk";
+      #   content = {
+      #     type = "gpt";
+      #     partitions = {
+      #       storage = {
+      #         size = "100%";
+      #         content = {
+      #           type = "filesystem";
+      #           format = "btrfs";
+      #           mountpoint = "/fast-storage";
+      #           mountOptions = defaultBtrfsOpts;
+      #           extraArgs = [ "-LFastStorage" ];
+      #         };
+      #       };
+      #     };
+      #   };
+      # };
 
       # Drive 2: 1TB HDD for bulk storage
       hdd0 = {
