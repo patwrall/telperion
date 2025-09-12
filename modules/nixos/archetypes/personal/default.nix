@@ -15,10 +15,6 @@ in
 
   config = mkIf cfg.enable {
     telperion = {
-      services = {
-        tailscale = enabled;
-      };
-
       suites = {
         common = enabled;
       };
