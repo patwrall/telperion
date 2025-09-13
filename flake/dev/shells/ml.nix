@@ -7,6 +7,7 @@ mkShell {
     black
     jupyter
     mypy
+    quarto
     ruff
 
     (python3.withPackages (
@@ -28,8 +29,6 @@ mkShell {
   ];
 
   shellHook = ''
-    echo "✅ Python ML DevShell Activated"
-    # echo "🚀 Starting Jupyter kernel in the background..."
-    # bash -c '(nohup jupyter kernel --kernel=python3 >/dev/null 2>&1 &)'
+    echo "🚀 ML DevShell Activated"
   '';
 }
