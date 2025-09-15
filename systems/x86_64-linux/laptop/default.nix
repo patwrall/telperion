@@ -22,7 +22,6 @@ in
 
     archetypes = {
       personal = enabled;
-      vm = enabled;
     };
 
     programs.graphical = {
