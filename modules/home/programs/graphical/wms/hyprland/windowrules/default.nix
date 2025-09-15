@@ -32,6 +32,9 @@ in
           "maxsize 1 1,class:^(xwaylandvideobridge)$"
           "noblur,class:^(xwaylandvideobridge)$"
 
+          # fix drag and drop not working for scene builder
+          "nofocus, title:java"
+
           # Steam
           "rounding 10, title:, class:steam"
           "immediate, class:steam_app_[0-9]+"
