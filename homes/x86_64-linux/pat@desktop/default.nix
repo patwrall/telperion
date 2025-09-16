@@ -14,7 +14,7 @@ in
     programs = {
       graphical = {
         apps = {
-          zathura = enabled;
+          sioyek = enabled;
           vesktop = enabled;
         };
         browsers = {

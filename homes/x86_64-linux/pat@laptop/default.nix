@@ -15,7 +15,7 @@ in
       graphical = {
         apps = {
           rnote = enabled;
-          zathura = enabled;
+          sioyek = enabled;
         };
         browsers = {
           zen-browser = enabled;
