@@ -20,8 +20,9 @@ in
       bindings = { };
 
       config = {
-        default_dark_mode = 1;
+        default_dark_mode = "1";
       };
     };
   };
 }
+
