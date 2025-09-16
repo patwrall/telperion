@@ -21,6 +21,7 @@ in
 
     networking.firewall.allowedTCPPorts = [
       1701
+      9001
     ];
 
     telperion = {
