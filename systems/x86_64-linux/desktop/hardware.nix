@@ -12,6 +12,7 @@ in
   boot = {
     blacklistedKernelModules = [ "eeepc_wmi" ];
 
+    kernelModules = [ "uinput" ];
     kernelPackages = pkgs.linuxPackages_latest;
     kernel.sysctl."kernel.sysrq" = 1;
 

@@ -47,9 +47,12 @@ in
       power = enabled;
     };
 
-    suites.development = {
-      enable = true;
-      dockerEnable = true;
+    suites = {
+      desktop = enabled;
+      development = {
+        enable = true;
+        dockerEnable = true;
+      };
     };
 
     system = {

@@ -14,6 +14,7 @@ in
     programs = {
       graphical = {
         apps = {
+          rnote = enabled;
           sioyek = enabled;
           vesktop = enabled;
         };

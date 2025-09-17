@@ -18,11 +18,14 @@ in
       weylus
     ];
 
-
     networking.firewall.allowedTCPPorts = [
       1701
       9001
     ];
+
+    services.udev.extraRules = ''
+      KERNEL=="uinput", GROUP="input", MODE="0660"
+    '';
 
     telperion = {
       user = {
