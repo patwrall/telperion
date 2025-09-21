@@ -68,6 +68,7 @@ in
             starship = mkDefault enabled;
             television = mkDefault enabled;
             yazi = mkDefault enabled;
+            zellij = mkDefault enabled;
             zoxide = mkDefault enabled;
           };
         };
