@@ -16,6 +16,11 @@ in
     kernelPackages = pkgs.linuxPackages_latest;
     kernel.sysctl."kernel.sysrq" = 1;
 
+    # For gpu profiling
+    extraModprobeConfig = ''
+      options nvidia "NVreg_RestrictProfilingToAdminUsers=0"
+    '';
+
     initrd = {
       availableKernelModules = [
         "nvme"

@@ -17,6 +17,7 @@ in
     kubernetesEnable = lib.mkEnableOption "kubernetes development configuration";
     nixEnable = lib.mkEnableOption "nix development configuration";
     sqlEnable = lib.mkEnableOption "sql development configuration";
+    cudaEnable = lib.mkEnableOption "cuda development configuration";
   };
 
   config = mkIf cfg.enable {
@@ -49,6 +50,10 @@ in
         ++ lib.optionals cfg.sqlEnable [
           dbeaver-bin
           mysql-workbench
+        ]
+        ++ lib.optionals cfg.cudaEnable [
+          cudaPackages.nsight_compute
+          # cudaPackages.nsight_systems
         ];
     };
 

@@ -50,7 +50,10 @@ in
 
     suites = {
       common = enabled;
-      development = enabled;
+      development = {
+        enable = true;
+        cudaEnable = true;
+      };
       music = enabled;
     };
   };
