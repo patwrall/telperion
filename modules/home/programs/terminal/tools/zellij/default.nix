@@ -68,6 +68,7 @@ in
 
           default_layout = "dev";
           default_mode = "locked";
+          default_shell = "fish";
           support_kitty_keyboard_protocol = true;
 
           on_force_close = "quit";
