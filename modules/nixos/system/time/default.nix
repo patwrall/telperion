@@ -42,5 +42,7 @@ in
     };
 
     time.timeZone = "America/Indiana/Indianapolis";
+
+    time.hardwareClockInLocalTime = true;
   };
 }
