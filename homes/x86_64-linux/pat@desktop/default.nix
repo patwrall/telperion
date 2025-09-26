@@ -17,6 +17,7 @@ in
           rnote = enabled;
           sioyek = enabled;
           vesktop = enabled;
+          zotero = enabled;
         };
         browsers = {
           zen-browser = enabled;

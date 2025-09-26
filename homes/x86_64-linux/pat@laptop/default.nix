@@ -16,6 +16,7 @@ in
         apps = {
           rnote = enabled;
           sioyek = enabled;
+          zotero = enabled;
         };
         browsers = {
           zen-browser = enabled;
