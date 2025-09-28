@@ -14,6 +14,7 @@ in
     programs = {
       graphical = {
         apps = {
+          obsidian = enabled;
           rnote = enabled;
           sioyek = enabled;
           zotero = enabled;
