@@ -1,30 +1,37 @@
 { mkShell
 , pkgs
+, lib
 , ...
 }:
 mkShell {
   packages = with pkgs; [
-    jdk
-    jdk8
-    jdk11
-    jdk17
-    openjfx17
-    temurin-jre-bin-17
     maven
-    gradle
+    jdk17
+    xorg.libX11
+    xorg.libXtst
+    xorg.libXxf86vm
+    gtk3
     glib
+    gdk-pixbuf
+    pango
+    cairo
+    libglvnd
   ];
 
   shellHook = ''
-
-    export PATH="$PATH:${pkgs.maven}/bin"
     export JAVA_HOME="${pkgs.jdk17}/lib/openjdk"
-    export PATH="$PATH:$JAVA_HOME/bin"
-    export LD_LIBRARY_PATH="${pkgs.libGL}/lib:${pkgs.gtk3}/lib:${pkgs.glib.out}/lib:${pkgs.xorg.libXtst}/lib:$LD_LIBRARY_PATH"   
-    export JAVAFX_PATH="${pkgs.openjfx17}/lib"
+    export PATH="$PATH:${pkgs.maven}/bin:$JAVA_HOME/bin"
+
+    export LD_LIBRARY_PATH="${lib.makeLibraryPath [
+      pkgs.xorg.libX11
+      pkgs.xorg.libXtst
+      pkgs.xorg.libXxf86vm
+      pkgs.libGL
+      pkgs.gtk3
+      pkgs.glib.out
+    ]}:$LD_LIBRARY_PATH"
 
     echo 🔨 Java DevShell
-
-
   '';
 }
+
