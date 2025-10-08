@@ -768,11 +768,11 @@
         "pkgs-by-name-for-flake-parts": "pkgs-by-name-for-flake-parts"
       },
       "locked": {
-        "lastModified": 1759086020,
-        "narHash": "sha256-oM6cBaUMX7/YvsEJS968hWxHg7S7zle0hxrtXidrh9w=",
+        "lastModified": 1759876767,
+        "narHash": "sha256-boY2HB7c2eNBgV6NTISwgQ9jhArMjoqNCllKFR4x7Yk=",
         "owner": "patwrall",
         "repo": "laurelin",
-        "rev": "ada05476a03c2cfc7a533a7be600b73132d6f6d4",
+        "rev": "1a14e67d0d8709c49ab292bb12359ee951a4d4a2",
         "type": "github"
       },
       "original": {
