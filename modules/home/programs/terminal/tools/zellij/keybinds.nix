@@ -14,25 +14,25 @@
                 {
                   bind = {
                     _args = [ "Alt h" ];
-                    _children = [{ MoveFocus._args = [ "Left" ]; }];
+                    _children = [ { MoveFocus._args = [ "Left" ]; } ];
                   };
                 }
                 {
                   bind = {
                     _args = [ "Alt j" ];
-                    _children = [{ MoveFocus._args = [ "Down" ]; }];
+                    _children = [ { MoveFocus._args = [ "Down" ]; } ];
                   };
                 }
                 {
                   bind = {
                     _args = [ "Alt k" ];
-                    _children = [{ MoveFocus._args = [ "Up" ]; }];
+                    _children = [ { MoveFocus._args = [ "Up" ]; } ];
                   };
                 }
                 {
                   bind = {
                     _args = [ "Alt l" ];
-                    _children = [{ MoveFocus._args = [ "Right" ]; }];
+                    _children = [ { MoveFocus._args = [ "Right" ]; } ];
                   };
                 }
 
@@ -40,25 +40,25 @@
                 {
                   bind = {
                     _args = [ "Alt n" ];
-                    _children = [{ NewPane = { }; }];
+                    _children = [ { NewPane = { }; } ];
                   };
                 } # New pane below (horizontal split)
                 {
                   bind = {
                     _args = [ "Alt v" ];
-                    _children = [{ NewPane._props.direction = "Right"; }];
+                    _children = [ { NewPane._props.direction = "Right"; } ];
                   };
                 } # New pane to the right (vertical split)
                 {
                   bind = {
                     _args = [ "Alt x" ];
-                    _children = [{ CloseFocus = { }; }];
+                    _children = [ { CloseFocus = { }; } ];
                   };
                 } # Close focused pane
                 {
                   bind = {
                     _args = [ "Alt z" ];
-                    _children = [{ ToggleFocusFullscreen = { }; }];
+                    _children = [ { ToggleFocusFullscreen = { }; } ];
                   };
                 } # Zoom/unzoom pane
 
@@ -66,19 +66,19 @@
                 {
                   bind = {
                     _args = [ "Alt t" ];
-                    _children = [{ NewTab = { }; }];
+                    _children = [ { NewTab = { }; } ];
                   };
                 } # New tab
                 {
                   bind = {
-                    _args = [ "Ctrl l" ];
-                    _children = [{ GoToNextTab = { }; }];
+                    _args = [ "Ctrl n" ];
+                    _children = [ { GoToNextTab = { }; } ];
                   };
                 } # Go to next tab
                 {
                   bind = {
-                    _args = [ "Ctrl h" ];
-                    _children = [{ GoToPreviousTab = { }; }];
+                    _args = [ "Ctrl p" ];
+                    _children = [ { GoToPreviousTab = { }; } ];
                   };
                 } # Go to previous tab
 
@@ -86,13 +86,13 @@
                 {
                   bind = {
                     _args = [ "Alt s" ];
-                    _children = [{ SwitchToMode._args = [ "Scroll" ]; }];
+                    _children = [ { SwitchToMode._args = [ "Scroll" ]; } ];
                   };
                 }
                 {
                   bind = {
                     _args = [ "Alt r" ];
-                    _children = [{ SwitchToMode._args = [ "RenamePane" ]; }];
+                    _children = [ { SwitchToMode._args = [ "RenamePane" ]; } ];
                   };
                 }
               ];
@@ -107,7 +107,7 @@
                       "j"
                       "Down"
                     ];
-                    _children = [{ ScrollDown = { }; }];
+                    _children = [ { ScrollDown = { }; } ];
                   };
                 }
                 {
@@ -116,7 +116,7 @@
                       "k"
                       "Up"
                     ];
-                    _children = [{ ScrollUp = { }; }];
+                    _children = [ { ScrollUp = { }; } ];
                   };
                 }
                 {
@@ -125,7 +125,7 @@
                       "q"
                       "Esc"
                     ];
-                    _children = [{ SwitchToMode._args = [ "Locked" ]; }];
+                    _children = [ { SwitchToMode._args = [ "Locked" ]; } ];
                   };
                 }
               ];
@@ -137,7 +137,7 @@
                 {
                   bind = {
                     _args = [ "Enter" ];
-                    _children = [{ SwitchToMode._args = [ "Locked" ]; }];
+                    _children = [ { SwitchToMode._args = [ "Locked" ]; } ];
                   };
                 }
                 {
