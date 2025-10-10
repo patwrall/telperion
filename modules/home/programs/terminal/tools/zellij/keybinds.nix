@@ -69,18 +69,14 @@
                     _children = [ { NewTab = { }; } ];
                   };
                 } # New tab
+
+                # Ctrl+Space for tab navigation mode
                 {
                   bind = {
-                    _args = [ "Ctrl n" ];
-                    _children = [ { GoToNextTab = { }; } ];
+                    _args = [ "Ctrl Space" ];
+                    _children = [ { SwitchToMode._args = [ "Pane" ]; } ];
                   };
-                } # Go to next tab
-                {
-                  bind = {
-                    _args = [ "Ctrl p" ];
-                    _children = [ { GoToPreviousTab = { }; } ];
-                  };
-                } # Go to previous tab
+                }
 
                 # Enter other modes
                 {
@@ -93,6 +89,99 @@
                   bind = {
                     _args = [ "Alt r" ];
                     _children = [ { SwitchToMode._args = [ "RenamePane" ]; } ];
+                  };
+                }
+              ];
+            };
+
+            # Keybindings for "pane" mode (tab navigation with numbers)
+            pane = {
+              _children = [
+                {
+                  bind = {
+                    _args = [ "1" ];
+                    _children = [
+                      { GoToTab._args = [ 1 ]; }
+                      { SwitchToMode._args = [ "Locked" ]; }
+                    ];
+                  };
+                }
+                {
+                  bind = {
+                    _args = [ "2" ];
+                    _children = [
+                      { GoToTab._args = [ 2 ]; }
+                      { SwitchToMode._args = [ "Locked" ]; }
+                    ];
+                  };
+                }
+                {
+                  bind = {
+                    _args = [ "3" ];
+                    _children = [
+                      { GoToTab._args = [ 3 ]; }
+                      { SwitchToMode._args = [ "Locked" ]; }
+                    ];
+                  };
+                }
+                {
+                  bind = {
+                    _args = [ "4" ];
+                    _children = [
+                      { GoToTab._args = [ 4 ]; }
+                      { SwitchToMode._args = [ "Locked" ]; }
+                    ];
+                  };
+                }
+                {
+                  bind = {
+                    _args = [ "5" ];
+                    _children = [
+                      { GoToTab._args = [ 5 ]; }
+                      { SwitchToMode._args = [ "Locked" ]; }
+                    ];
+                  };
+                }
+                {
+                  bind = {
+                    _args = [ "6" ];
+                    _children = [
+                      { GoToTab._args = [ 6 ]; }
+                      { SwitchToMode._args = [ "Locked" ]; }
+                    ];
+                  };
+                }
+                {
+                  bind = {
+                    _args = [ "7" ];
+                    _children = [
+                      { GoToTab._args = [ 7 ]; }
+                      { SwitchToMode._args = [ "Locked" ]; }
+                    ];
+                  };
+                }
+                {
+                  bind = {
+                    _args = [ "8" ];
+                    _children = [
+                      { GoToTab._args = [ 8 ]; }
+                      { SwitchToMode._args = [ "Locked" ]; }
+                    ];
+                  };
+                }
+                {
+                  bind = {
+                    _args = [ "9" ];
+                    _children = [
+                      { GoToTab._args = [ 9 ]; }
+                      { SwitchToMode._args = [ "Locked" ]; }
+                    ];
+                  };
+                }
+                {
+                  bind = {
+                    _args = [ "Space" ];
+                    _children = [ { SwitchToMode._args = [ "Locked" ]; } ];
                   };
                 }
               ];
