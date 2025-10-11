@@ -17,6 +17,7 @@ in
           obsidian = enabled;
           rnote = enabled;
           sioyek = enabled;
+          vesktop = enabled;
           zotero = enabled;
         };
         browsers = {
@@ -36,9 +37,6 @@ in
         };
       };
       terminal = {
-        social = {
-          discordo = enabled;
-        };
         tools = {
           _1password-cli = {
             enable = true;
