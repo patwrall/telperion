@@ -17,9 +17,7 @@ in
     telperion = {
       programs = {
         graphical = {
-          addons = {
-            weylus = enabled;
-          };
+          addons = { };
 
           apps = {
             _1password = mkDefault enabled;
