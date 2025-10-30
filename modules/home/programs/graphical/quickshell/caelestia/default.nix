@@ -33,7 +33,7 @@ in
                 match = [
                   { class = "vesktop"; }
                 ];
-                command = [ "foot" "-a" "vesktop" "-T" "vesktop" "fish" "-C" "${mkStartCommand "${getExe pkgs.vesktop}"}" ];
+                command = [ "app2unit" "--" "${getExe pkgs.vesktop}" ];
               };
             };
             music = {
@@ -82,4 +82,3 @@ in
     };
   };
 }
-

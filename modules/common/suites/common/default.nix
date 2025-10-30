@@ -15,6 +15,7 @@ in
 
   config = mkIf cfg.enable {
     environment.systemPackages = with pkgs; [
+      app2unit
       coreutils
       curl
       fd
