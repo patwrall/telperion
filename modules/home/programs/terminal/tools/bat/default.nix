@@ -21,14 +21,16 @@ in
         style = "auto,header-filesize";
       };
 
-      extraPackages = with pkgs.bat-extras; [
-        batdiff
-        batgrep
-        batman
-        batpipe
-        batwatch
-        prettybat
-      ];
+      # NOTE: TEMPORARILY DISABLED bat-extras broken in nixpkgs unstable
+      # https://github.com/nixos/nixpkgs/issues/454391
+      # extraPackages = with pkgs.bat-extras; [
+      #   batdiff
+      #   batgrep
+      #   batman
+      #   batpipe
+      #   batwatch
+      #   prettybat
+      # ];
     };
 
     home.shellAliases = {
