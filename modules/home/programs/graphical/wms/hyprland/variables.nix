@@ -1,7 +1,9 @@
-{ config
-, lib
-, pkgs
-, ...
+{
+  inputs,
+  config,
+  lib,
+  pkgs,
+  ...
 }:
 let
   inherit (lib) mkIf getExe;
@@ -163,12 +165,11 @@ in
         };
 
         "$terminal" = "${getExe pkgs.foot}";
-        "$browser" = "${getExe pkgs.zen-browser}";
+        "$browser" = "${getExe inputs.zen-browser.packages.${pkgs.stdenv.hostPlatform.system}.twilight}";
         "$editor" = "${getExe pkgs.neovim}";
         "$fileExplorer" = "${getExe pkgs.nautilus}";
 
         "$volumeStep" = "10";
-
 
         # Workspaces
         "$kbMoveWinToWs" = "SUPER_ALT";

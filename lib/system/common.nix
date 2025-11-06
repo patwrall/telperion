@@ -12,6 +12,7 @@ in
       allowAliases = false;
       allowUnfree = true;
       permittedInsecurePackages = [
+        "gradle-7.6.6"
         # NOTE: citrix
         "libxml2-2.13.8"
         "libsoup-2.74.3"
@@ -73,6 +74,7 @@ in
             inputs.sops-nix.homeManagerModules.sops
             inputs.opnix.homeManagerModules.default
             inputs.caelestia-shell.homeManagerModules.default
+            inputs.zen-browser.homeModules.twilight
           ]
           ++ (extendedLib.importModulesRecursive ../../modules/home);
           users = mapAttrs'
