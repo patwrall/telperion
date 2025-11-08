@@ -64,6 +64,7 @@ in
             navi = mkDefault enabled;
             nix-search-tv = mkDefault enabled;
             nh = mkDefault enabled;
+            popcorn-cli = mkDefault enabled;
             ripgrep = mkDefault enabled;
             starship = mkDefault enabled;
             television = mkDefault enabled;
