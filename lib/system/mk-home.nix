@@ -35,7 +35,9 @@ inputs.home-manager.lib.homeManagerConfiguration {
     inputs.nix-index-database.homeModules.nix-index
     inputs.sops-nix.homeManagerModules.sops
     inputs.opnix.homeManagerModules.default
+    inputs.spicetify-nix.homeManagerModules.spicetify
     inputs.caelestia-shell.homeManagerModules.default
+
     inputs.zen-browser.homeModules.twilight
 
     # Import all home modules recursively

@@ -3,7 +3,7 @@
 , ...
 }:
 let
-  inherit (lib) mkIf;
+  inherit (lib) mkIf mkDefault;
   inherit (lib.telperion) enabled;
 
   cfg = config.telperion.suites.music;
@@ -15,11 +15,9 @@ in
 
   config = mkIf cfg.enable {
     telperion = {
-      programs.terminal = {
-        media = {};
-
-        tools = {
-          cava = lib.mkDefault enabled;
+      programs = {
+        graphical.apps = {
+          spicetify = mkDefault enabled;
         };
       };
     };

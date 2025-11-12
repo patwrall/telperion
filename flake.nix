@@ -82,6 +82,12 @@
         nixpkgs.follows = "nixpkgs";
       };
     };
+    spicetify-nix = {
+      url = "github:Gerg-L/spicetify-nix"; 
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+      };
+    };
     yazi-flavors = {
       url = "github:yazi-rs/flavors";
       flake = false;

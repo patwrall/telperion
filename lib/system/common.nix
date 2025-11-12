@@ -74,6 +74,7 @@ in
             inputs.sops-nix.homeManagerModules.sops
             inputs.opnix.homeManagerModules.default
             inputs.caelestia-shell.homeManagerModules.default
+            inputs.spicetify-nix.homeManagerModules.spicetify
             inputs.zen-browser.homeModules.twilight
           ]
           ++ (extendedLib.importModulesRecursive ../../modules/home);
