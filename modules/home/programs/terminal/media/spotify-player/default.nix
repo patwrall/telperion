@@ -1,6 +1,5 @@
 { config
 , lib
-, pkgs
 , ...
 }:
 let
@@ -16,8 +15,6 @@ in
   config = mkIf cfg.enable {
     programs.spotify-player = {
       enable = true;
-
-      package = pkgs.telperion.spotify-player;
 
       settings = { };
     };

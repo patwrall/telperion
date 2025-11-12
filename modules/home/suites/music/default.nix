@@ -16,9 +16,7 @@ in
   config = mkIf cfg.enable {
     telperion = {
       programs.terminal = {
-        media = {
-          spotify-player = lib.mkDefault enabled;
-        };
+        media = {};
 
         tools = {
           cava = lib.mkDefault enabled;
