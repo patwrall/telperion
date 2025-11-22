@@ -1,6 +1,7 @@
-{ config
-, lib
-, ...
+{
+  config,
+  lib,
+  ...
 }:
 let
   inherit (lib) mkIf;
@@ -12,47 +13,51 @@ in
     wayland.windowManager.hyprland = {
       settings = {
         windowrule = [
-          "float, class:guifetch"
-          "float, class:yad"
-          "float, class:zenity"
-          "float, class:wev"
-          "float, class:org\\.gnome\\.FileRoller"
-          "float, class:file-roller"
-          "float, class:blueman-manager"
-          "float, class:com\\.github\\.GradienceTeam\\.Gradience"
-          "float, class:feh"
-          "float, class:imv"
-          "float, class:system-config-printer"
-          "float, class:org\\.quickshell"
+          # Simple float by class
+          "float on, match:class guifetch"
+          "float on, match:class yad"
+          "float on, match:class zenity"
+          "float on, match:class wev"
+          "float on, match:class org\\.gnome\\.FileRoller"
+          "float on, match:class file-roller"
+          "float on, match:class blueman-manager"
+          "float on, match:class com\\.github\\.GradienceTeam\\.Gradience"
+          "float on, match:class feh"
+          "float on, match:class imv"
+          "float on, match:class system-config-printer"
+          "float on, match:class org\\.quickshell"
 
           # Float, resize and center
-          "float, class:foot, title:nmtui"
-          "size 60% 70%, class:foot, title:nmtui"
-          "center 1, class:foot, title:nmtui"
-          "float, class:org\\.gnome\\.Settings"
-          "size 70% 80%, class:org\\.gnome\\.Settings"
-          "center 1, class:org\\.gnome\\.Settings"
-          "float, class:org\\.pulseaudio\\.pavucontrol|yad-icon-browser"
-          "size 60% 70%, class:org\\.pulseaudio\\.pavucontrol|yad-icon-browser"
-          "center 1, class:org\\.pulseaudio\\.pavucontrol|yad-icon-browser"
-          "float, class:nwg-look"
-          "size 50% 60%, class:nwg-look"
-          "center 1, class:nwg-look"
+          "float on, match:class foot, match:title nmtui"
+          "size 60% 70%, match:class foot, match:title nmtui"
+          "center 1, match:class foot, match:title nmtui"
+
+          "float on, match:class org\\.gnome\\.Settings"
+          "size 70% 80%, match:class org\\.gnome\\.Settings"
+          "center 1, match:class org\\.gnome\\.Settings"
+
+          "float on, match:class org\\.pulseaudio\\.pavucontrol|yad-icon-browser"
+          "size 60% 70%, match:class org\\.pulseaudio\\.pavucontrol|yad-icon-browser"
+          "center 1, match:class org\\.pulseaudio\\.pavucontrol|yad-icon-browser"
+
+          "float on, match:class nwg-look"
+          "size 50% 60%, match:class nwg-look"
+          "center 1, match:class nwg-look"
 
           # Dialogs
-          "float, title:(Select|Open)( a)? (File|Folder)(s)?"
-          "float, title:File (Operation|Upload)( Progress)?"
-          "float, title:.* Properties"
-          "float, title:Export Image as PNG"
-          "float, title:GIMP Crash Debug"
-          "float, title:Save As"
-          "float, title:Library"
+          "float on, match:title (Select|Open)( a)? (File|Folder)(s)?"
+          "float on, match:title File (Operation|Upload)( Progress)?"
+          "float on, match:title .* Properties"
+          "float on, match:title Export Image as PNG"
+          "float on, match:title GIMP Crash Debug"
+          "float on, match:title Save As"
+          "float on, match:title Library"
 
           # Steam Friends List
-          "float, title:Friends List, class:steam"
+          "float on, match:title Friends List, match:class steam"
 
           # ATLauncher console
-          "float, class:com-atlauncher-App, title:ATLauncher Console"
+          "float on, match:class com-atlauncher-App, match:title ATLauncher Console"
         ];
       };
     };

@@ -1,6 +1,7 @@
-{ config
-, lib
-, ...
+{
+  config,
+  lib,
+  ...
 }:
 let
   inherit (lib) mkIf;
@@ -19,36 +20,42 @@ in
       settings = {
         windowrule = [
           # fix xwayland apps
-          "rounding 10, xwayland:1, title:win[0-9]+"
-          "noshadow, xwayland:1, title:win[0-9]+"
-          "nodim, xwayland:1, title:win[0-9]+"
-          "center, class:^(.*jetbrains.*)$, title:^(Confirm Exit|Open Project|win424|win201|splash)$"
-          "size 640 400, class:^(.*jetbrains.*)$, title:^(splash)$"
+          "rounding 10, match:xwayland true, match:title win[0-9]+"
+          "no_shadow on, match:xwayland true, match:title win[0-9]+"
+          "no_dim on, match:xwayland true, match:title win[0-9]+"
+
+          "center 1, match:class ^(.*jetbrains.*)$, match:title ^(Confirm Exit|Open Project|win424|win201|splash)$"
+          "size 640 400, match:class ^(.*jetbrains.*)$, match:title ^(splash)$"
 
           # xwaylandvideobridge
-          "opacity 0.0 override 0.0 override,class:^(xwaylandvideobridge)$"
-          "noanim,class:^(xwaylandvideobridge)$"
-          "noinitialfocus,class:^(xwaylandvideobridge)$"
-          "maxsize 1 1,class:^(xwaylandvideobridge)$"
-          "noblur,class:^(xwaylandvideobridge)$"
+          "opacity 0.0 override 0.0 override, match:class ^(xwaylandvideobridge)$"
+          "no_anim on, match:class ^(xwaylandvideobridge)$"
+          "no_initial_focus on, match:class ^(xwaylandvideobridge)$"
+          "max_size 1 1, match:class ^(xwaylandvideobridge)$"
+          "no_blur on, match:class ^(xwaylandvideobridge)$"
 
           # fix drag and drop not working for scene builder
-          "nofocus, title:java"
+          "no_focus on, match:title java"
 
           # Steam
-          "rounding 10, title:, class:steam"
-          "immediate, class:steam_app_[0-9]+"
-          "idleinhibit always, class:steam_app_[0-9]+"
+          # (title: was effectively “match anything”, so we just drop it or use .*)
+          "rounding 10, match:class steam"
+          "immediate on, match:class steam_app_[0-9]+"
+          "idle_inhibit always, match:class steam_app_[0-9]+"
 
           # Picture in picture
-          "move 100%-w-2% 100%-w-3%, title:Picture(-| )in(-| )[Pp]icture"
-          "keepaspectratio, title:Picture(-| )in(-| )[Pp]icture"
-          "float, title:Picture(-| )in(-| )[Pp]icture"
-          "pin, title:Picture(-| )in(-| )[Pp]icture"
+          "move 100%-w-2% 100%-w-3%, match:title Picture(-| )in(-| )[Pp]icture"
+          "keep_aspect_ratio on, match:title Picture(-| )in(-| )[Pp]icture"
+          "float on, match:title Picture(-| )in(-| )[Pp]icture"
+          "pin on, match:title Picture(-| )in(-| )[Pp]icture"
 
-          "opacity $windowOpacity override, fullscreen:0"
-          "opaque, class:foot|equibop|org\\.quickshell|imv|swappy"
-          "center 1, floating:1, xwayland:0"
+          # Dim non-fullscreen windows based on your opacity var
+          "opacity $windowOpacity override, match:fullscreen false"
+
+          "opaque on, match:class foot|equibop|org\\.quickshell|imv|swappy"
+
+          # center floating wayland-native windows
+          "center 1, match:float true, match:xwayland false"
         ];
       };
     };

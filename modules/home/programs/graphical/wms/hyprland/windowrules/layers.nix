@@ -1,6 +1,7 @@
-{ config
-, lib
-, ...
+{
+  config,
+  lib,
+  ...
 }:
 let
   inherit (lib) mkIf;
@@ -13,20 +14,20 @@ in
       settings = {
         layerrule = [
           # General
-          "animation fade, hyprpicker"
-          "animation fade, logout_dialog"
-          "animation fade, selection"
-          "animation fade, wayfreeze"
+          "animation fade, match:namespace hyprpicker"
+          "animation fade, match:namespace logout_dialog"
+          "animation fade, match:namespace selection"
+          "animation fade, match:namespace wayfreeze"
 
           # Fuzzel
-          "animation popin 80%, launcher"
-          "blur, launcher"
+          "animation popin 80%, match:namespace launcher"
+          "blur on, match:namespace launcher"
 
           # Caelestia Shell
-          "noanim, caelestia-(border-exclusion|area-picker)"
-          "animation fade, caelestia-(drawers|background)"
-          "blur, caelestia-drawers"
-          "ignorealpha 0.57, caelestia-drawers"
+          "no_anim on, match:namespace caelestia-(border-exclusion|area-picker)"
+          "animation fade, match:namespace caelestia-(drawers|background)"
+          "blur on, match:namespace caelestia-drawers"
+          "ignore_alpha 0.57, match:namespace caelestia-drawers"
         ];
       };
     };
