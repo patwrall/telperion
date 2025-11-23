@@ -1,6 +1,8 @@
-{ config
-, lib
-, ...
+{
+  config,
+  lib,
+  pkgs,
+  ...
 }:
 let
   inherit (lib) mkEnableOption mkIf;
@@ -15,6 +17,27 @@ in
   config = mkIf cfg.enable {
     programs.spicetify = {
       enable = true;
+
+      theme = {
+        name = "caelestia";
+
+        src =
+          pkgs.fetchFromGitHub {
+            owner = "caelestia-dots";
+            repo = "caelestia";
+            rev = "main";
+            hash = "sha256-Fh9j+uDJZlPNQbvBC8DQD7B5SkdAkaQKDnK8EHvluqM=";
+          }
+          + "/spicetify/Themes/caelestia";
+
+        injectCss = true;
+        injectThemeJs = true;
+        replaceColors = true;
+        homeConfig = true;
+        overwriteAssets = false;
+
+        additionalCss = '''';
+      };
     };
   };
 }

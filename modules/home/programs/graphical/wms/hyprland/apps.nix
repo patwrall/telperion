@@ -1,8 +1,9 @@
-{ config
-, lib
-, pkgs
-, osConfig ? { }
-, ...
+{
+  config,
+  lib,
+  pkgs,
+  osConfig ? { },
+  ...
 }:
 let
   inherit (lib) mkIf getExe;
@@ -15,13 +16,12 @@ in
       settings = {
         exec-once =
           let
-            mkStartCommand =
-              cmd: "app2unit -- ${cmd}";
+            mkStartCommand = cmd: "app2unit -- ${cmd}";
           in
           (map mkStartCommand [
             "${getExe pkgs.vesktop}"
-            "${getExe config.programs.spotify-player.package}"
-            "${getExe  config.programs.btop.package}"
+            "${getExe config.programs.spicetify.spicedSpotify}"
+            "${getExe config.programs.btop.package}"
           ])
           ++ lib.optionals (osConfig.programs.uwsm.enable or false) [ "uwsm finalize" ];
       };
