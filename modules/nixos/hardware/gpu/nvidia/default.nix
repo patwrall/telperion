@@ -1,7 +1,8 @@
-{ config
-, lib
-, pkgs
-, ...
+{
+  config,
+  lib,
+  pkgs,
+  ...
 }:
 let
   inherit (lib) mkDefault mkIf versionOlder;
@@ -26,6 +27,13 @@ in
 
   config = mkIf cfg.enable {
     boot.blacklistedKernelModules = [ "nouveau" ];
+
+    boot.initrd.kernelModules = [
+      "nvidia"
+      "nvidia_modeset"
+      "nvidia_uvm"
+      "nvidia_drm"
+    ];
 
     services.xserver.videoDrivers = [ "nvidia" ];
 
@@ -57,8 +65,8 @@ in
           finegrained = mkDefault false;
         };
 
-        open = mkDefault true;
-        nvidiaSettings = false;
+        open = false;
+        nvidiaSettings = true;
         nvidiaPersistenced = true;
         forceFullCompositionPipeline = true;
       };
