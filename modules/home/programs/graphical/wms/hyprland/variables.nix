@@ -144,7 +144,7 @@ in
 
         misc = {
           vfr = true;
-          vrr = 1;
+          vrr = 0;
 
           animate_manual_resizes = false;
           animate_mouse_windowdragging = false;
