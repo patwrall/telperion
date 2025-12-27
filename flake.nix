@@ -74,7 +74,6 @@
       url = "github:caelestia-dots/shell";
       inputs = {
         nixpkgs.follows = "nixpkgs";
-        quickshell.url = "git+https://git.outfoxxed.me/outfoxxed/quickshell?ref=master";
       };
     };
     caelestia-cli = {
