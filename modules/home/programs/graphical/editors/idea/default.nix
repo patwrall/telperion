@@ -15,7 +15,7 @@ in
 
   config = mkIf cfg.enable {
     home.packages = with pkgs; [
-      jetbrains.idea-community-bin
+      jetbrains.idea
       scenebuilder
     ];
   };
