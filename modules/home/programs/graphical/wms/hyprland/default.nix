@@ -135,7 +135,6 @@ in
         settings = {
           monitor = [
             "eDP-1, preferred, auto, 1"
-            "DP-4, preffered, auto, 1"
           ];
           source = "${config.home.homeDirectory}/.config/hypr/scheme/current.conf";
         };
