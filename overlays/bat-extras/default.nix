@@ -1,8 +1,6 @@
-{ inputs
-, ...
-}:
+_:
 final: prev: {
-    bat-extras = prev.bat-extras.overrideAttrs (oldAttrs: {
+  bat-extras = prev.bat-extras.overrideAttrs (oldAttrs: {
     doCheck = false;
     doInstallCheck = false;
   });

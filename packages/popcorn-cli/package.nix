@@ -3,7 +3,6 @@
 , fetchFromGitHub
 , pkg-config
 , openssl
-, stdenv
 , ...
 }:
 rustPlatform.buildRustPackage rec {

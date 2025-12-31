@@ -1,6 +1,4 @@
-{ inputs
-, ...
-}:
+_:
 final: prev: {
   cudaPackages = prev.cudaPackages // {
     nsight_compute = prev.cudaPackages.nsight_compute.overrideAttrs (oldAttrs: {

@@ -229,6 +229,24 @@
         "type": "github"
       }
     },
+    "end4-dotfiles": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1767187769,
+        "narHash": "sha256-O4sGjEpQPID86AqBIFjB6KGjhbxnePB+4zWM06/m2Ug=",
+        "ref": "refs/heads/main",
+        "rev": "8cb2c7e0166bdfe8c3ce4b749c901090b45c360f",
+        "revCount": 5788,
+        "submodules": true,
+        "type": "git",
+        "url": "https://github.com/end-4/dots-hyprland"
+      },
+      "original": {
+        "submodules": true,
+        "type": "git",
+        "url": "https://github.com/end-4/dots-hyprland"
+      }
+    },
     "firefox-gnome-theme": {
       "flake": false,
       "locked": {
@@ -1258,6 +1276,7 @@
         "caelestia-cli": "caelestia-cli",
         "caelestia-shell": "caelestia-shell_2",
         "disko": "disko",
+        "end4-dotfiles": "end4-dotfiles",
         "flake-compat": "flake-compat",
         "flake-parts": "flake-parts",
         "home-manager": "home-manager",

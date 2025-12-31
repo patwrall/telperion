@@ -48,6 +48,12 @@
       };
     };
 
+    #dots
+    end4-dotfiles = {
+      url = "git+https://github.com/end-4/dots-hyprland?submodules=1";
+      flake = false;
+    };
+
     # applications
     nh.url = "github:nix-community/nh";
     nix-flatpak.url = "github:gmodena/nix-flatpak/latest";
@@ -83,7 +89,7 @@
       };
     };
     spicetify-nix = {
-      url = "github:Gerg-L/spicetify-nix"; 
+      url = "github:Gerg-L/spicetify-nix";
       inputs = {
         nixpkgs.follows = "nixpkgs";
       };
