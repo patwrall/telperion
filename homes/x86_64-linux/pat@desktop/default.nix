@@ -1,5 +1,6 @@
-{ lib
-, ...
+{
+  lib,
+  ...
 }:
 let
   inherit (lib.telperion) enabled;
@@ -25,9 +26,6 @@ in
         };
         editors = {
           idea = enabled;
-        };
-        quickshell = {
-          caelestia = enabled;
         };
         wms = {
           hyprland = {

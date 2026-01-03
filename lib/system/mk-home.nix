@@ -1,9 +1,10 @@
 { inputs }:
-{ system
-, hostname
-, username ? "pat"
-, modules ? [ ]
-, ...
+{
+  system,
+  hostname,
+  username ? "pat",
+  modules ? [ ],
+  ...
 }:
 let
   flake = inputs.self or (throw "mkHome requires 'inputs.self' to be passed");
@@ -36,7 +37,6 @@ inputs.home-manager.lib.homeManagerConfiguration {
     inputs.sops-nix.homeManagerModules.sops
     inputs.opnix.homeManagerModules.default
     inputs.spicetify-nix.homeManagerModules.spicetify
-    inputs.caelestia-shell.homeManagerModules.default
 
     inputs.zen-browser.homeModules.twilight
 

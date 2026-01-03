@@ -1,5 +1,6 @@
-{ lib
-, ...
+{
+  lib,
+  ...
 }:
 let
   inherit (lib.telperion) enabled;
@@ -11,19 +12,14 @@ in
       name = "pat";
     };
 
+    dots = {
+      end-4 = enabled;
+    };
+
     programs = {
       graphical = {
         browsers = {
           zen-browser = enabled;
-        };
-        quickshell = {
-          caelestia = enabled;
-        };
-        wms = {
-          hyprland = {
-            enable = true;
-            enableDebug = true;
-          };
         };
       };
     };

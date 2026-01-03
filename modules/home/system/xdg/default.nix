@@ -1,7 +1,8 @@
-{ config
-, lib
-, pkgs
-, ...
+{
+  config,
+  lib,
+  pkgs,
+  ...
 }:
 let
   inherit (lib) mkEnableOption mkIf;
@@ -179,16 +180,15 @@ in
         xdgOpenUsePortal = true;
 
         config = {
-          hyprland = mkIf config.telperion.programs.graphical.wms.hyprland.enable {
-            default = [
-              "hyprland"
-              "gtk"
-              "gnome"
-            ];
-            "org.freedesktop.impl.portal.Screencast" = "hyprland";
-            "org.freedesktop.impl.portal.Screenshot" = "hyprland";
-          };
-
+          # hyprland = mkIf config.telperion.programs.graphical.wms.hyprland.enable {
+          #   default = [
+          #     "hyprland"
+          #     "gtk"
+          #     "gnome"
+          #   ];
+          #   "org.freedesktop.impl.portal.Screencast" = "hyprland";
+          #   "org.freedesktop.impl.portal.Screenshot" = "hyprland";
+          # };
 
           common = {
             default = [
