@@ -1,6 +1,7 @@
-{ config
-, lib
-, ...
+{
+  config,
+  lib,
+  ...
 }:
 let
   inherit (lib) mkIf mkDefault;
@@ -18,6 +19,7 @@ in
       programs = {
         graphical.apps = {
           spicetify = mkDefault enabled;
+          musescore = mkDefault enabled;
         };
       };
     };
