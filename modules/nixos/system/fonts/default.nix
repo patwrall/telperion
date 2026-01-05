@@ -1,7 +1,8 @@
-{ config
-, lib
-, pkgs
-, ...
+{
+  config,
+  lib,
+  pkgs,
+  ...
 }:
 let
   inherit (lib) mkIf mapAttrs;
@@ -21,6 +22,35 @@ in
       enableDefaultPackages = true;
 
       fontconfig = {
+
+        localConf = ''
+          <fontconfig>
+            <alias>
+              <family>monospace</family>
+              <prefer>
+                <family>JetBrains Mono</family>
+                <family>Monaspace Neon</family>
+                <family>Cascadia Code</family>
+              </prefer>
+            </alias>
+
+            <alias>
+              <family>sans-serif</family>
+              <prefer>
+                <family>Lexend</family>
+                <family>Inter</family>
+              </prefer>
+            </alias>
+
+            <alias>
+              <family>serif</family>
+              <prefer>
+                <family>Noto Serif</family>
+              </prefer>
+            </alias>
+          </fontconfig>
+        '';
+
         # allowType1 = true;
         # Defaults to true, but be explicit
         antialias = true;
