@@ -3,18 +3,17 @@
 , fetchFromGitHub
 , pkg-config
 , openssl
-, stdenv
 , ...
 }:
 rustPlatform.buildRustPackage rec {
   pname = "popcorn-cli";
-  version = "1.1.44";
+  version = "1.2.0";
 
   src = fetchFromGitHub {
     owner = "gpu-mode";
     repo = "popcorn-cli";
     rev = "v${version}";
-    hash = "sha256-jQzPvMP8BJd3V78vGbRQrF4CBmis/DshUtwNazBaiO4=";
+    hash = "sha256-c9revceCGERss6uJxTL7RB3suE7Z67cpAuze4Aa8g8M";
   };
 
   cargoHash = "sha256-eMhhoONOUNRDx+vxzkcv9AE2XE3mQ8XLH2QqlgDbXeI=";
@@ -39,4 +38,3 @@ rustPlatform.buildRustPackage rec {
     platforms = platforms.unix;
   };
 }
-
