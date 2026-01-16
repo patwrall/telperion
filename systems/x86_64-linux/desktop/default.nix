@@ -1,5 +1,6 @@
-{ lib
-, ...
+{
+  lib,
+  ...
 }:
 let
   inherit (lib.telperion) enabled;
@@ -53,6 +54,7 @@ in
         enable = true;
         dockerEnable = true;
       };
+      games = enabled;
     };
 
     system = {

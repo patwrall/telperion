@@ -1,6 +1,7 @@
-{ config
-, lib
-, ...
+{
+  config,
+  lib,
+  ...
 }:
 let
   inherit (lib) mkDefault;
@@ -25,6 +26,7 @@ in
 
           apps = {
             steam = mkDefault enabled;
+            hytale-launcher = mkDefault enabled;
           };
         };
       };
