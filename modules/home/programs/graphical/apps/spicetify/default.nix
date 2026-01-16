@@ -1,7 +1,8 @@
-{ config
-, lib
-, pkgs
-, ...
+{
+  config,
+  lib,
+  pkgs,
+  ...
 }:
 let
   inherit (lib) mkEnableOption mkIf;
@@ -21,13 +22,12 @@ in
         name = "caelestia";
 
         src =
-          pkgs.fetchFromGitHub
-            {
-              owner = "caelestia-dots";
-              repo = "caelestia";
-              rev = "main";
-              hash = "sha256-hlllZYG8MChQb7cUPQUJxrC0Uc3z1RVBj7BgWt2OJ8E=";
-            }
+          pkgs.fetchFromGitHub {
+            owner = "caelestia-dots";
+            repo = "caelestia";
+            rev = "main";
+            hash = "sha256-LHTEGMTQFROXeIZ2z9y8PAiUelH4rl/LGsoc/QjiKvk=";
+          }
           + "/spicetify/Themes/caelestia";
 
         injectCss = true;
