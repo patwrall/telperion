@@ -43,6 +43,7 @@ in
 
     services = {
       avahi = enabled;
+      flatpak = enabled;
       geoclue = enabled;
       power = enabled;
     };
