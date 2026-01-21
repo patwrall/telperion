@@ -25,7 +25,6 @@ in
 
           apps = {
             steam = mkDefault enabled;
-            # hytale-launcher = mkDefault enabled;
           };
         };
       };
