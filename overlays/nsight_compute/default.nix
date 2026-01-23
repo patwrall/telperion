@@ -1,7 +1,5 @@
-{ inputs
-, ...
-}:
-final: prev: {
+_:
+_final: prev: {
   cudaPackages = prev.cudaPackages // {
     nsight_compute = prev.cudaPackages.nsight_compute.overrideAttrs (oldAttrs: {
       postInstall = (oldAttrs.postInstall or "") + ''

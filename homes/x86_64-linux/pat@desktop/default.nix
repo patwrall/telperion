@@ -35,7 +35,7 @@ in
             enableDebug = true;
             prependConfig = ''
               monitor=DP-1,3440x1440@180,0x0,1
-              '';
+            '';
           };
         };
       };
