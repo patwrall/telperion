@@ -44,6 +44,7 @@ in
     services = {
       avahi = enabled;
       geoclue = enabled;
+      mullvad-vpn = enabled;
       power = enabled;
     };
 
