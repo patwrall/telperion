@@ -1,15 +1,18 @@
-{ config
-, lib
-, pkgs
-, osConfig ? { }
-, inputs
-, ...
+{
+  config,
+  lib,
+  pkgs,
+
+  osConfig ? { },
+  inputs,
+  ...
 }:
 let
   inherit (lib) mkIf;
   inherit (inputs) yazi-flavors;
 
   cfg = config.telperion.programs.terminal.tools.yazi;
+  isWSL = osConfig.telperion.archetypes.wsl.enable or false;
 in
 {
   options.telperion.programs.terminal.tools.yazi = {
@@ -17,20 +20,46 @@ in
   };
 
   config = mkIf cfg.enable {
-    home.packages =
-      let
-        optionalPluginPackage =
-          plugin: package: lib.optional (builtins.hasAttr plugin config.programs.yazi.plugins) package;
-      in
-      optionalPluginPackage "ouch" pkgs.ouch
-      ++ optionalPluginPackage "glow" pkgs.glow
-      ++ optionalPluginPackage "duckdb" pkgs.duckdb
-      ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [
-        pkgs.dragon-drop
-      ];
 
     programs.yazi = {
       enable = true;
+
+      package =
+        pkgs.yazi.override {
+          _7zz = pkgs._7zz-rar; # Support for RAR extraction
+          extraPackages =
+            let
+              optionalPluginPackage =
+                plugin: package: lib.optional (builtins.hasAttr plugin config.programs.yazi.plugins) package;
+            in
+            (with pkgs; [
+              atool
+              exiftool
+              mediainfo
+              unar
+              undmg
+            ])
+            ++ optionalPluginPackage "ouch" pkgs.ouch
+            ++ optionalPluginPackage "duckdb" pkgs.duckdb
+            ++ optionalPluginPackage "piper" pkgs.bat
+            ++ optionalPluginPackage "piper" pkgs.eza
+            ++ optionalPluginPackage "piper" pkgs.glow
+            ++ lib.optionals (pkgs.stdenv.hostPlatform.isLinux && !isWSL) [
+              pkgs.dragon-drop
+            ];
+        }
+        // lib.optionalAttrs isWSL {
+          optionalDeps = with pkgs; [
+            # Keep essential tools, exclude heavy media dependencies
+            jq
+            _7zz-rar
+            fd
+            ripgrep
+            fzf
+            zoxide
+            # Remove: ffmpeg, poppler-utils, imagemagick, chafa, resvg
+          ];
+        };
 
       # NOTE: wrapper alias is yy
       enableBashIntegration = true;
@@ -61,16 +90,18 @@ in
 
       plugins = {
         "arrow-parent" = ./plugins/arrow-parent.yazi;
-
-        yazi = pkgs.yaziPlugins.yatline.overrideAttrs {
+        "smart-switch" = ./plugins/smart-switch.yazi;
+        "smart-tab" = ./plugins/smart-tab.yazi;
+        "folder-rules" = ./plugins/folder-rules.yazi;
+        # TODO: remove once merged
+        yatline-githead = pkgs.yaziPlugins.yatline-githead.overrideAttrs {
           patches = [
             (pkgs.fetchpatch {
-              url = "https://github.com/imsi32/yatline.yazi/pull/68.patch";
-              hash = "sha256-8ksGgeZL+TK4mKXBLtEIfsVla9ISg7q5zAvPRL0i8Uw=";
+              url = "https://github.com/imsi32/yatline-githead.yazi/pull/7.patch";
+              hash = "sha256-0W2gE3QlSWTYsWhow09zWxNkZlNDd+mZP9FMFP0P5pc=";
             })
           ];
         };
-
         inherit (pkgs.yaziPlugins)
           chmod
           diff
@@ -83,25 +114,17 @@ in
           # mime-ext
           mount
           ouch
+          piper
           restore
           smart-enter
           smart-filter
           sudo
           toggle-pane
-          # FIXME: broken
-          # yatline
-          yatline-githead
+          yatline
+          # FIXME: deprecations
+          # yatline-githead
           yatline-catppuccin
           ;
-        # TODO: remove when upstream is fixed
-        glow = pkgs.yaziPlugins.glow.overrideAttrs {
-          patches = [
-            (pkgs.fetchpatch {
-              url = "https://github.com/Reledia/glow.yazi/pull/28.patch";
-              hash = "sha256-wNAqaCMucfw8BZvUi1vqARoraXWGIzZN6YoWcFAelTw=";
-            })
-          ];
-        };
       };
 
       settings = lib.mkMerge [
