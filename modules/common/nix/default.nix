@@ -120,7 +120,7 @@ in
           # Prevent builds failing just because we can't contact a substituter
           fallback = true;
           flake-registry = "/etc/nix/registry.json";
-          http-connections = 0;
+          http-connections = 25;
           keep-derivations = true;
           keep-going = true;
           keep-outputs = true;

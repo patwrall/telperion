@@ -1,7 +1,8 @@
-{ config
-, lib
-, pkgs
-, ...
+{
+  config,
+  lib,
+  pkgs,
+  ...
 }:
 let
   inherit (lib) types mkIf mkForce;
@@ -27,7 +28,6 @@ in
       [
         pulsemixer
         pavucontrol
-        helvum
       ]
       ++ cfg.extra-packages;
 
