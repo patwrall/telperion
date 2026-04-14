@@ -163,7 +163,7 @@ in
           background_color = "rgb($surfaceContainer)";
         };
 
-        "$terminal" = "${getExe pkgs.foot}";
+        "$terminal" = "${getExe pkgs.kitty}";
         "$browser" = "${getExe inputs.zen-browser.packages.${pkgs.stdenv.hostPlatform.system}.twilight}";
         "$editor" = "${getExe pkgs.neovim}";
         "$fileExplorer" = "${getExe pkgs.nautilus}";
@@ -179,48 +179,24 @@ in
         "$kbNextWs" = "CTRL_SUPER, right";
         "$kbPrevWs" = "CTRL_SUPER, left";
 
-        "$kbToggleSpecialWs" = "SUPER, S";
-
         # Window Groups
         "$kbWindowGroupCycleNext" = "ALT, Tab";
-        "$kbWindowGroupCyclePrev" = "SHIFT_ALT, Tab";
         "$kbUngroup" = "SUPER, U";
-        "$kbToggleGroup" = "SUPER, Comma";
+        "$kbToggleGroup" = "SUPER, G";
 
         # Window Actions
         "$kbMoveWindow" = "SUPER, Z";
         "$kbResizeWindow" = "SUPER, X";
-        "$kbWindowPip" = "SUPER_ALT, Backslash";
         "$kbPinWindow" = "SUPER, P";
         "$kbWindowFullscreen" = "SUPER, F";
         "$kbWindowBorderedFullscreen" = "SUPER_ALT, F";
         "$kbToggleWindowFloating" = "SUPER_ALT, Space";
         "$kbCloseWindow" = "SUPER, Q";
 
-        # Special Workspace Toggles
-        "$kbSystemMonitor" = "CTRL_SHIFT, Escape";
-        "$kbMusic" = "SUPER, M";
-        "$kbCommunication" = "SUPER, D";
-        "$kbTodo" = "SUPER, R";
-
         # Apps
-        "$kbTerminal" = "SUPER, T";
         "$kbBrowser" = "SUPER, W";
         "$kbEditor" = "SUPER, C";
         "$kbFileExplorer" = "SUPER, E";
-
-        # Gaps
-        "$workspaceGaps" = "20";
-        "$windowGapsIn" = "10";
-        "$windowGapsOut" = "40";
-        "$singleWindowGapsOut" = "20";
-
-        # Mics
-        "$kbSession" = "CTRL_ALT, Delete";
-        "$kbClearNotifs" = "CTRL_ALT, C";
-        "$kbShowPanels" = "SUPER, K";
-        "$kbLock" = "SUPER, L";
-        "$kbRestoreLock" = "SUPER_ALT, L";
       };
     };
   };

@@ -27,9 +27,9 @@ in
           "float on, match:class org\\.quickshell"
 
           # Float, resize and center
-          "float on, match:class foot, match:title nmtui"
-          "size 60% 70%, match:class foot, match:title nmtui"
-          "center 1, match:class foot, match:title nmtui"
+          "float on, match:class kitty, match:title nmtui"
+          "size 60% 70%, match:class kitty, match:title nmtui"
+          "center 1, match:class kitty, match:title nmtui"
 
           "float on, match:class org\\.gnome\\.Settings"
           "size 70% 80%, match:class org\\.gnome\\.Settings"

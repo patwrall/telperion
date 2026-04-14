@@ -149,7 +149,7 @@
                           command = "sh";
                           args = [
                             "-c"
-                            "TERM=foot yazi"
+                            "TERM=xterm-256color yazi"
                           ];
                         };
                       }

@@ -42,7 +42,7 @@ in
       programs = {
         terminal = {
           emulators = {
-            foot = enabled;
+            kitty = enabled;
           };
 
           shell = {

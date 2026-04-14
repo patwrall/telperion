@@ -34,7 +34,6 @@ in
             "fish"
             "cryptsetup"
             "dbus-.*"
-            "foot"
             "gpg-agent"
             "greetd"
             "kitty"

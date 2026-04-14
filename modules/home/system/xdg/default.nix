@@ -20,7 +20,6 @@ let
   powerpoint = [ "libreoffice-impress.desktop" ];
   terminal = [
     "kitty.desktop"
-    "foot.desktop"
     "wezterm.desktop"
     "alacritty.desktop"
   ];

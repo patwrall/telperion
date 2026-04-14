@@ -22,7 +22,6 @@ let
   formatBinds = type: binds: lib.concatStringsSep "\n" (lib.map (b: "${type} = ${b}") binds);
 
   appBinds = [
-    "$kbTerminal, exec, $terminal"
     "SUPER, RETURN, exec, $terminal"
     "$kbBrowser, exec, $browser"
     "$kbEditor, exec, $editor"
@@ -32,8 +31,6 @@ let
   ];
 
   regularBinds = [
-    # Misc
-    "$kbLock, exec, ambxst lock"
     # Workspaces
     "SUPER, mouse_down, workspace, -1"
     "SUPER, mouse_up, workspace, +1"
@@ -85,9 +82,6 @@ let
       ]) 10));
 
   releaseBinds = [
-    "$kbRestoreLock, exec, ambxst reload"
-    "$kbRestoreLock, exec, ambxst lock"
-
     ", XF86AudioMute, exec, wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
     "SUPER_SHIFT, M, exec, wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
 
