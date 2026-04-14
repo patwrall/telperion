@@ -59,6 +59,23 @@ in
           "Videos/.keep".text = "";
         };
 
+        # Ambxst scans wallpapers with `find -type f`, which skips symlinks. Since
+        # home-manager installs wallpapers as symlinks, we update wallpapers.json to
+        # point wallPath directly at the Nix store derivation where files are real.
+        activation.updateAmbxstWallpaperPath = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+          cache="$HOME/.cache/ambxst"
+          json="$cache/wallpapers.json"
+          wallpath="${pkgs.telperion.wallpapers}"
+
+          mkdir -p "$cache"
+          if [ -f "$json" ]; then
+            tmp=$(${pkgs.jq}/bin/jq --arg p "$wallpath" '.wallPath = $p' "$json")
+            printf '%s\n' "$tmp" > "$json"
+          else
+            printf '{"wallPath":"%s","currentWall":"","matugenScheme":"scheme-tonal-spot","activeColorPreset":"","tintEnabled":false,"perScreenWallpapers":{}}\n' "$wallpath" > "$json"
+          fi
+        '';
+
         homeDirectory = mkIf (cfg.home != null) (mkDefault cfg.home);
 
         shellAliases = {
