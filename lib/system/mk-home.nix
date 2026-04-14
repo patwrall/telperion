@@ -36,7 +36,6 @@ inputs.home-manager.lib.homeManagerConfiguration {
     inputs.sops-nix.homeManagerModules.sops
     inputs.opnix.homeManagerModules.default
     inputs.spicetify-nix.homeManagerModules.spicetify
-    inputs.caelestia-shell.homeManagerModules.default
 
     inputs.zen-browser.homeModules.twilight
 

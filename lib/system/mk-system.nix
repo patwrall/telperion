@@ -50,6 +50,7 @@ inputs.nixpkgs.lib.nixosSystem {
       // common.mkNixpkgsConfig flake;
     }
 
+    inputs.ambxst.nixosModules.default
     inputs.home-manager.nixosModules.home-manager
     inputs.lanzaboote.nixosModules.lanzaboote
     inputs.sops-nix.nixosModules.sops
