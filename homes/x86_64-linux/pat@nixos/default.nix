@@ -17,7 +17,7 @@ in
           zen-browser = enabled;
         };
         quickshell = {
-          caelestia = enabled;
+          ambxst = enabled;
         };
         wms = {
           hyprland = {

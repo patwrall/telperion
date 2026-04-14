@@ -27,7 +27,7 @@ in
           idea = enabled;
         };
         quickshell = {
-          caelestia = enabled;
+          ambxst = enabled;
         };
         wms = {
           hyprland = {
