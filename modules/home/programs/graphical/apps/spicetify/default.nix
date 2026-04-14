@@ -16,28 +16,6 @@ in
   config = mkIf cfg.enable {
     programs.spicetify = {
       enable = true;
-
-      theme = {
-        name = "caelestia";
-
-        src =
-          pkgs.fetchFromGitHub
-            {
-              owner = "caelestia-dots";
-              repo = "caelestia";
-              rev = "main";
-              hash = "sha256-LHTEGMTQFROXeIZ2z9y8PAiUelH4rl/LGsoc/QjiKvk=";
-            }
-          + "/spicetify/Themes/caelestia";
-
-        injectCss = true;
-        injectThemeJs = true;
-        replaceColors = true;
-        homeConfig = true;
-        overwriteAssets = false;
-
-        additionalCss = '''';
-      };
     };
   };
 }

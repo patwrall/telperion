@@ -25,10 +25,6 @@ in
       interactiveShellInit =
         # fish
         ''
-          command cat ~/.local/state/caelestia/sequences.txt 2>/dev/null
-        ''
-        +
-        ''
           # 1password plugin
           if [ -f ~/.config/op/plugins.sh ];
               source ~/.config/op/plugins.sh

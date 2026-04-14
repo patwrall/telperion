@@ -21,7 +21,7 @@ in
       settings = {
         #* Name of a btop++/bpytop/bashtop formatted ".theme" file, "Default" and "TTY" for builtin themes.
         #* Themes should be placed in "../share/btop/themes" relative to binary or "$HOME/.config/btop/themes"
-        color_theme = "caelestia";
+        color_theme = "Default";
 
         #* If the theme set background should be shown, set to false if you want terminal background transparency.;
         theme_background = false;
