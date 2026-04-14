@@ -197,6 +197,9 @@ in
         "$kbBrowser" = "SUPER, W";
         "$kbEditor" = "SUPER, C";
         "$kbFileExplorer" = "SUPER, E";
+
+        # Gaps
+        "$singleWindowGapsOut" = "20";
       };
     };
   };

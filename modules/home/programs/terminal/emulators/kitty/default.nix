@@ -22,6 +22,7 @@ in
       };
 
       settings = {
+        shell = "fish";
         scrollback_lines = 10000;
         cursor_shape = "beam";
         cursor_beam_thickness = "1.5";
