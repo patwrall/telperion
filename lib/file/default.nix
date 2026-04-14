@@ -1,30 +1,268 @@
-{ inputs
-, self
-,
+{
+  inputs,
+  self,
 }:
 let
-  inherit (inputs.nixpkgs.lib)
+  inherit (inputs.nixpkgs) lib;
+  inherit (lib)
     genAttrs
     filterAttrs
     hasPrefix
+    hasSuffix
     foldl'
     ;
+
+  getNixFiles' = dirPath: listNamesMatching' (name: hasSuffix ".nix" name) dirPath;
+
+  listDir' = dirPath: builtins.readDir dirPath;
+
+  listNames' = dirPath: builtins.attrNames (listDir' dirPath);
+
+  listDirectories' =
+    dirPath:
+    let
+      entries = listDir' dirPath;
+    in
+    lib.filter (name: entries.${name} == "directory") (builtins.attrNames entries);
+
+  listNamesMatching' = predicate: dirPath: lib.filter predicate (listNames' dirPath);
+
+  mergeAttrs' = attrsList: lib.foldl' (acc: attrs: acc // attrs) { } attrsList;
 in
 {
-  # Read a file and return its contents
-  readFile = path: builtins.readFile path;
+  /**
+    Read a file and return its contents.
 
-  # Check if a file exists
-  pathExists = path: builtins.pathExists path;
+    # Inputs
 
-  # Import a nix file with error handling
-  safeImport = path: default: if builtins.pathExists path then import path else default;
+    `filePath`
 
-  # Scan a directory and return directory names
-  scanDir = path: builtins.attrNames (builtins.readDir path);
+    : 1\. Function argument
+  */
+  readFile = filePath: builtins.readFile filePath;
 
-  # Get a file path relative to the flake root (similar to Snowfall's get-file)
+  /**
+    Read a directory and return its entries.
+
+    # Inputs
+
+    `dirPath`
+
+    : 1\. Function argument
+  */
+  listDir = listDir';
+
+  /**
+    Check if a file exists.
+
+    # Inputs
+
+    `filePath`
+
+    : 1\. Function argument
+  */
+  pathExists = filePath: builtins.pathExists filePath;
+
+  /**
+    Import a nix file with error handling.
+
+    # Inputs
+
+    `filePath`
+
+    : 1\. Function argument
+
+    `default`
+
+    : 2\. Function argument
+  */
+  safeImport = filePath: default: if builtins.pathExists filePath then import filePath else default;
+
+  /**
+    Return all entry names in a directory.
+
+    # Inputs
+
+    `dirPath`
+
+    : 1\. Function argument
+  */
+  listNames = listNames';
+
+  /**
+    Return directory names within a directory.
+
+    # Inputs
+
+    `dirPath`
+
+    : 1\. Function argument
+  */
+  listDirectories = listDirectories';
+
+  /**
+    Return entry names matching a predicate.
+
+    # Inputs
+
+    `predicate`
+
+    : 1\. Function argument
+
+    `dirPath`
+
+    : 2\. Function argument
+  */
+  listNamesMatching = listNamesMatching';
+
+  /**
+    Scan a directory and return entry names.
+
+    # Inputs
+
+    `dirPath`
+
+    : 1\. Function argument
+  */
+  scanDir = listNames';
+
+  /**
+    Get a file path relative to the flake root.
+
+    # Inputs
+
+    `relativePath`
+
+    : 1\. Function argument
+  */
   getFile = relativePath: self + "/${relativePath}";
+
+  /**
+    Get all .nix files from a directory.
+    Returns a list of file names (without paths).
+
+    # Inputs
+
+    `dirPath`
+
+    : 1\. Function argument
+  */
+  getNixFiles = getNixFiles';
+
+  /**
+    Merge a list of attribute sets into a single attribute set.
+    Later values override earlier ones.
+
+    # Inputs
+
+    `attrsList`
+
+    : 1\. Function argument
+  */
+  mergeAttrs = mergeAttrs';
+
+  /**
+    Import all .nix files from a directory.
+    Returns a list of imported values.
+
+    # Inputs
+
+    `dirPath`
+
+    : 1\. Function argument
+
+    `args`
+
+    : 2\. Function argument
+  */
+  importFiles =
+    dirPath: args:
+    let
+      nixFiles = getNixFiles' dirPath;
+    in
+    map (name: import (dirPath + "/${name}") args) nixFiles;
+
+  /**
+    Import all .nix files from a directory and merge them into a single attribute set.
+    Convenience function combining importFiles and mergeAttrs.
+
+    # Inputs
+
+    `dirPath`
+
+    : 1\. Function argument
+
+    `args`
+
+    : 2\. Function argument
+  */
+  importDir =
+    dirPath: args:
+    let
+      nixFiles = getNixFiles' dirPath;
+      imported = map (name: import (dirPath + "/${name}") args) nixFiles;
+    in
+    mergeAttrs' imported;
+
+  /**
+    Import all .nix files from a directory without passing args.
+    For files that are plain attribute sets (not functions).
+
+    # Inputs
+
+    `dirPath`
+
+    : 1\. Function argument
+
+    `exclude`
+
+    : 2\. Function argument
+  */
+  importDirPlain =
+    dirPath: exclude:
+    let
+      excludeList = if builtins.isList exclude then exclude else [ ];
+      nixFiles = lib.filter (name: !(builtins.elem name excludeList)) (getNixFiles' dirPath);
+    in
+    mergeAttrs' (map (name: import (dirPath + "/${name}")) nixFiles);
+
+  /**
+    Import all .nix files from all subdirectories, merging results.
+    Useful for organizing related files in subdirs.
+
+    # Inputs
+
+    `dirPath`
+
+    : 1\. Function argument
+
+    `exclude`
+
+    : Optional exclude list
+
+    `args`
+
+    : Optional arguments to pass to imports
+  */
+  importSubdirs =
+    dirPath:
+    {
+      exclude ? [ ],
+      args ? null,
+    }:
+    let
+      subdirs = listDirectories' dirPath;
+      importSubdir =
+        dir:
+        let
+          subDirPath = dirPath + "/${dir}";
+          files = lib.filter (f: !(builtins.elem f exclude)) (getNixFiles' subDirPath);
+          importFile =
+            f: if args == null then import (subDirPath + "/${f}") else import (subDirPath + "/${f}") args;
+        in
+        mergeAttrs' (map importFile files);
+    in
+    mergeAttrs' (map importSubdir subdirs);
 
   # Recursively discover and import all Nix modules in a directory tree
   importModulesRecursive =
@@ -38,12 +276,10 @@ in
           entryNames = builtins.attrNames currentEntries;
 
           # Get all directories that contain default.nix
-          directoriesWithDefault = builtins.filter
-            (
-              name:
-              currentEntries.${name} == "directory" && builtins.pathExists (currentPath + "/${name}/default.nix")
-            )
-            entryNames;
+          directoriesWithDefault = builtins.filter (
+            name:
+            currentEntries.${name} == "directory" && builtins.pathExists (currentPath + "/${name}/default.nix")
+          ) entryNames;
 
           # Get ALL directories (to recurse into)
           allDirectories = builtins.filter (name: currentEntries.${name} == "directory") entryNames;
@@ -82,20 +318,16 @@ in
   # Filter systems for NixOS (Linux)
   filterNixOSSystems =
     systems:
-    filterAttrs
-      (
-        _name: { system, ... }: hasPrefix "x86_64-linux" system || hasPrefix "aarch64-linux" system
-      )
-      systems;
+    filterAttrs (
+      _name: { system, ... }: hasPrefix "x86_64-linux" system || hasPrefix "aarch64-linux" system
+    ) systems;
 
   # Filter systems for Darwin (macOS)
   filterDarwinSystems =
     systems:
-    filterAttrs
-      (
-        _name: { system, ... }: hasPrefix "aarch64-darwin" system || hasPrefix "x86_64-darwin" system
-      )
-      systems;
+    filterAttrs (
+      _name: { system, ... }: hasPrefix "aarch64-darwin" system || hasPrefix "x86_64-darwin" system
+    ) systems;
 
   # Scan homes directory structure for home configurations
   scanHomes =
