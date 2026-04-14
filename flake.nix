@@ -70,6 +70,12 @@
       };
     };
     laurelin.url = "github:patwrall/laurelin";
+    ambxst = {
+      url = "github:Axenide/Ambxst";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+      };
+    };
     caelestia-shell = {
       url = "github:caelestia-dots/shell";
       inputs = {
