@@ -22,11 +22,15 @@ in
           "animation popin 80%, match:namespace launcher"
           "blur on, match:namespace launcher"
 
-          # Caelestia Shell
-          "no_anim on, match:namespace caelestia-(border-exclusion|area-picker)"
-          "animation fade, match:namespace caelestia-(drawers|background)"
-          "blur on, match:namespace caelestia-drawers"
-          "ignore_alpha 0.57, match:namespace caelestia-drawers"
+          # Ambxst Shell
+          "no_anim on, match:namespace selection"
+          "blur on, match:namespace ambxst"
+          "no_anim on, match:namespace ambxst"
+          "ignore_alpha 0.5, match:namespace ambxst"
+          "blur on, match:namespace overview"
+          "no_anim on, match:namespace overview"
+          "blur on, match:namespace presets"
+          "no_anim on, match:namespace presets"
         ];
       };
     };
