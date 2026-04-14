@@ -51,7 +51,7 @@ in
           # Dim non-fullscreen windows based on your opacity var
           "opacity $windowOpacity override, match:fullscreen false"
 
-          "opaque on, match:class kitty|equibop|org\\.quickshell|imv|swappy"
+          "opaque on, match:class equibop|org\\.quickshell|imv|swappy"
 
           # center floating wayland-native windows
           "center 1, match:float true, match:xwayland false"
