@@ -175,6 +175,21 @@
                 {
                   tab = {
                     _props = {
+                      name = "Claude";
+                      cwd = "$HOME/telperion/";
+                    };
+                    _children = [
+                      {
+                        pane = {
+                          command = "claude";
+                        };
+                      }
+                    ];
+                  };
+                }
+                {
+                  tab = {
+                    _props = {
                       name = "Processes";
                       split_direction = "vertical";
                       cwd = "$HOME";

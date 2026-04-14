@@ -93,6 +93,20 @@
                     ];
                   };
                 }
+                {
+                  tab = {
+                    _props = {
+                      name = "Claude";
+                    };
+                    _children = [
+                      {
+                        pane = {
+                          command = "claude";
+                        };
+                      }
+                    ];
+                  };
+                }
               ];
             };
           };
