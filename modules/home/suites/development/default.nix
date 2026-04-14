@@ -1,7 +1,8 @@
-{ config
-, lib
-, pkgs
-, ...
+{
+  config,
+  lib,
+  pkgs,
+  ...
 }:
 let
   inherit (lib) mkIf mkDefault;
@@ -52,7 +53,7 @@ in
           mysql-workbench
         ]
         ++ lib.optionals cfg.cudaEnable [
-          cudaPackages.nsight_compute
+          # cudaPackages.nsight_compute
           # cudaPackages.nsight_systems
         ];
     };
@@ -73,6 +74,7 @@ in
 
           tools = {
             act = mkDefault enabled;
+            claude-code = mkDefault enabled;
             git-crypt = mkDefault enabled;
             go.enable = cfg.goEnable;
             k9s.enable = cfg.kubernetesEnable;
