@@ -44,7 +44,7 @@ in
           beam-thickness = 1.5;
         };
 
-        colors = {
+        colors-dark = {
           alpha = lib.mkDefault "0.78";
         };
 
