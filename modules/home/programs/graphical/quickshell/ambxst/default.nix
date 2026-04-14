@@ -11,8 +11,11 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    wayland.windowManager.hyprland.extraConfig = lib.mkBefore ''
-      source = ~/.local/share/ambxst/hyprland.conf
-    '';
+    wayland.windowManager.hyprland = {
+      extraConfig = lib.mkBefore ''
+        source = ~/.local/share/ambxst/hyprland.conf
+      '';
+      settings.exec-once = [ "ambxst" ];
+    };
   };
 }
