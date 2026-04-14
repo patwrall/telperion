@@ -50,7 +50,13 @@ inputs.nixpkgs.lib.nixosSystem {
       // common.mkNixpkgsConfig flake;
     }
 
-    inputs.ambxst.nixosModules.default
+    # Work around ambxst nixosModule bug: pkgs.system doesn't exist in module
+    # context; use system from our closure instead.
+    ({ lib, ... }: {
+      imports = [ "${inputs.ambxst}/nix/modules" ];
+      programs.ambxst.enable = lib.mkDefault true;
+      programs.ambxst.package = lib.mkDefault inputs.ambxst.packages.${system}.default;
+    })
     inputs.home-manager.nixosModules.home-manager
     inputs.lanzaboote.nixosModules.lanzaboote
     inputs.sops-nix.nixosModules.sops
