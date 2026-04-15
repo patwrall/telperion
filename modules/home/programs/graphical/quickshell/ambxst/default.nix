@@ -21,7 +21,9 @@ in
     '';
 
     wayland.windowManager.hyprland = {
-      settings.exec-once = [ "ambxst" ];
+      # exec-once is intentionally omitted: ambxst's generated hyprland.conf
+      # (sourced below) already contains `exec-once = ambxst`. Adding it here
+      # too causes a double launch on startup.
       # Source ambxst's generated config (keybinds, profile appearance settings).
       extraConfig = ''
         source = ${config.home.homeDirectory}/.local/share/ambxst/hyprland.conf
