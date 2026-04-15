@@ -24,7 +24,10 @@ in
 
     telperion = {
       user = {
-        extraGroups = [ "git" ];
+        extraGroups = [
+          "dialout" # serial port access for embedded/ESP32 dev boards
+          "git"
+        ];
       };
 
       virtualisation = {
