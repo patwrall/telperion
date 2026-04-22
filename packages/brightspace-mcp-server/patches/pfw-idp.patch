@@ -1,0 +1,30 @@
+Remove hardcoded West Lafayette Shibboleth IdP so campus selector stays visible.
+
+Upstream's --purdue preset auto-redirects every user to
+https://idp.purdue.edu/idp/shibboleth (West Lafayette). PFW/PNW accounts then
+pass MFA but fail SAML with "your particular user does not exist on our system"
+because the assertion comes from the wrong IdP. Leaving the selector page
+intact lets the user click their campus manually.
+
+--- a/src/auth/purdue-sso.ts
++++ b/src/auth/purdue-sso.ts
+@@ -93,16 +93,11 @@ export class PurdueSSOFlow {
+   }
+
+   private async handleCampusSelector(page: Page): Promise<void> {
++    // PFW patch: do not auto-redirect to West Lafayette's Shibboleth IdP.
++    // Leave the campus selector visible so non-WL users can pick their campus.
+     const currentUrl = page.url();
+     if (currentUrl.includes("/d2l/login")) {
+-      // Campus selector buttons are inside a shadow DOM — navigate directly
+-      // to Purdue's Shibboleth SAML endpoint instead of clicking them
+-      const baseUrl = new URL(currentUrl).origin;
+-      log("INFO", "Campus selector detected — navigating directly to Shibboleth IdP");
+-      await page.goto(
+-        `${baseUrl}/d2l/lp/auth/saml/initiate-login?entityId=https://idp.purdue.edu/idp/shibboleth`,
+-        { waitUntil: "networkidle", timeout: 30000 }
+-      );
++      log("INFO", "Campus selector detected — waiting for user to pick campus manually");
+     }
+     // Already on sso.purdue.edu or past the campus selector — nothing to do
+   }
