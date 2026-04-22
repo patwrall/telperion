@@ -45,7 +45,9 @@ let
     "mcp__sequential-thinking__sequentialthinking"
 
     # Brightspace MCP - all tools are read-only (fetch grades, assignments, etc.)
-    "mcp__brightspace-mcp-server"
+    # The HM claude-code plugin namespaces MCP tools as
+    # `mcp__plugin_claude-code-home-manager_<server>__<tool>`.
+    "mcp__plugin_claude-code-home-manager_brightspace-mcp-server"
 
     # Filesystem MCP - read operations
     "mcp__filesystem__read_file"
