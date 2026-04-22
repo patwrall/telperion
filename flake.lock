@@ -854,6 +854,26 @@
         "type": "github"
       }
     },
+    "mcp-servers-nix": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs-unstable"
+        ]
+      },
+      "locked": {
+        "lastModified": 1776728819,
+        "narHash": "sha256-L/7TlZvFvmTgHf+ZTXYM5wrmtJvZzfbHhc7pwiAKYoQ=",
+        "owner": "natsukium",
+        "repo": "mcp-servers-nix",
+        "rev": "d0cc2a91635ec74e878722f7e16deac8255bb9a7",
+        "type": "github"
+      },
+      "original": {
+        "owner": "natsukium",
+        "repo": "mcp-servers-nix",
+        "type": "github"
+      }
+    },
     "neovim-nightly-overlay": {
       "inputs": {
         "flake-parts": "flake-parts_4",
@@ -1258,6 +1278,7 @@
         "hyprland": "hyprland",
         "lanzaboote": "lanzaboote",
         "laurelin": "laurelin",
+        "mcp-servers-nix": "mcp-servers-nix",
         "nh": "nh",
         "nix-darwin": "nix-darwin",
         "nix-flatpak": "nix-flatpak",

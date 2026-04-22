@@ -45,6 +45,7 @@ in
             enable = true;
             enableSshSocket = true;
           };
+          mcp = enabled;
         };
       };
     };

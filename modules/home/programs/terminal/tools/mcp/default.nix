@@ -1,18 +1,9 @@
-{
-  config,
-  lib,
-  # pkgs,
-  inputs,
-  system,
-  ...
+{ config
+, lib
+, ...
 }:
 let
-  inherit (lib)
-    getExe
-    ;
-
   cfg = config.telperion.programs.terminal.tools.mcp;
-  mcpPkgs = inputs.mcp-servers-nix.packages.${system};
 in
 {
   options.telperion.programs.terminal.tools.mcp = {
@@ -20,37 +11,37 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    programs.mcp = {
-      # MCP documentation
-      # See: https://modelcontextprotocol.io/
-      enable = true;
-      servers = {
-        fetch = {
-          command = getExe mcpPkgs.mcp-server-fetch;
-        };
+    # Centralized registry consumed by programs.claude-code via
+    # `enableMcpIntegration = true` (wired in the claude-code module).
+    # See: https://github.com/natsukium/mcp-servers-nix
+    programs.mcp.enable = true;
 
-        filesystem = {
-          command = getExe mcpPkgs.mcp-server-filesystem;
-          args = lib.mkDefault [
-            config.home.homeDirectory
-            "${config.home.homeDirectory}/Documents"
-            "${config.home.homeDirectory}/telperion"
-            "/nix/store"
-          ];
-        };
+    mcp-servers.programs = {
+      fetch.enable = true;
 
-        sequential-thinking = {
-          command = getExe mcpPkgs.mcp-server-sequential-thinking;
-        };
+      filesystem = {
+        enable = true;
+        args = [
+          config.home.homeDirectory
+          "${config.home.homeDirectory}/Documents"
+          "${config.home.homeDirectory}/telperion"
+          "/nix/store"
+        ];
+      };
 
-        git = {
-          command = getExe mcpPkgs.mcp-server-git;
-        };
+      git.enable = true;
+      sequential-thinking.enable = true;
+      context7.enable = true;
+      playwright.enable = true;
 
-        # FIXME: broken nixpkgs
-        # nixos = {
-        #   command = getExe pkgs.mcp-nixos;
-        # };
+      # Token resolved at server spawn via 1Password CLI — requires an item
+      # "GitHub MCP" (field "token") in the "Private" vault. See README for
+      # how to provision it.
+      github = {
+        enable = true;
+        passwordCommand = {
+          GITHUB_PERSONAL_ACCESS_TOKEN = [ "op" "read" "op://Private/GitHub MCP/token" ];
+        };
       };
     };
   };

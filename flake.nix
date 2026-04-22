@@ -70,6 +70,10 @@
       };
     };
     laurelin.url = "github:patwrall/laurelin";
+    mcp-servers-nix = {
+      url = "github:natsukium/mcp-servers-nix";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
     ambxst = {
       url = "github:Axenide/Ambxst";
       inputs = {

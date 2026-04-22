@@ -73,6 +73,7 @@ in
             inputs.nix-index-database.homeModules.nix-index
             inputs.sops-nix.homeManagerModules.sops
             inputs.opnix.homeManagerModules.default
+            inputs.mcp-servers-nix.homeManagerModules.default
             inputs.spicetify-nix.homeManagerModules.spicetify
             inputs.zen-browser.homeModules.twilight
           ]
