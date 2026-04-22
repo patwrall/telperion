@@ -1,5 +1,7 @@
 { buildFHSEnv
 , brightspace-mcp-server
+, writeShellScript
+, nodejs
 , ...
 }:
 # FHS wrapper around brightspace-mcp-server's `brightspace-auth` CLI.
@@ -9,12 +11,26 @@
 # the binary expects (libglib, libnss, libgbm, libxshmfence, …). Running it
 # inside an FHS userns gives those libs their expected home.
 #
-# Re-running on session expiry is now a single command: `brightspace-auth`.
+# The bundled server ships with --ignore-scripts (no Chromium in the Nix
+# store), so the wrapper installs the Chromium version bundled Playwright
+# demands into ~/.cache/ms-playwright on first run. The install is idempotent:
+# a no-op when the expected build is already cached. This means re-auth works
+# across Playwright version bumps without manual intervention.
+let
+  playwrightCli = "${brightspace-mcp-server}/lib/node_modules/brightspace-mcp-server/node_modules/playwright/cli.js";
+
+  wrap = writeShellScript "brightspace-auth-wrap" ''
+    set -e
+    node ${playwrightCli} install chromium
+    exec brightspace-auth "$@"
+  '';
+in
 buildFHSEnv {
   name = "brightspace-auth";
 
   targetPkgs = pkgs: with pkgs; [
     brightspace-mcp-server
+    nodejs
 
     # Playwright Chromium runtime deps.
     glib
@@ -49,7 +65,7 @@ buildFHSEnv {
     systemd
   ];
 
-  runScript = "brightspace-auth";
+  runScript = wrap;
 
   meta = {
     description = "FHS-wrapped Brightspace auth CLI for NixOS";
