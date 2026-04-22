@@ -8,7 +8,7 @@ let
   inherit (lib) mkIf mkEnableOption;
 
   cfg = config.telperion.programs.terminal.tools.claude-code;
-  mcpModuleEnabled = config.terlperion.programs.terminal.tools.mcp.enable or false;
+  mcpModuleEnabled = config.telperion.programs.terminal.tools.mcp.enable or false;
   aiTools = import (lib.getFile "modules/common/ai-tools") { inherit lib; };
 
   claudeIcon = ./assets/claude.ico;
