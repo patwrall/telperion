@@ -44,6 +44,9 @@ let
     "mcp__github__get_file_contents"
     "mcp__sequential-thinking__sequentialthinking"
 
+    # Brightspace MCP - all tools are read-only (fetch grades, assignments, etc.)
+    "mcp__brightspace-mcp-server"
+
     # Filesystem MCP - read operations
     "mcp__filesystem__read_file"
     "mcp__filesystem__read_text_file"
