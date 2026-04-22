@@ -26,10 +26,20 @@ in
     # Install Claude icon for notifications
     xdg.dataFile."icons/claude.ico".source = claudeIcon;
 
+    # Put the FHS-wrapped Brightspace auth CLI on PATH so re-auth is one command.
+    home.packages = [ pkgs.telperion.brightspace-auth ];
+
     programs.claude-code = {
       enable = true;
 
       enableMcpIntegration = mkIf mcpModuleEnabled true;
+
+      mcpServers = {
+        brightspace-mcp-server = {
+          type = "stdio";
+          command = lib.getExe pkgs.telperion.brightspace-mcp-server;
+        };
+      };
 
       settings = {
         theme = "dark";
