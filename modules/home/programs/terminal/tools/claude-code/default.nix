@@ -12,6 +12,25 @@ let
   aiTools = import (lib.getFile "modules/common/ai-tools") { inherit lib; };
 
   claudeIcon = ./assets/claude.ico;
+
+  # Register the discord plugin under its real marketplace ID so
+  # `--channels plugin:discord@claude-plugins-official` resolves. Sideloading
+  # via `--plugin-dir` would tag it `@inline` and break channel routing.
+  discordPlugin = pkgs.telperion.claude-discord-plugin;
+  installedPlugins = (pkgs.formats.json { }).generate "installed_plugins.json" {
+    version = 2;
+    plugins = {
+      "discord@claude-plugins-official" = [
+        {
+          scope = "user";
+          installPath = "${discordPlugin}";
+          version = discordPlugin.version or "0.0.4";
+          installedAt = "1970-01-01T00:00:00Z";
+          lastUpdated = "1970-01-01T00:00:00Z";
+        }
+      ];
+    };
+  };
 in
 {
   imports = [
@@ -29,6 +48,8 @@ in
     # Put the FHS-wrapped Brightspace auth CLI on PATH so re-auth is one command.
     home.packages = [ pkgs.telperion.brightspace-auth ];
 
+    home.file.".claude/plugins/installed_plugins.json".source = installedPlugins;
+
     programs.claude-code = {
       enable = true;
 
@@ -43,6 +64,11 @@ in
 
       settings = {
         theme = "dark";
+
+        # Mark the discord plugin as enabled so its MCP server, skills, and
+        # commands are loaded. The presence of the key (any non-undefined
+        # value) is what Claude Code's `Hu()` checks against.
+        enabledPlugins."discord@claude-plugins-official" = true;
 
         hooks = lib.importDir ./hooks { inherit pkgs config lib; };
 
