@@ -42,6 +42,9 @@ let
     "CTRL_SUPER_SHIFT, up, movetoworkspace, special:special"
     "CTRL_SUPER_SHIFT, down, movetoworkspace, e+0"
     "SUPER_ALT, S, movetoworkspace, special:special"
+    # Named scratchpads
+    "SUPER, M, togglespecialworkspace, music"
+    "SUPER, J, togglespecialworkspace, discord"
     # Window groups
     "$kbToggleGroup, togglegroup"
     "$kbUngroup, moveoutofgroup"

@@ -13,9 +13,9 @@ in
       settings = {
         windowrule = [
           "workspace special:sysmon, match:class btop"
-          "workspace 9, match:class Spotify|feishin|Supersonic|spotify_player"
-          "workspace 9, match:initial_title Spotify( Free)?"
-          "workspace 10, match:class discord|equibop|vesktop|whatsapp|discordo"
+          "workspace special:music, match:class Spotify|feishin|Supersonic|spotify_player"
+          "workspace special:music, match:initial_title Spotify( Free)?"
+          "workspace special:discord, match:class discord|equibop|vesktop|whatsapp|discordo"
           "workspace special:todo, match:class Todoist"
         ];
 
