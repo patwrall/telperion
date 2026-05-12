@@ -22,6 +22,7 @@ in
       };
 
       vencord = {
+        useSystem = true;
         settings = {
           # Can't auto update on nix
           autoUpdate = false;
@@ -29,6 +30,7 @@ in
 
           useQuickCss = true;
           themeLinks = [ ];
+          enabledThemes = [ "ambxst.css" ];
           eagerPatches = false;
           enableReactDevtools = true;
           frameless = false;
