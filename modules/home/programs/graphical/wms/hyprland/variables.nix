@@ -164,7 +164,7 @@ in
         };
 
         "$terminal" = "${getExe pkgs.kitty}";
-        "$browser" = "${getExe inputs.zen-browser.packages.${pkgs.stdenv.hostPlatform.system}.twilight}";
+        "$browser" = "${getExe inputs.zen-browser.packages.${pkgs.stdenv.hostPlatform.system}.default}";
         "$editor" = "${getExe pkgs.neovim}";
         "$fileExplorer" = "${getExe pkgs.nautilus}";
 

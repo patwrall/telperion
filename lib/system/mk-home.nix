@@ -38,7 +38,7 @@ inputs.home-manager.lib.homeManagerConfiguration {
     inputs.mcp-servers-nix.homeManagerModules.default
     inputs.spicetify-nix.homeManagerModules.spicetify
 
-    inputs.zen-browser.homeModules.twilight
+    inputs.zen-browser.homeModules.default
 
     # Import all home modules recursively
   ]

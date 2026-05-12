@@ -75,7 +75,7 @@ in
             inputs.opnix.homeManagerModules.default
             inputs.mcp-servers-nix.homeManagerModules.default
             inputs.spicetify-nix.homeManagerModules.spicetify
-            inputs.zen-browser.homeModules.twilight
+            inputs.zen-browser.homeModules.default
           ]
           ++ (extendedLib.importModulesRecursive ../../modules/home);
           users = mapAttrs'
