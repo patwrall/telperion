@@ -1,4 +1,5 @@
-{ disks ? [
+let
+  disks = [
     # 0: OS Drive - 1TB Samsung NVMe
     "/dev/disk/by-id/nvme-Samsung_SSD_970_EVO_Plus_1TB_S6S1NS0W103926H"
     # 1: Fast Storage - 500GB Crucial NVMe
@@ -7,10 +8,7 @@
     "/dev/disk/by-id/ata-ST1000DM003-1CH162_S1DB06CD"
     # 3: Backup/Misc - 500GB Seagate HDD
     "/dev/disk/by-id/ata-ST3500413AS_Z2AV08X1"
-  ]
-, ...
-}:
-let
+  ];
   defaultBtrfsOpts = [
     "defaults"
     "compress=zstd:1"
