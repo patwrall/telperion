@@ -45,6 +45,7 @@ in
       avahi = enabled;
       geoclue = enabled;
       mullvad-vpn = enabled;
+      openssh = enabled;
       power = enabled;
     };
 
