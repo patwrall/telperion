@@ -1,9 +1,13 @@
 let
   disks = [
-    # 0: OS Drive - 1TB Samsung NVMe
-    "/dev/disk/by-id/nvme-Samsung_SSD_970_EVO_Plus_1TB_S6S1NS0W103926H"
-    # 1: Fast Storage - 500GB Crucial NVMe
+    # 0: OS Drive - 500GB Crucial NVMe
+    # NOTE: Samsung 970 EVO Plus (1TB) is the preferred OS drive, but its PCIe
+    # controller drops under sustained write load and no kernel/BIOS workaround
+    # has resolved it. Crucial is the OS drive until the Samsung is RMA'd or
+    # successfully firmware-updated. Swap back when fixed.
     "/dev/disk/by-id/nvme-gCT500P2SSD8_2038E4B0F889"
+    # 1: Currently unused - 1TB Samsung NVMe (see note above)
+    "/dev/disk/by-id/nvme-Samsung_SSD_970_EVO_Plus_1TB_S6S1NS0W103926H"
     # 2: Bulk Storage - 1TB Seagate HDD
     "/dev/disk/by-id/ata-ST1000DM003-1CH162_S1DB06CD"
     # 3: Backup/Misc - 500GB Seagate HDD
