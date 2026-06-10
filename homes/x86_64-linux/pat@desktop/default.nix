@@ -44,6 +44,7 @@ in
           _1password-cli = {
             enable = true;
             enableSshSocket = true;
+            sshAgentVaults = [ "Personal" "Development" ];
           };
           mcp = enabled;
         };
@@ -64,5 +65,5 @@ in
     };
   };
 
-  home.stateVersion = "26.05";
+  home.stateVersion = "26.11";
 }
