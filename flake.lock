@@ -841,11 +841,11 @@
         "snacks-nvim": "snacks-nvim"
       },
       "locked": {
-        "lastModified": 1781068767,
-        "narHash": "sha256-zeGUQ1kkjez/sr2SvSUEJiGfke7byrpgmSUs4nOF3hg=",
+        "lastModified": 1781069666,
+        "narHash": "sha256-MPHHpVjwSAudnmoam6cH5FRBYKFKGVkESGJNPbKRm7Y=",
         "owner": "patwrall",
         "repo": "laurelin",
-        "rev": "003c642355cf6ea788a664da4cd17baadcb7b240",
+        "rev": "96511886bec5bc672bde9a2ed99bb71502643d0d",
         "type": "github"
       },
       "original": {
