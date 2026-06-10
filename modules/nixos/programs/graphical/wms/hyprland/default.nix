@@ -90,7 +90,6 @@ in
                       "keyword animations:enabled 0;"
                       "keyword decoration:drop_shadow 0;"
                       "keyword decoration:blur:enabled 0;"
-                      "keyword misc:vfr 0"
                     ]
                   }'
 
@@ -108,7 +107,6 @@ in
                       "keyword animations:enabled 1;"
                       "keyword decoration:drop_shadow 1;"
                       "keyword decoration:blur:enabled 1;"
-                      "keyword misc:vfr 1"
                     ]
                   }'
 

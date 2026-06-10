@@ -48,9 +48,6 @@ in
           "float on, match:title Picture(-| )in(-| )[Pp]icture"
           "pin on, match:title Picture(-| )in(-| )[Pp]icture"
 
-          # Dim non-fullscreen windows based on your opacity var
-          "opacity $windowOpacity override, match:fullscreen false"
-
           "opaque on, match:class equibop|org\\.quickshell|imv|swappy"
 
           # center floating wayland-native windows

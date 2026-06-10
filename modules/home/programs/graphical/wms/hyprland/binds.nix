@@ -110,8 +110,6 @@ let
     "$kbWindowGroupCycleNext, cyclenext, prev, activewindow"
     "CTRL_ALT, Tab, changegroupactive, f"
     "CTRL_SHIFT_ALT, Tab, changegroupactive, b"
-    "SUPER, Minus, splitratio, -0.1"
-    "SUPER, Equal, splitratio, 0.1"
   ];
 
   mouseBinds = [

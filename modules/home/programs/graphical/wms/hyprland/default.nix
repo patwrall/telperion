@@ -116,6 +116,10 @@ in
       in
       {
         enable = true;
+        # HM 26.05+ defaults to "lua" but its Lua generator emits hl.$var() which
+        # is invalid Lua syntax for $-prefixed hyprlang variables. Stay on hyprlang
+        # until the config is fully migrated to the new Lua API.
+        configType = "hyprlang";
 
         extraConfig =
           # bash
