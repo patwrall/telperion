@@ -102,6 +102,7 @@
                       {
                         pane = {
                           command = "claude";
+                          args = [ "--resume" ];
                         };
                       }
                     ];
