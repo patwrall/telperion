@@ -12,6 +12,18 @@ in
   ];
 
   environment.loginShellInit = ''
+    # Wait up to 3 s for the session DBus socket — it's created by the user
+    # systemd instance, which starts in parallel with the login shell and
+    # typically arrives ~1 s later. uwsm check may-start calls dbus.SessionBus()
+    # and fails with an exception (exit 1) if the socket isn't there yet.
+    if [ -n "$XDG_RUNTIME_DIR" ]; then
+      _uwsm_cnt=0
+      until [ -S "$XDG_RUNTIME_DIR/bus" ] || [ "$_uwsm_cnt" -ge 30 ]; do
+        sleep 0.1
+        _uwsm_cnt=$((_uwsm_cnt + 1))
+      done
+      unset _uwsm_cnt
+    fi
     if uwsm check may-start; then
       exec uwsm start -- default
     fi
@@ -74,5 +86,5 @@ in
   };
   services.displayManager.defaultSession = "hyprland-uwsm";
 
-  system.stateVersion = "25.05";
+  system.stateVersion = "26.11";
 }
