@@ -10,30 +10,30 @@ in
     prepend_fetchers =
       lib.optionals (lib.hasAttr "git" enabledPlugins) [
         {
-          id = "git";
-          name = "*";
+          url = "*";
           run = "git";
+          group = "git";
         }
         {
-          id = "git";
-          name = "*/";
+          url = "*/";
           run = "git";
+          group = "git";
         }
       ]
       ++ lib.optional (lib.hasAttr "mime-ext" enabledPlugins) {
-        id = "mime";
-        name = "*";
+        url = "*";
         run = "mime-ext";
+        group = "mime";
         prio = "high";
       };
 
     prepend_preloaders = [
       {
-        name = "/mnt/disk/**";
+        url = "/mnt/disk/**";
         run = "noop";
       }
       {
-        name = "/mnt/dropbox/**";
+        url = "/mnt/dropbox/**";
         run = "noop";
       }
     ]
@@ -52,14 +52,14 @@ in
       in
       (map
         (ext: {
-          name = "*.${ext}";
+          url = "*.${ext}";
           run = "duckdb";
           multi = false;
         })
         multiFileTypes)
       ++ (map
         (ext: {
-          name = "*.${ext}";
+          url = "*.${ext}";
           run = "duckdb";
         })
         regularFileTypes)
@@ -100,13 +100,13 @@ in
           in
           map
             (ext: {
-              name = "*.${ext}";
+              url = "*.${ext}";
               run = "duckdb";
             })
             fileTypes
         )
       ++ lib.optional (lib.hasAttr "glow" enabledPlugins) {
-        name = "*.md";
+        url = "*.md";
         run = "glow";
       }
       ++ lib.optionals (lib.hasAttr "ouch" enabledPlugins) (
@@ -135,7 +135,7 @@ in
 
     previewers = [
       {
-        name = "*/";
+        url = "*/";
         run = "folder";
         sync = true;
       }
@@ -187,7 +187,7 @@ in
       }
       # Fallback
       {
-        name = "*";
+        url = "*";
         run = "file";
       }
     ];
