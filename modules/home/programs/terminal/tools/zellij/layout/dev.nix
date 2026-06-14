@@ -68,10 +68,10 @@
                     _children = [
                       {
                         pane = {
-                          # Get at least some image previews in zellij
-                          command = "sh";
+                          command = "fish";
                           args = [
                             "-c"
+                            # TERM override gets at least some image previews in zellij
                             "TERM=xterm-256color yazi"
                           ];
                         };
@@ -101,8 +101,11 @@
                     _children = [
                       {
                         pane = {
-                          command = "claude";
-                          args = [ "--resume" ];
+                          command = "fish";
+                          args = [
+                            "-c"
+                            "claude --continue"
+                          ];
                         };
                       }
                     ];
