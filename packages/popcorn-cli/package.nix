@@ -7,16 +7,16 @@
 }:
 rustPlatform.buildRustPackage rec {
   pname = "popcorn-cli";
-  version = "1.2.0";
+  version = "1.3.13";
 
   src = fetchFromGitHub {
     owner = "gpu-mode";
     repo = "popcorn-cli";
     rev = "v${version}";
-    hash = "sha256-c9revceCGERss6uJxTL7RB3suE7Z67cpAuze4Aa8g8M";
+    hash = "sha256-A2cBI1deDK2N34X1dZ8GlmuswOJvCMW8ZAHhJ4ScQpY=";
   };
 
-  cargoHash = "sha256-eMhhoONOUNRDx+vxzkcv9AE2XE3mQ8XLH2QqlgDbXeI=";
+  cargoHash = "sha256-uaorpgeaHvIvsHi1H6qE743JnNwmTAGVd6oiKbyCNRc=";
 
   nativeBuildInputs = [
     pkg-config
