@@ -46,7 +46,17 @@ in
             enableSshSocket = true;
             sshAgentVaults = [ "Personal" "Development" ];
           };
-          mcp = enabled;
+          mcp = {
+            enable = true;
+            canvas = {
+              enable = true;
+              apiUrl = "https://ivylearn.ivytech.edu";
+            };
+            discord = {
+              enable = true;
+              guildId = "1497351886624260128";
+            };
+          };
         };
       };
     };
