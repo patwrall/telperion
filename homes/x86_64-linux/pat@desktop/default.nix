@@ -50,7 +50,7 @@ in
             enable = true;
             canvas = {
               enable = true;
-              apiUrl = "https://ivylearn.ivytech.edu";
+              apiUrl = "https://ivylearn.ivytech.edu/api/v1";
             };
             discord = {
               enable = true;
