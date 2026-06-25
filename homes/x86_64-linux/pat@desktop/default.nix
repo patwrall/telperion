@@ -14,6 +14,7 @@ in
     programs = {
       graphical = {
         apps = {
+          gdlauncher = enabled;
           obsidian = enabled;
           rnote = enabled;
           sioyek = enabled;
