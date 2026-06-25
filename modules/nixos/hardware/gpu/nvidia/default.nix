@@ -76,6 +76,11 @@ in
       };
     };
 
+    environment.sessionVariables = {
+      __GLX_VENDOR_LIBRARY_NAME = "nvidia";
+      LIBVA_DRIVER_NAME = "nvidia";
+    };
+
     nixpkgs.config.cudaSupport = cfg.enableCudaSupport;
   };
 }
