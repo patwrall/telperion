@@ -104,7 +104,7 @@
                           command = "fish";
                           args = [
                             "-c"
-                            "claude --continue"
+                            "claude --continue || claude"
                           ];
                         };
                       }
