@@ -104,6 +104,7 @@ in
             fi
             export DISCORD_TOKEN=$(< "$token_file")
             ${lib.optionalString (cfg.discord.guildId != null) "export DISCORD_GUILD_ID=${lib.escapeShellArg cfg.discord.guildId}"}
+            export JAVA_TOOL_OPTIONS="-Dlogging.file.path=${config.xdg.stateHome}/discord-mcp"
             exec ${lib.getExe pkgs.telperion.discord-mcp-server} "$@"
           '');
         };
