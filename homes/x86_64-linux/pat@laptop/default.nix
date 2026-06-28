@@ -41,6 +41,7 @@ in
           _1password-cli = {
             enable = true;
             enableSshSocket = true;
+            sshAgentVaults = [ "Personal" "Development" ];
           };
         };
       };
