@@ -15,8 +15,19 @@ in
   };
 
   config = mkIf cfg.enable {
-    home.packages = with pkgs; [
-      gdlauncher-carbon
+    home.packages = [
+      # Wrap with NVIDIA GLX vendor so Minecraft's GLFW can create a context.
+      (pkgs.symlinkJoin {
+        name = "gdlauncher-carbon";
+        paths = [ pkgs.gdlauncher-carbon ];
+        nativeBuildInputs = [ pkgs.makeWrapper ];
+        postBuild = ''
+          wrapProgram $out/bin/gdlauncher-carbon \
+            --set __GLX_VENDOR_LIBRARY_NAME nvidia \
+            --set LIBVA_DRIVER_NAME nvidia
+        '';
+      })
     ];
+
   };
 }
