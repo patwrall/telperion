@@ -13,6 +13,7 @@ in
 {
   # From nixpkgs-master (fast updating / want latest always)
   inherit (master)
+    claude-code
     yaziPlugins
     ;
 
