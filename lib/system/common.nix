@@ -18,6 +18,8 @@ in
         "libsoup-2.74.3"
         # NOTE: needed by emulationstation
         "freeimage-3.18.0-unstable-2024-04-18"
+        # NOTE: build dep of vesktop; remove when upstream bumps pnpm
+        "pnpm-10.29.2"
       ];
     };
   };
