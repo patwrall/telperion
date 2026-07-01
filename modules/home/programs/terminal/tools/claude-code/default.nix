@@ -1,8 +1,7 @@
-{
-  config,
-  lib,
-  pkgs,
-  ...
+{ config
+, lib
+, pkgs
+, ...
 }:
 let
   inherit (lib) mkIf mkEnableOption;
@@ -63,7 +62,7 @@ in
       };
 
       settings = {
-        theme = "dark";
+        theme = "dark-daltonism";
 
         # Mark the discord plugin as enabled so its MCP server, skills, and
         # commands are loaded. The presence of the key (any non-undefined
