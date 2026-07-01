@@ -46,6 +46,10 @@ in
         set -ga terminal-overrides '*:Ss=\E[%p1%d q:Se=\E[ q'
         set -as terminal-features ',*:RGB'
 
+        # Extended keys — lets tmux forward C-/ and other ambiguous keys correctly
+        set -g extended-keys on
+        set -as terminal-features 'xterm*:extkeys'
+
         # Pane numbering
         set -g pane-base-index 1
         set -g renumber-windows on
