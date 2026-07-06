@@ -69,5 +69,11 @@ in
   };
   services.displayManager.defaultSession = "hyprland-uwsm";
 
+  # This laptop is usually on flaky WiFi; the common default of 25 parallel
+  # substituter connections overwhelms the link and large NAR downloads get
+  # reset mid-transfer. Fewer connections download reliably (nix resumes
+  # partial NARs from the last byte offset). Laptop-only override.
+  nix.settings.http-connections = lib.mkForce 5;
+
   system.stateVersion = "26.11";
 }
