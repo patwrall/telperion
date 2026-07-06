@@ -1,11 +1,9 @@
-{
-  config,
-  lib,
-  pkgs,
-
-  osConfig ? { },
-  inputs,
-  ...
+{ config
+, lib
+, pkgs
+, osConfig ? { }
+, inputs
+, ...
 }:
 let
   inherit (lib) mkIf;
@@ -25,29 +23,30 @@ in
       enable = true;
 
       package =
-        pkgs.yazi.override {
-          _7zz = pkgs._7zz-rar; # Support for RAR extraction
-          extraPackages =
-            let
-              optionalPluginPackage =
-                plugin: package: lib.optional (builtins.hasAttr plugin config.programs.yazi.plugins) package;
-            in
-            (with pkgs; [
-              atool
-              exiftool
-              mediainfo
-              unar
-              undmg
-            ])
-            ++ optionalPluginPackage "ouch" pkgs.ouch
-            ++ optionalPluginPackage "duckdb" pkgs.duckdb
-            ++ optionalPluginPackage "piper" pkgs.bat
-            ++ optionalPluginPackage "piper" pkgs.eza
-            ++ optionalPluginPackage "piper" pkgs.glow
-            ++ lib.optionals (pkgs.stdenv.hostPlatform.isLinux && !isWSL) [
-              pkgs.dragon-drop
-            ];
-        }
+        pkgs.yazi.override
+          {
+            _7zz = pkgs._7zz-rar; # Support for RAR extraction
+            extraPackages =
+              let
+                optionalPluginPackage =
+                  plugin: package: lib.optional (builtins.hasAttr plugin config.programs.yazi.plugins) package;
+              in
+              (with pkgs; [
+                atool
+                exiftool
+                mediainfo
+                unar
+                undmg
+              ])
+              ++ optionalPluginPackage "ouch" pkgs.ouch
+              ++ optionalPluginPackage "duckdb" pkgs.duckdb
+              ++ optionalPluginPackage "piper" pkgs.bat
+              ++ optionalPluginPackage "piper" pkgs.eza
+              ++ optionalPluginPackage "piper" pkgs.glow
+              ++ lib.optionals (pkgs.stdenv.hostPlatform.isLinux && !isWSL) [
+                pkgs.dragon-drop
+              ];
+          }
         // lib.optionalAttrs isWSL {
           optionalDeps = with pkgs; [
             # Keep essential tools, exclude heavy media dependencies
@@ -102,10 +101,26 @@ in
         #     })
         #   ];
         # };
+
+        # Upstream bug: run_query() spawns `duckdb` without redirecting stdin,
+        # so it inherits yazi's own terminal. `-cmd` doesn't exit afterwards,
+        # so duckdb drops into its interactive REPL and blocks forever reading
+        # from that tty, leaving the preload/peek task stuck as "unfinished"
+        # (blocks quitting yazi). Force stdin closed until fixed upstream.
+        duckdb = pkgs.yaziPlugins.duckdb.overrideAttrs (old: {
+          postPatch =
+            (old.postPatch or "")
+            + ''
+              substituteInPlace main.lua \
+                --replace-fail \
+                  ':stdout(Command.PIPED):stderr(Command.PIPED):spawn()' \
+                  ':stdin(Command.NULL):stdout(Command.PIPED):stderr(Command.PIPED):spawn()'
+            '';
+        });
+
         inherit (pkgs.yaziPlugins)
           chmod
           diff
-          duckdb
           full-border
           git
           # glow
