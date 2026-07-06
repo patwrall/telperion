@@ -8,10 +8,6 @@ let
     "/dev/disk/by-id/nvme-CT500P2SSD8_2038E4B0F889"
     # 1: Currently unused - 1TB Samsung NVMe (see note above)
     "/dev/disk/by-id/nvme-Samsung_SSD_970_EVO_Plus_1TB_S6S1NS0W103926H"
-    # 2: Bulk Storage - 1TB Seagate HDD
-    "/dev/disk/by-id/ata-ST1000DM003-1CH162_S1DB06CD"
-    # 3: Backup/Misc - 500GB Seagate HDD
-    "/dev/disk/by-id/ata-ST3500413AS_Z2AV08X1"
   ];
   defaultBtrfsOpts = [
     "defaults"
@@ -20,7 +16,6 @@ let
     "noatime"
     "nodiratime"
   ];
-  defaultHddBtrfsOpts = builtins.filter (opt: opt != "ssd") defaultBtrfsOpts;
 in
 {
   disko.devices = {
@@ -108,48 +103,6 @@ in
       #     };
       #   };
       # };
-
-      # Drive 2: 1TB HDD for bulk storage
-      hdd0 = {
-        device = builtins.elemAt disks 2;
-        type = "disk";
-        content = {
-          type = "gpt";
-          partitions = {
-            storage = {
-              size = "100%";
-              content = {
-                type = "filesystem";
-                format = "btrfs";
-                mountpoint = "/bulk-storage";
-                mountOptions = defaultHddBtrfsOpts;
-                extraArgs = [ "-LBulkStorage" ];
-              };
-            };
-          };
-        };
-      };
-
-      # Drive 3: 500GB HDD for backups or misc storage
-      hdd1 = {
-        device = builtins.elemAt disks 3;
-        type = "disk";
-        content = {
-          type = "gpt";
-          partitions = {
-            storage = {
-              size = "100%";
-              content = {
-                type = "filesystem";
-                format = "btrfs";
-                mountpoint = "/backup";
-                mountOptions = defaultHddBtrfsOpts;
-                extraArgs = [ "-LBackup" ];
-              };
-            };
-          };
-        };
-      };
     };
   };
 }
