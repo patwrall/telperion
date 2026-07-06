@@ -63,6 +63,8 @@ in
       enableNvtop = true;
     };
 
+    logitech = enabled;
+
     opengl = enabled;
 
     storage = {

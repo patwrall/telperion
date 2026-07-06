@@ -44,6 +44,8 @@ in
 
     fingerprint = enabled;
 
+    logitech = enabled;
+
     opengl = enabled;
 
     storage = {
