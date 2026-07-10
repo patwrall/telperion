@@ -2,8 +2,6 @@ let
   disks = [
     # 0: OS Drive - 500GB Crucial NVMe
     "/dev/disk/by-id/nvme-CT500P2SSD8_2038E4B0F889"
-    # 1: Extra/fast storage (games, etc.) - 1TB Samsung 970 EVO Plus NVMe
-    "/dev/disk/by-id/nvme-Samsung_SSD_970_EVO_Plus_1TB_S6S1NS0W103926H"
   ];
   defaultBtrfsOpts = [
     "defaults"
@@ -80,25 +78,26 @@ in
       # -----------------------------------------------------
 
       # Drive 1: 1TB Samsung NVMe for fast storage (games, etc.)
-      nvme1 = {
-        device = builtins.elemAt disks 1;
-        type = "disk";
-        content = {
-          type = "gpt";
-          partitions = {
-            storage = {
-              size = "100%";
-              content = {
-                type = "filesystem";
-                format = "btrfs";
-                mountpoint = "/fast-storage";
-                mountOptions = defaultBtrfsOpts;
-                extraArgs = [ "-LFastStorage" ];
-              };
-            };
-          };
-        };
-      };
+      # Disabled: SSD repurposed for Windows install (2026-07-10).
+      # nvme1 = {
+      #   device = "/dev/disk/by-id/nvme-Samsung_SSD_970_EVO_Plus_1TB_S6S1NS0W103926H";
+      #   type = "disk";
+      #   content = {
+      #     type = "gpt";
+      #     partitions = {
+      #       storage = {
+      #         size = "100%";
+      #         content = {
+      #           type = "filesystem";
+      #           format = "btrfs";
+      #           mountpoint = "/fast-storage";
+      #           mountOptions = defaultBtrfsOpts;
+      #           extraArgs = [ "-LFastStorage" ];
+      #         };
+      #       };
+      #     };
+      #   };
+      # };
     };
   };
 }
