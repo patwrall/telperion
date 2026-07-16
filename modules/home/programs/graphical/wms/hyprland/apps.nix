@@ -19,7 +19,7 @@ in
           in
           (map mkStartCommand [
             "${getExe pkgs.vesktop}"
-            "${getExe config.programs.spicetify.spicedSpotify}"
+            "${getExe config.telperion.programs.graphical.apps.spicetify.fixedPackage}"
             "${getExe config.programs.btop.package}"
           ])
           ++ lib.optionals (osConfig.programs.uwsm.enable or false) [ "uwsm finalize" ];
