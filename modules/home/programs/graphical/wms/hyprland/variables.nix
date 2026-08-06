@@ -84,11 +84,12 @@ in
           gaps_in = 10;
           gaps_out = 40;
           border_size = 3;
+          resize_on_border = true;
         };
 
         dwindle = {
           preserve_split = true;
-          smart_split = false;
+          smart_split = true;
           smart_resizing = true;
         };
 
@@ -170,9 +171,7 @@ in
         "$volumeStep" = "10";
 
         # Workspaces
-        "$kbMoveWinToWs" = "SUPER_ALT";
         "$kbMoveWinToWsGroup" = "CTRL_SUPER_ALT";
-        "$kbGoToWs" = "SUPER";
         "$kbGoToWsGroup" = "CTRL_SUPER";
 
         "$kbNextWs" = "CTRL_SUPER, right";
@@ -184,8 +183,6 @@ in
         "$kbToggleGroup" = "SUPER, G";
 
         # Window Actions
-        "$kbMoveWindow" = "SUPER, Z";
-        "$kbResizeWindow" = "SUPER, X";
         "$kbPinWindow" = "SUPER, P";
         "$kbWindowFullscreen" = "SUPER, F";
         "$kbWindowBorderedFullscreen" = "SUPER_ALT, F";
@@ -194,7 +191,7 @@ in
 
         # Apps
         "$kbBrowser" = "SUPER, W";
-        "$kbEditor" = "SUPER, C";
+        "$kbEditor" = "SUPER, O";
         "$kbFileExplorer" = "SUPER, E";
 
         # Gaps

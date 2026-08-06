@@ -32,8 +32,6 @@ let
 
   regularBinds = [
     # Workspaces
-    "SUPER, mouse_down, workspace, -1"
-    "SUPER, mouse_up, workspace, +1"
     "CTRL_SUPER, mouse_down, workspace, -10"
     "CTRL_SUPER, mouse_up, workspace, +10"
     # Move window to workspace
@@ -50,14 +48,6 @@ let
     "$kbUngroup, moveoutofgroup"
     "SUPER_SHIFT, Comma, lockactivegroup, toggle"
     # Window actions
-    "SUPER, left, movefocus, l"
-    "SUPER, right, movefocus, r"
-    "SUPER, up, movefocus, u"
-    "SUPER, down, movefocus, d"
-    "SUPER_SHIFT, left, movewindow, l"
-    "SUPER_SHIFT, right, movewindow, r"
-    "SUPER_SHIFT, up, movewindow, u"
-    "SUPER_SHIFT, down, movewindow, d"
     "CTRL_SUPER, Backslash, centerwindow, 1"
     "CTRL_SUPER_ALT, Backslash, resizeactive, exact 55% 70%"
     "CTRL_SUPER_ALT, Backslash, centerwindow, 1"
@@ -67,9 +57,9 @@ let
     "$kbToggleWindowFloating, togglefloating,"
     "$kbCloseWindow, killactive,"
     # Utilities
-    "SUPER_SHIFT, C, exec, hyprpicker -a"
+    "SUPER_SHIFT, P, exec, hyprpicker -a"
     # Sleep
-    "SUPER_SHIFT, L, exec, systemctl suspend-then-hibernate"
+    "SUPER_SHIFT, Escape, exec, systemctl suspend-then-hibernate"
   ] ++ (lib.concatLists (builtins.genList
     (x:
       let
@@ -78,9 +68,7 @@ let
         key_num = toString (x + 1 - (10 * ((x + 1) / 10)));
       in
       [
-        "$kbGoToWs, ${key_num}, exec, ${wsaction} workspace ${ws_num}"
         "$kbGoToWsGroup, ${key_num}, exec, ${wsaction} -g workspace ${ws_num}"
-        "$kbMoveWinToWs, ${key_num}, exec, ${wsaction} movetoworkspace ${ws_num}"
         "$kbMoveWinToWsGroup, ${key_num}, exec, ${wsaction} -g movetoworkspace ${ws_num}"
       ]) 10));
 
@@ -112,13 +100,6 @@ let
     "CTRL_SHIFT_ALT, Tab, changegroupactive, b"
   ];
 
-  mouseBinds = [
-    "SUPER, mouse:272, movewindow"
-    "$kbMoveWindow, movewindow"
-    "SUPER, mouse:273, resizewindow"
-    "$kbResizeWindow, resizewindow"
-  ];
-
   repeatableBinds = [
     "CTRL_SUPER_SHIFT, R, exec, ambxst quit"
     "CTRL_SUPER_ALT, R, exec, ambxst reload"
@@ -135,7 +116,6 @@ in
         (formatBinds "bindl" releaseBinds)
         (formatBinds "binde" repeatableReleaseBindsE)
         (formatBinds "bindle" repeatableReleaseBindsLE)
-        (formatBinds "bindm" mouseBinds)
         (formatBinds "bindr" repeatableBinds)
       ];
     };
