@@ -53,6 +53,8 @@ in
 
     home.file.".claude/plugins/installed_plugins.json".source = installedPlugins;
 
+    telperion.programs.terminal.tools.claude-code.permissionProfile = "autonomous";
+
     programs.claude-code = {
       enable = true;
 
