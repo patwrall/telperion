@@ -74,7 +74,7 @@ in
 
         systemd-boot = {
           enable = !cfg.secureBoot;
-          configurationLimit = 20;
+          configurationLimit = 5;
           editor = false;
         };
 
