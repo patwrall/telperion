@@ -45,7 +45,11 @@ in
     xdg.dataFile."icons/claude.ico".source = claudeIcon;
 
     # Put the FHS-wrapped Brightspace auth CLI on PATH so re-auth is one command.
-    home.packages = [ pkgs.telperion.brightspace-auth ];
+    # sox provides `rec`, the audio-capture backend voice dictation shells out to.
+    home.packages = [
+      pkgs.telperion.brightspace-auth
+      pkgs.sox
+    ];
 
     home.file.".claude/plugins/installed_plugins.json".source = installedPlugins;
 
@@ -63,6 +67,11 @@ in
 
       settings = {
         theme = "dark-daltonism";
+
+        voice = {
+          enabled = true;
+          mode = "hold";
+        };
 
         # Mark the discord plugin as enabled so its MCP server, skills, and
         # commands are loaded. The presence of the key (any non-undefined
