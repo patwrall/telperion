@@ -71,6 +71,7 @@ in
         voice = {
           enabled = true;
           mode = "hold";
+          autoSubmit = true;
         };
 
         # Mark the discord plugin as enabled so its MCP server, skills, and
