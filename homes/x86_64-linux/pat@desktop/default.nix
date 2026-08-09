@@ -18,6 +18,7 @@ in
           obsidian = enabled;
           rnote = enabled;
           sioyek = enabled;
+          stremio = enabled;
           vesktop = enabled;
           zotero = enabled;
         };
