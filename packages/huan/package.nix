@@ -42,6 +42,7 @@ python3Packages.buildPythonApplication {
     python3Packages.httpx
     python3Packages.numpy
     python3Packages.sounddevice
+    python3Packages.websockets
     python3Packages.wyoming
   ];
 

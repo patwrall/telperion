@@ -3,7 +3,7 @@ import json
 import logging
 import time
 
-from . import audio, hypr, intent, tts, wake
+from . import audio, hypr, intent, llm, tts, wake
 from .config import Config
 
 log = logging.getLogger("huan")
@@ -37,6 +37,7 @@ class Daemon:
         self.stt = None  # created in run() so imports stay off the fast path
         self.mic = None
         self.speaker = tts.Speaker(config)
+        self._llm_http = None
         self.sleeping = False
         self._pipeline_lock = asyncio.Lock()
         self._ptt_stop: asyncio.Event | None = None
@@ -166,31 +167,91 @@ class Daemon:
     async def _act(self, text: str, watch: Stopwatch, quiet: bool = False) -> str:
         parsed = intent.classify(text)
         watch.lap("intent")
+        if parsed is None and self.config.llama_url:
+            import httpx
+
+            if self._llm_http is None:
+                self._llm_http = httpx.AsyncClient()
+            try:
+                parsed = await llm.classify(self._llm_http, self.config.llama_url, text)
+            except Exception as exc:
+                log.warning("llm intent failed: %s", exc)
+            watch.lap("intent_llm")
         if parsed is None:
             # in the follow-up window, unmatched speech is probably not
             # aimed at us; complaining about it would be obnoxious
             if not quiet:
-                await self.speaker.say("I didn't catch that")
+                self._say_response(
+                    text,
+                    "nothing matched; no action taken",
+                    fallback="I didn't catch that",
+                )
             return "unknown"
 
         if parsed.action == "sleep":
+            # canned ack: the responder LLM is about to be stopped
+            await self.speaker.say(parsed.ack)
             self._sleep()
         elif parsed.action == "wake":
-            await asyncio.to_thread(self.stt.load)
-            self.sleeping = False
+            await self._wake_models()
+            self._say_response(text, "woke up; models reloaded", fallback=parsed.ack)
         else:
             await hypr.run_intent(parsed.action, parsed.arg)
+            arg = f" {parsed.arg}" if parsed.arg is not None else ""
+            self._say_response(text, f"done: {parsed.action}{arg}", fallback=parsed.ack)
         watch.lap("act")
 
-        await self.speaker.say(parsed.ack)
-        watch.lap("tts")
         arg = f"({parsed.arg})" if parsed.arg is not None else ""
         return f"{parsed.action}{arg}"
+
+    def _say_response(self, said: str, happened: str, fallback: str):
+        """Speak an LLM-generated line off the critical path; the action has
+        already been dispatched by the time this is even scheduled."""
+        if not self.config.llama_url:
+            asyncio.create_task(self.speaker.say(fallback))
+            return
+
+        async def _generate():
+            import httpx
+
+            if self._llm_http is None:
+                self._llm_http = httpx.AsyncClient()
+            try:
+                import datetime
+
+                title = await hypr.active_window_title()
+                context = f"local time {datetime.datetime.now():%H:%M}, focused window: {title or 'none'}"
+                line = await llm.respond(
+                    self._llm_http, self.config.llama_url, said, happened, context
+                )
+            except Exception as exc:
+                log.warning("responder failed (%s); using fallback line", exc)
+                line = fallback
+            log.info("respond: %r", line)
+            await self.speaker.say(line)
+
+        asyncio.create_task(_generate())
 
     def _sleep(self):
         self.stt.unload()
         self.sleeping = True
+        if self.config.llama_url:
+            asyncio.create_task(self._llama_service("stop"))
         log.info("sleeping: GPU models unloaded (wake word stays on CPU)")
+
+    async def _wake_models(self):
+        if self.config.llama_url:
+            await self._llama_service("start")
+        await asyncio.to_thread(self.stt.load)
+        self.sleeping = False
+
+    async def _llama_service(self, verb: str):
+        proc = await asyncio.create_subprocess_exec(
+            "systemctl", "--user", verb, "huan-llama.service"
+        )
+        await proc.wait()
+        if proc.returncode != 0:
+            log.warning("systemctl --user %s huan-llama failed", verb)
 
     # -- control socket ------------------------------------------------------
 
@@ -224,13 +285,11 @@ class Daemon:
             self._sleep()
             return {"ok": True}
         if cmd == "wake":
-            await asyncio.to_thread(self.stt.load)
-            self.sleeping = False
+            await self._wake_models()
             return {"ok": True}
         if cmd == "toggle":
             if self.sleeping:
-                await asyncio.to_thread(self.stt.load)
-                self.sleeping = False
+                await self._wake_models()
             else:
                 self._sleep()
             return {"ok": True, "sleeping": self.sleeping}

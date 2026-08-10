@@ -30,6 +30,24 @@ async def dispatch(command: str) -> None:
         await writer.wait_closed()
 
 
+async def active_window_title() -> str:
+    """Title of the focused window via the query socket, empty on failure."""
+    try:
+        reader, writer = await asyncio.open_unix_connection(str(_socket_path()))
+        try:
+            writer.write(b"j/activewindow")
+            await writer.drain()
+            payload = await reader.read(65536)
+        finally:
+            writer.close()
+            await writer.wait_closed()
+        import json
+
+        return json.loads(payload).get("title", "")
+    except Exception:
+        return ""
+
+
 async def run_intent(action: str, arg: int | None) -> None:
     if action == "workspace":
         await dispatch(f"workspace {arg}")

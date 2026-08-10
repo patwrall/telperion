@@ -3,7 +3,14 @@ name = "huan"
 version = "0.1.0"
 description = "Fast/slow voice agent daemon for Hyprland (telperion)"
 requires-python = ">=3.12"
-dependencies = ["faster-whisper", "httpx", "numpy", "sounddevice", "wyoming"]
+dependencies = [
+  "faster-whisper",
+  "httpx",
+  "numpy",
+  "sounddevice",
+  "websockets",
+  "wyoming",
+]
 
 [project.scripts]
 huan = "huan.cli:main"

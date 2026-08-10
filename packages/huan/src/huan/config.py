@@ -43,6 +43,10 @@ class Config:
     # without requiring the wake word again. 0 disables.
     followup_s: float = 5.0
 
+    # llama.cpp server for conversational intent (empty disables; regex
+    # fast-path always runs first)
+    llama_url: str = ""
+
     @property
     def control_socket(self) -> Path:
         return _runtime_dir() / "huan.sock"

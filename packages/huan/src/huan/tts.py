@@ -1,4 +1,5 @@
 import asyncio
+import base64
 import json
 import logging
 import os
@@ -40,6 +41,9 @@ class Speaker:
         }
         self._api_key = self._read_key(config.eleven_api_key_file)
         self._http = None
+        self._ws = None
+        self._ws_recv_task: asyncio.Task | None = None
+        self._ws_flush_t0: float | None = None
         self._piper: asyncio.subprocess.Process | None = None
         self._reader_task: asyncio.Task | None = None
         self._stream: sd.RawOutputStream | None = None
@@ -121,7 +125,59 @@ class Speaker:
         with self._buffer_lock:
             self._buffer.extend(chunk)
 
-    # -- elevenlabs backend --------------------------------------------------
+    # -- elevenlabs websocket backend ----------------------------------------
+    # A persistent stream-input connection skips the per-utterance TLS/HTTP
+    # handshake. ElevenLabs closes idle connections (inactivity_timeout caps
+    # at 180s), so sparse acks pay one reconnect; bursts and follow-up
+    # chains ride the warm socket. No keepalive spam: a keepalive character
+    # every minute would quietly eat ~7% of the monthly credit budget.
+
+    async def _ws_connect(self):
+        import websockets
+
+        url = (
+            f"wss://api.elevenlabs.io/v1/text-to-speech/{self.eleven_voice_id}"
+            f"/stream-input?model_id={self.eleven_model_id}"
+            f"&output_format=pcm_{ELEVEN_RATE}&inactivity_timeout=180"
+        )
+        t0 = time.monotonic()
+        self._ws = await websockets.connect(
+            url, additional_headers={"xi-api-key": self._api_key}, open_timeout=5
+        )
+        await self._ws.send(
+            json.dumps({"text": " ", "voice_settings": self.eleven_voice_settings})
+        )
+        self._ws_recv_task = asyncio.create_task(self._ws_receive(self._ws))
+        log.info("elevenlabs ws connected in %.0fms", (time.monotonic() - t0) * 1000)
+
+    async def _ws_receive(self, ws):
+        try:
+            async for message in ws:
+                data = json.loads(message)
+                audio = data.get("audio")
+                if audio:
+                    if self._ws_flush_t0 is not None:
+                        log.info(
+                            "elevenlabs ws first audio in %.0fms",
+                            (time.monotonic() - self._ws_flush_t0) * 1000,
+                        )
+                        self._ws_flush_t0 = None
+                    self._enqueue(base64.b64decode(audio))
+        except Exception as exc:
+            log.debug("elevenlabs ws closed: %s", exc)
+        finally:
+            if self._ws is ws:
+                self._ws = None
+
+    async def _say_eleven_ws(self, text: str):
+        if self._ws is None:
+            await self._ws_connect()
+        self._ws_flush_t0 = time.monotonic()
+        await self._ws.send(
+            json.dumps({"text": text.replace("\n", " ") + " ", "flush": True})
+        )
+
+    # -- elevenlabs http backend (fallback for ws failures) ------------------
 
     async def _say_eleven(self, text: str):
         import httpx
@@ -196,6 +252,12 @@ class Speaker:
             await self._say_piper(text)
 
     async def _say_with_fallback(self, text: str):
+        try:
+            await self._say_eleven_ws(text)
+            return
+        except Exception as exc:
+            log.warning("elevenlabs ws failed (%s); trying http", exc)
+            self._ws = None
         try:
             await self._say_eleven(text)
         except Exception as exc:

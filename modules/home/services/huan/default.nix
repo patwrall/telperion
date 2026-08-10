@@ -18,6 +18,8 @@ let
     wake_names = [ cfg.wakeWord.model ];
     silence_ms = cfg.capture.silenceMs;
     followup_s = cfg.capture.followupSeconds;
+    llama_url =
+      lib.optionalString cfg.intent.llm.enable "http://127.0.0.1:${toString cfg.intent.llm.port}";
     tts_voice = if cfg.tts.voice == null then "" else toString cfg.tts.voice;
     eleven_voice_id = lib.optionalString cfg.tts.elevenlabs.enable cfg.tts.elevenlabs.voiceId;
     eleven_model_id = cfg.tts.elevenlabs.modelId;
@@ -29,6 +31,25 @@ let
   };
 
   huanCtl = "${lib.getExe cfg.package} ctl";
+
+  # faster-whisper accepts a local model directory; pinning it here removes
+  # the imperative first-run download into ~/.cache/huggingface
+  whisperSmallEn = pkgs.linkFarm "faster-whisper-small.en" (
+    lib.mapAttrsToList
+      (name: sha256: {
+        inherit name;
+        path = pkgs.fetchurl {
+          url = "https://huggingface.co/Systran/faster-whisper-small.en/resolve/main/${name}";
+          inherit sha256;
+        };
+      })
+      {
+        "config.json" = "1bjz3mk35k4zhc82dr29cybckknsnh13fzqpm0gzdh8aac2rcsk6";
+        "model.bin" = "0yp3irv9wk7ymhc8lhcd6xfkjhg06pp366rllnsaqngf0mds9ck2";
+        "tokenizer.json" = "1pr25px1bnafw3j29qyqf38k5qdmpjmx2xcanghxqdll8195574j";
+        "vocabulary.txt" = "1kqml5svagpwcv5k6xf5392f4p5rszznjnxb69fmk8nk8s3mhxzz";
+      }
+  );
 
   # piper requires the .onnx.json config next to the model, same basename
   defaultVoice = pkgs.linkFarm "piper-voice-lessac-medium" [
@@ -78,7 +99,8 @@ in
 
       customModelDir = mkOption {
         type = types.nullOr types.path;
-        default = null;
+        default = ./models;
+        defaultText = "bundled models dir (ships hey_huan)";
         description = "Directory with custom-trained openWakeWord models.";
       };
 
@@ -87,13 +109,28 @@ in
         default = 10400;
         description = "Localhost port for the wyoming-openwakeword service.";
       };
+
+      threshold = mkOption {
+        type = types.numbers.between 0.0 1.0;
+        default = 0.5;
+        description = ''
+          Detection threshold. Lower fires more eagerly (better recall,
+          more false activations).
+        '';
+      };
     };
 
     stt = {
       model = mkOption {
         type = types.str;
-        default = "small.en";
-        description = "faster-whisper model name (e.g. small.en, distil-large-v3).";
+        default = toString whisperSmallEn;
+        defaultText = "small.en (pinned in the store)";
+        description = ''
+          faster-whisper model: either a local model directory (the default
+          is small.en pinned in the Nix store) or a HuggingFace model name
+          like distil-large-v3, which downloads imperatively to
+          ~/.cache/huggingface on first load.
+        '';
       };
 
       device = mkOption {
@@ -121,6 +158,26 @@ in
           After a voice command, keep listening this long for a chained
           command without requiring the wake word again. 0 disables.
         '';
+      };
+    };
+
+    intent.llm = {
+      enable = mkEnableOption "conversational intent routing via a local llama.cpp server";
+
+      model = mkOption {
+        type = types.path;
+        default = pkgs.fetchurl {
+          url = "https://huggingface.co/bartowski/Qwen2.5-3B-Instruct-GGUF/resolve/main/Qwen2.5-3B-Instruct-Q4_K_M.gguf";
+          sha256 = "151z4lirvp9mj8id869i2z1vr0b023v5n96hi5dvvax3j6imd7ww";
+        };
+        defaultText = "Qwen2.5-3B-Instruct Q4_K_M (fetched)";
+        description = "GGUF model for the intent router.";
+      };
+
+      port = mkOption {
+        type = types.port;
+        default = 10401;
+        description = "Localhost port for the llama.cpp server.";
       };
     };
 
@@ -214,44 +271,70 @@ in
   config = mkIf cfg.enable {
     home.packages = [ cfg.package ];
 
-    systemd.user.services.huan = {
-      Unit = {
-        Description = "huan voice agent daemon (reflex tier)";
-        After = [ "graphical-session.target" ]
-          ++ lib.optional cfg.wakeWord.enable "huan-openwakeword.service";
-        PartOf = [ "graphical-session.target" ];
+    systemd.user.services = {
+      huan = {
+        Unit = {
+          Description = "huan voice agent daemon (reflex tier)";
+          After = [ "graphical-session.target" ]
+            ++ lib.optional cfg.wakeWord.enable "huan-openwakeword.service";
+          PartOf = [ "graphical-session.target" ];
+        };
+
+        Service = {
+          ExecStart = "${lib.getExe cfg.package} daemon --config ${daemonConfig}";
+          Restart = "on-failure";
+          RestartSec = 5;
+        };
+
+        Install.WantedBy = [ "graphical-session.target" ];
       };
 
-      Service = {
-        ExecStart = "${lib.getExe cfg.package} daemon --config ${daemonConfig}";
-        Restart = "on-failure";
-        RestartSec = 5;
+      huan-llama = mkIf cfg.intent.llm.enable {
+        Unit = {
+          Description = "llama.cpp intent router for huan";
+          PartOf = [ "graphical-session.target" ];
+        };
+
+        Service = {
+          ExecStart = lib.concatStringsSep " " [
+            (lib.getExe' (pkgs.llama-cpp.override { cudaSupport = true; }) "llama-server")
+            "--model ${cfg.intent.llm.model}"
+            "--port ${toString cfg.intent.llm.port}"
+            "--host 127.0.0.1"
+            "-ngl 99"
+            "--ctx-size 2048"
+            "--no-webui"
+          ];
+          Restart = "on-failure";
+          RestartSec = 5;
+        };
+
+        Install.WantedBy = [ "graphical-session.target" ];
       };
 
-      Install.WantedBy = [ "graphical-session.target" ];
-    };
+      huan-openwakeword = mkIf cfg.wakeWord.enable {
+        Unit = {
+          Description = "wyoming-openwakeword wake word detector for huan";
+          PartOf = [ "graphical-session.target" ];
+        };
 
-    systemd.user.services.huan-openwakeword = mkIf cfg.wakeWord.enable {
-      Unit = {
-        Description = "wyoming-openwakeword wake word detector for huan";
-        PartOf = [ "graphical-session.target" ];
+        Service = {
+          ExecStart = lib.concatStringsSep " " (
+            [
+              (lib.getExe pkgs.wyoming-openwakeword)
+              "--uri ${wakeUri}"
+              "--preload-model ${cfg.wakeWord.model}"
+              "--threshold ${toString cfg.wakeWord.threshold}"
+            ]
+            ++ lib.optional (cfg.wakeWord.customModelDir != null)
+              "--custom-model-dir ${cfg.wakeWord.customModelDir}"
+          );
+          Restart = "on-failure";
+          RestartSec = 5;
+        };
+
+        Install.WantedBy = [ "graphical-session.target" ];
       };
-
-      Service = {
-        ExecStart = lib.concatStringsSep " " (
-          [
-            (lib.getExe pkgs.wyoming-openwakeword)
-            "--uri ${wakeUri}"
-            "--preload-model ${cfg.wakeWord.model}"
-          ]
-          ++ lib.optional (cfg.wakeWord.customModelDir != null)
-            "--custom-model-dir ${cfg.wakeWord.customModelDir}"
-        );
-        Restart = "on-failure";
-        RestartSec = 5;
-      };
-
-      Install.WantedBy = [ "graphical-session.target" ];
     };
 
     wayland.windowManager.hyprland.extraConfig = lib.concatStringsSep "\n" (

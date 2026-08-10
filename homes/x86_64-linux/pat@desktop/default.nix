@@ -66,11 +66,16 @@ in
     services = {
       huan = {
         enable = true;
+        intent.llm = enabled;
+        wakeWord = {
+          # custom-trained model (modules/home/services/huan/models);
+          # low threshold per user preference: fire eagerly, tune up if chatty
+          model = "hey_huan";
+          threshold = 0.35;
+        };
         tts.elevenlabs = {
           enable = true;
-          # Sarah (premade; free tier can't use library voices like Rachel).
-          # Swap for a library voice id after the Starter upgrade.
-          voiceId = "EXAVITQu4vr4xnSDxMaL";
+          voiceId = "yj30vwTGJxSHezdAGsv9";
         };
       };
     };
