@@ -40,15 +40,37 @@ class TestClassify:
         intent = await llm.classify(http, "http://x", "x")
         assert intent.action == action
 
-    @pytest.mark.parametrize("action", ["close-window", "sleep", "wake"])
-    async def test_acked_actions(self, fake_http, chat_reply, action):
+    @pytest.mark.parametrize(
+        ("action", "text"),
+        [
+            ("close-window", "make it go away"),
+            ("sleep", "time to sleep"),
+            ("wake", "wake back up"),
+        ],
+    )
+    async def test_acked_actions(self, fake_http, chat_reply, action, text):
         http = fake_http([chat_reply(decision(action))])
-        intent = await llm.classify(http, "http://x", "x")
+        intent = await llm.classify(http, "http://x", text)
         assert intent.action == action and intent.ack
 
     async def test_none_maps_to_no_intent(self, fake_http, chat_reply):
         http = fake_http([chat_reply(decision("none"))])
         assert await llm.classify(http, "http://x", "hello") is None
+
+    async def test_undo_guard_overrides_cancel(self, fake_http, chat_reply):
+        # eval-caught: 3B misroutes "okay undo that" to cancel
+        http = fake_http([chat_reply(decision("cancel"))])
+        assert await llm.classify(http, "http://x", "okay undo that") is None
+
+    async def test_wake_guard_requires_wake_words(self, fake_http, chat_reply):
+        # eval-caught: 3B misroutes "good morning" to wake
+        http = fake_http([chat_reply(decision("wake"))])
+        assert await llm.classify(http, "http://x", "good morning") is None
+
+    async def test_real_wake_passes_guard(self, fake_http, chat_reply):
+        http = fake_http([chat_reply(decision("wake"))])
+        intent = await llm.classify(http, "http://x", "wake up buddy")
+        assert intent is not None and intent.action == "wake"
 
     async def test_503_retries_then_succeeds(self, fake_http, chat_reply, monkeypatch):
         # regression: llama-server answers 503 while reloading after the

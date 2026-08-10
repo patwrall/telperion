@@ -2,6 +2,7 @@
 , python3Packages
 , piper-tts
 , playerctl
+, dbus
 , ctranslate2
 , withCuda ? false
 , ...
@@ -51,7 +52,7 @@ python3Packages.buildPythonApplication {
 
   # piper (TTS synthesis) and playerctl (MPRIS now-playing) by name at runtime
   makeWrapperArgs = [
-    "--prefix PATH : ${lib.makeBinPath [ piper-tts playerctl ]}"
+    "--prefix PATH : ${lib.makeBinPath [ piper-tts playerctl dbus ]}"
   ];
 
   # every build runs the full suite; a failing test is a failing build

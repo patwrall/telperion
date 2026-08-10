@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+import re
 
 from .intent import Intent
 
@@ -50,8 +51,9 @@ Map the user's transcript to exactly one action:
   cleaned-up restatement of what the user wants.
 - "details": the user asks to hear more about the previous answer
   ("tell me more", "go deeper", "what else").
-- "cancel": the user wants to stop/drop the current background task
-  ("never mind", "stop that", "forget it").
+- "cancel": ONLY stopping the current background task ("never mind,
+  stop", "drop the task", "forget it"). NOT "undo" — undoing or
+  reversing a desktop action is "none" (handled conversationally).
 - "remember": the user asks to remember/note a fact or preference
   ("remember that I ...", "note that ..."). Set "task" to the fact,
   phrased in third person about the user.
@@ -79,6 +81,7 @@ Examples:
 "what am I working on right now" -> {"action":"none","workspace":null,"task":null}
 "what do you know about me" -> {"action":"none","workspace":null,"task":null}
 "what's your honest opinion on this" -> {"action":"none","workspace":null,"task":null}
+"okay undo that" -> {"action":"none","workspace":null,"task":null}
 """
 
 _ACKS = {
@@ -157,6 +160,16 @@ async def classify(http, url: str, text: str, timeout_s: float = 3.0) -> Intent 
         return Intent("delegate", task=decision.get("task") or None)
     if action == "remember":
         return Intent("remember", task=decision.get("task") or None)
+    # deterministic guards over a small model's judgment (eval-caught):
+    # "undo" is a conversational reversal, not a task cancel; sleep/wake
+    # require the actual words ("good morning" is not a wake command)
+    lowered = text.lower()
+    if action == "cancel" and "undo" in lowered:
+        return None
+    if action in ("sleep", "wake") and not re.search(
+        r"\b(sleep|wake|stand down)\b", lowered
+    ):
+        return None
     if action in ("details", "cancel"):
         return Intent(action)
     if action in _ACKS:

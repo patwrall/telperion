@@ -1,6 +1,8 @@
 import asyncio
+import collections
 import logging
 import os
+import re
 import time
 from pathlib import Path
 
@@ -19,12 +21,28 @@ class WorldState:
     def __init__(self, store):
         self.store = store
         self.on_command_end = None  # daemon hook for proactive announcements
+        # consecutive failures per command head (e.g. "nix build"), so the
+        # daemon can notice a user stuck in a fail loop
+        self.failure_streaks: dict[str, int] = {}
         self.workspace: int | None = None
         self.window_class = ""
         self.window_title = ""
         # command id -> {cmd, cwd, start}
         self.running_cmds: dict[str, dict] = {}
         self.finished_cmds: list[dict] = []  # most recent last, capped
+        self.notifications: collections.deque[dict] = collections.deque(maxlen=5)
+
+    # chronic notifications that fire constantly during normal work and
+    # would otherwise be a permanent nag in every context blob
+    NOTIFICATION_IGNORE = ("awaiting your input",)
+
+    def notification(self, app: str, summary: str, body: str):
+        haystack = f"{summary} {body}".lower()
+        if any(pattern in haystack for pattern in self.NOTIFICATION_IGNORE):
+            return
+        self.notifications.append(
+            {"app": app, "summary": summary[:80], "body": body[:120], "ts": time.time()}
+        )
 
     # -- shell hook events (via control socket) ------------------------------
 
@@ -50,6 +68,12 @@ class WorldState:
             }
             self.finished_cmds.append(entry)
             del self.finished_cmds[:-10]
+            head = " ".join(entry["cmd"].split()[:2]) or "?"
+            if entry.get("exit") in (0, None):
+                self.failure_streaks.pop(head, None)
+            else:
+                self.failure_streaks[head] = self.failure_streaks.get(head, 0) + 1
+            entry["streak"] = self.failure_streaks.get(head, 0)
             # persist only the interesting ones: long-running or failed
             if entry["duration_s"] >= 5 or entry.get("exit") not in (0, None):
                 self.store.add_event("shell", **entry)
@@ -74,6 +98,12 @@ class WorldState:
             parts.append(
                 f"finished {_ago(now - c['ts'])} ago ({status}, {c['duration_s']}s): `{c['cmd'][:60]}`"
             )
+        for n in list(self.notifications)[-2:]:
+            if now - n["ts"] < 600:
+                parts.append(
+                    f"notification {_ago(now - n['ts'])} ago from {n['app']}: "
+                    f"{n['summary']}" + (f" — {n['body']}" if n["body"] else "")
+                )
         return "; ".join(parts) or "no desktop state yet"
 
 
@@ -119,6 +149,71 @@ async def watch_hyprland(state: WorldState):
                 "hyprland events lost (%s); retrying in %ss", exc, RECONNECT_DELAY_S
             )
             await asyncio.sleep(RECONNECT_DELAY_S)
+
+
+class NotifyParser:
+    """Parses dbus-monitor's textual output for Notify calls. The string
+    arguments arrive in order: app, icon, summary, body."""
+
+    _STRING = re.compile(r'^string "(.*)"$')
+
+    def __init__(self, on_notification):
+        self._on_notification = on_notification
+        self._strings: list[str] | None = None
+
+    def feed(self, line: str):
+        line = line.strip()
+        if "member=Notify" in line and "method call" in line:
+            self._strings = []
+            return
+        if self._strings is None:
+            return
+        m = self._STRING.match(line)
+        if m:
+            self._strings.append(m.group(1))
+            if len(self._strings) == 4:
+                app, _icon, summary, body = self._strings
+                self._strings = None
+                self._on_notification(app, summary, body)
+
+
+async def watch_notifications(state: WorldState):
+    """Follow desktop notifications via dbus-monitor; feeds world state."""
+    while True:
+        try:
+            proc = await asyncio.create_subprocess_exec(
+                "dbus-monitor",
+                "interface='org.freedesktop.Notifications',member='Notify'",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.DEVNULL,
+            )
+            parser = NotifyParser(state.notification)
+            log.info("notification watcher connected")
+            while True:
+                line = await proc.stdout.readline()
+                if not line:
+                    raise ConnectionError("dbus-monitor exited")
+                parser.feed(line.decode(errors="replace"))
+        except asyncio.CancelledError:
+            raise
+        except Exception as exc:
+            log.warning(
+                "notification watcher lost (%s); retrying in %ss",
+                exc,
+                RECONNECT_DELAY_S,
+            )
+            await asyncio.sleep(RECONNECT_DELAY_S)
+
+
+async def media_control(action: str) -> bool:
+    """Dispatch a playerctl verb; shared by the fast path and MCP tool."""
+    if action not in ("play-pause", "next", "previous", "stop"):
+        return False
+    proc = await asyncio.create_subprocess_exec(
+        "playerctl", action, stderr=asyncio.subprocess.DEVNULL
+    )
+    await proc.wait()
+    return proc.returncode == 0
 
 
 async def now_playing() -> str:

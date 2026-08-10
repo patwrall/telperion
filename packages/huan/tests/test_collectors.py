@@ -53,6 +53,40 @@ class TestShellLifecycle:
         persisted = {e["cmd"] for e in store.recent_events("shell")}
         assert persisted == {"build", "bad"}
 
+    def test_failure_streak_counts_and_resets(self, store):
+        w = make_state(store)
+        for i in range(3):
+            w.shell_event(
+                {
+                    "phase": "end",
+                    "id": str(i),
+                    "cmd": "nix build .#huan",
+                    "exit": 1,
+                    "duration": 4,
+                }
+            )
+        assert w.finished_cmds[-1]["streak"] == 3
+        w.shell_event(
+            {
+                "phase": "end",
+                "id": "ok",
+                "cmd": "nix build .#huan",
+                "exit": 0,
+                "duration": 4,
+            }
+        )
+        assert w.finished_cmds[-1]["streak"] == 0
+
+    def test_streaks_tracked_per_command_head(self, store):
+        w = make_state(store)
+        w.shell_event(
+            {"phase": "end", "id": "1", "cmd": "make all", "exit": 1, "duration": 1}
+        )
+        w.shell_event(
+            {"phase": "end", "id": "2", "cmd": "cargo build", "exit": 1, "duration": 1}
+        )
+        assert w.finished_cmds[-1]["streak"] == 1  # cargo, not cumulative
+
     def test_command_end_hook_fires(self, store):
         w = make_state(store)
         seen = []

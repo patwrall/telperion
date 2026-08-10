@@ -100,6 +100,22 @@ class TestOutputParsing:
             await run_with(make_agent(store), proc, monkeypatch)
 
 
+class TestCurrentTask:
+    async def test_current_task_set_and_cleared(self, store, monkeypatch):
+        proc = FakeProc(json.dumps(result_payload()).encode())
+        agent = make_agent(store)
+        assert agent.current_task == ""
+        await run_with(agent, proc, monkeypatch)
+        assert agent.current_task == ""  # cleared after completion
+
+    async def test_current_task_cleared_on_failure(self, store, monkeypatch):
+        proc = FakeProc(b"garbage")
+        agent = make_agent(store)
+        with pytest.raises(AgentError):
+            await run_with(agent, proc, monkeypatch)
+        assert agent.current_task == ""
+
+
 class TestSessionPersistence:
     async def test_session_saved_and_reloaded(self, store, monkeypatch):
         proc = FakeProc(json.dumps(result_payload(session_id="persisted")).encode())

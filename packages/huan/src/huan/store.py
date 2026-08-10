@@ -27,6 +27,10 @@ CREATE TABLE IF NOT EXISTS events (
     data TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS events_kind_ts ON events (kind, ts);
+CREATE TABLE IF NOT EXISTS daily_notes (
+    day TEXT PRIMARY KEY,
+    note TEXT NOT NULL
+);
 """
 
 
@@ -71,6 +75,40 @@ class Store:
                 (key, value),
             )
         self._db.commit()
+
+    # -- daily notes (episodic memory) ---------------------------------------
+
+    def set_daily_note(self, day: str, note: str):
+        self._db.execute(
+            "INSERT INTO daily_notes VALUES (?, ?) ON CONFLICT(day) DO UPDATE SET note = excluded.note",
+            (day, note),
+        )
+        self._db.commit()
+
+    def daily_notes(self, n: int = 7) -> list[tuple[str, str]]:
+        rows = self._db.execute(
+            "SELECT day, note FROM daily_notes ORDER BY day DESC LIMIT ?", (n,)
+        ).fetchall()
+        return list(reversed(rows))
+
+    def prune(self, event_days: int = 14, exchange_days: int = 30):
+        cutoff_events = time.time() - event_days * 86400
+        cutoff_exchanges = time.time() - exchange_days * 86400
+        self._db.execute("DELETE FROM events WHERE ts < ?", (cutoff_events,))
+        self._db.execute("DELETE FROM exchanges WHERE ts < ?", (cutoff_exchanges,))
+        self._db.commit()
+
+    def events_between(self, start: float, end: float) -> list[dict]:
+        rows = self._db.execute(
+            "SELECT ts, kind, data FROM events WHERE ts >= ? AND ts < ? ORDER BY ts",
+            (start, end),
+        ).fetchall()
+        return [{"ts": ts, "kind": k, **json.loads(data)} for ts, k, data in rows]
+
+    def exchange_count_between(self, start: float, end: float) -> int:
+        return self._db.execute(
+            "SELECT COUNT(*) FROM exchanges WHERE ts >= ? AND ts < ?", (start, end)
+        ).fetchone()[0]
 
     # -- ambient events (collectors) -----------------------------------------
 

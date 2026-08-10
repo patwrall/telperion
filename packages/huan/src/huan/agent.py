@@ -49,6 +49,7 @@ class Agent:
         self.session_id: str | None = store.get("agent_session_id")
         self.last_task = store.get("agent_last_task", "") or ""
         self.last_result = store.get("agent_last_result", "") or ""
+        self.current_task = ""  # non-empty exactly while a task runs
         self._proc: asyncio.subprocess.Process | None = None
 
     @property
@@ -82,6 +83,7 @@ class Agent:
         if self.busy:
             raise AgentError("agent is busy")
         prompt = f"[desktop context: {context}]\n{task}"
+        self.current_task = task
         try:
             return await self._run_once(prompt, resume=True)
         except AgentError as exc:
@@ -91,6 +93,8 @@ class Agent:
                 self.session_id = None
                 return await self._run_once(prompt, resume=False)
             raise
+        finally:
+            self.current_task = ""
 
     async def _run_once(self, prompt: str, resume: bool) -> str:
         args = self._args(resume)

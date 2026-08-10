@@ -72,6 +72,76 @@ class TestOtherCommands:
         assert classify(text) is None
 
 
+class TestMediaCommands:
+    @pytest.mark.parametrize(
+        ("text", "verb"),
+        [
+            ("pause the music", "play-pause"),
+            ("pause", "play-pause"),
+            ("pause it", "play-pause"),
+            ("play the music", "play-pause"),
+            ("resume", "play-pause"),
+            ("next song", "next"),
+            ("skip this", "next"),
+            ("skip the track", "next"),
+            ("previous song", "previous"),
+            ("go back a track", "previous"),
+        ],
+    )
+    def test_matches(self, text, verb):
+        intent = classify(text)
+        assert intent is not None and intent.action == "media"
+        assert intent.task == verb
+
+    @pytest.mark.parametrize(
+        "text",
+        [
+            "play it again sam that old movie line you know",
+            "I want to play some games later tonight maybe",
+            "the next thing we should build is barge in support",
+        ],
+    )
+    def test_long_transcripts_never_hijacked(self, text):
+        intent = classify(text)
+        assert intent is None or intent.action != "media"
+
+
+class TestUnfinishedDetector:
+    from huan.intent import looks_unfinished as _lu
+
+    @pytest.mark.parametrize(
+        "text",
+        [
+            "What version of",
+            "Um...",
+            "so like, and",
+            "switch to the",
+            "or",
+            "what's my,",
+            "hold on-",
+        ],
+    )
+    def test_unfinished(self, text):
+        from huan.intent import looks_unfinished
+
+        assert looks_unfinished(text)
+
+    @pytest.mark.parametrize(
+        "text",
+        [
+            "What version of CUDA do I have?",
+            "switch to workspace 2",
+            "pause the music",
+            "how is my build doing",
+            "",
+        ],
+    )
+    def test_finished(self, text):
+        from huan.intent import looks_unfinished
+
+        assert not looks_unfinished(text)
+
+
 class TestStatusDetector:
     @pytest.mark.parametrize(
         "text",

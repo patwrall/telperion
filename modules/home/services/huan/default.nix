@@ -23,6 +23,7 @@ let
     agent_cmd = lib.optionalString cfg.agent.enable "claude";
     brain_model = lib.optionalString (cfg.agent.enable && cfg.brain.enable) cfg.brain.model;
     announce_min_s = cfg.announceMinSeconds;
+    heartbeat = cfg.proactive;
     agent_model = cfg.agent.model;
     agent_timeout_s = cfg.agent.timeoutSeconds;
     agent_cwd = cfg.agent.cwd;
@@ -335,6 +336,16 @@ in
       };
     };
 
+    proactive = mkOption {
+      type = types.bool;
+      default = true;
+      description = ''
+        Proactive brain heartbeats on notable events (e.g. a command
+        failing repeatedly): the brain may speak one helpful line or
+        choose silence. Rate-limited to one per two minutes.
+      '';
+    };
+
     announceMinSeconds = mkOption {
       type = types.ints.unsigned;
       default = 60;
@@ -408,6 +419,14 @@ in
         Install.WantedBy = [ "graphical-session.target" ];
       };
 
+      huan-compact = {
+        Unit.Description = "huan nightly episodic compaction";
+        Service = {
+          Type = "oneshot";
+          ExecStart = "${lib.getExe cfg.package} compact";
+        };
+      };
+
       huan-openwakeword = mkIf cfg.wakeWord.enable {
         Unit = {
           Description = "wyoming-openwakeword wake word detector for huan";
@@ -431,6 +450,15 @@ in
 
         Install.WantedBy = [ "graphical-session.target" ];
       };
+    };
+
+    systemd.user.timers.huan-compact = {
+      Unit.Description = "huan nightly episodic compaction";
+      Timer = {
+        OnCalendar = "04:00";
+        Persistent = true;
+      };
+      Install.WantedBy = [ "timers.target" ];
     };
 
     programs.fish.interactiveShellInit = lib.mkIf cfg.shellHook ''

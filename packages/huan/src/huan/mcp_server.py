@@ -8,6 +8,7 @@ primitives the fast tier uses.
 
 import asyncio
 import json
+import os
 import socket
 
 from mcp.server.fastmcp import FastMCP
@@ -16,6 +17,18 @@ from . import hypr
 from .config import Config
 
 mcp = FastMCP("huan")
+
+# Mock mode (set by the eval harness): tools log their calls and return
+# success without touching the desktop or the daemon.
+_MOCK = os.environ.get("HUAN_MCP_MOCK") == "1"
+
+
+def _mock_log(tool: str, **args) -> str:
+    path = os.environ.get("HUAN_MCP_MOCK_LOG")
+    if path:
+        with open(path, "a") as f:
+            f.write(json.dumps({"tool": tool, "args": args}) + "\n")
+    return "done"
 
 
 def _daemon(cmd: dict) -> dict:
@@ -29,6 +42,8 @@ def _daemon(cmd: dict) -> dict:
 @mcp.tool()
 async def switch_workspace(number: int) -> str:
     """Switch the user's Hyprland session to workspace `number` (1-10)."""
+    if _MOCK:
+        return _mock_log("switch_workspace", number=number)
     if not 1 <= number <= 10:
         return "workspace must be 1-10"
     await hypr.dispatch(f"workspace {number}")
@@ -38,6 +53,8 @@ async def switch_workspace(number: int) -> str:
 @mcp.tool()
 async def close_focused_window() -> str:
     """Close the currently focused window."""
+    if _MOCK:
+        return _mock_log("close_focused_window")
     await hypr.dispatch("killactive")
     return "closed"
 
@@ -45,6 +62,8 @@ async def close_focused_window() -> str:
 @mcp.tool()
 async def list_windows() -> str:
     """List open windows: workspace, application class, and title."""
+    if _MOCK:
+        return _mock_log("list_windows")
     reader, writer = await asyncio.open_unix_connection(str(hypr._socket_path()))
     try:
         writer.write(b"j/clients")
@@ -66,8 +85,70 @@ async def list_windows() -> str:
 def speak(text: str) -> str:
     """Speak a short line to the user through huan's voice. Use sparingly:
     the user already hears a summary of your final message."""
+    if _MOCK:
+        return _mock_log("speak", text=text)
     result = _daemon({"cmd": "say", "text": text})
     return "spoken" if result.get("ok") else f"failed: {result}"
+
+
+@mcp.tool()
+async def fullscreen_toggle() -> str:
+    """Toggle fullscreen on the currently focused window."""
+    if _MOCK:
+        return _mock_log("fullscreen_toggle")
+    await hypr.dispatch("fullscreen 0")
+    return "toggled"
+
+
+@mcp.tool()
+async def media(action: str) -> str:
+    """Control media playback. action: play-pause, next, previous, stop."""
+    if _MOCK:
+        return _mock_log("media", action=action)
+    from .collectors import media_control
+
+    return action if await media_control(action) else "no player responded"
+
+
+@mcp.tool()
+def delegate_task(task: str) -> str:
+    """Hand a task needing real work (reading files, running commands,
+    research) to the background working tier. It runs asynchronously; the
+    user will hear a summary when it finishes. Tell the user you're on it."""
+    if _MOCK:
+        return _mock_log("delegate_task", task=task)
+    result = _daemon({"cmd": "delegate", "text": task})
+    return result.get("state", "started") if result.get("ok") else f"failed: {result}"
+
+
+@mcp.tool()
+def remember_fact(fact: str) -> str:
+    """Store a lasting fact or preference about the user in long-term
+    memory. Phrase it in third person."""
+    if _MOCK:
+        return _mock_log("remember_fact", fact=fact)
+    result = _daemon({"cmd": "remember", "text": fact})
+    return "remembered" if result.get("ok") else f"failed: {result}"
+
+
+@mcp.tool()
+def recall_days(days: int = 7) -> str:
+    """Recall compact daily notes of the user's recent activity (shell
+    work, failures, long builds, conversation volume) for questions like
+    'what was I doing yesterday'."""
+    if _MOCK:
+        return _mock_log("recall_days", days=days)
+    result = _daemon({"cmd": "recall", "days": days})
+    return result.get("notes", "unavailable") if result.get("ok") else "unavailable"
+
+
+@mcp.tool()
+def cancel_background_task() -> str:
+    """Cancel the currently running background task, if any."""
+    if _MOCK:
+        return _mock_log("cancel_background_task")
+    result = _daemon({"cmd": "cancel"})
+    return result.get("state", "done") if result.get("ok") else f"failed: {result}"
 
 
 def main():

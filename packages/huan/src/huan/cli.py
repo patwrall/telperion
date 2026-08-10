@@ -32,6 +32,12 @@ def main() -> int:
 
     sub.add_parser("mcp", help="run the MCP server exposing desktop primitives")
 
+    sub.add_parser("compact", help="compact yesterday's events into a daily note")
+
+    eval_parser = sub.add_parser("eval", help="run the quality eval harness")
+    eval_parser.add_argument("which", choices=["routing", "convo", "all"])
+    eval_parser.add_argument("--config", default=None, help="path to config JSON")
+
     shellev = sub.add_parser("shellev", help="report a shell command event (fish hook)")
     shellev.add_argument("phase", choices=["start", "end"])
     shellev.add_argument("id")
@@ -68,6 +74,14 @@ def main() -> int:
 
         mcp_main()
         return 0
+    if args.mode == "eval":
+        from .evals import run as eval_run
+
+        return eval_run(args.which, args.config)
+    if args.mode == "compact":
+        from .compact import run as compact_run
+
+        return compact_run(None)
     if args.mode == "shellev":
         data = {
             "phase": args.phase,

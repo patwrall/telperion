@@ -33,6 +33,27 @@ class Intent:
     task: str | None = None  # for delegate: the cleaned-up task text
 
 
+# media verbs map straight to playerctl; short transcripts only so
+# conversational mentions of "play" don't hijack the fast path
+_MEDIA_RES = [
+    (
+        re.compile(r"\b(?:pause|stop)\b.*\b(?:music|song|media|it)\b|\bpause\b"),
+        "play-pause",
+    ),
+    (
+        re.compile(r"\b(?:resume|unpause)\b|\bplay\b.*\b(?:music|song|it)\b"),
+        "play-pause",
+    ),
+    (re.compile(r"\b(?:next|skip)\b.*\b(?:song|track)\b|\bskip (?:it|this)\b"), "next"),
+    (
+        re.compile(
+            r"\b(?:previous|last)\b.*\b(?:song|track)\b|\bgo back a (?:song|track)\b"
+        ),
+        "previous",
+    ),
+]
+_MEDIA_MAX_WORDS = 5
+
 _WORKSPACE_RE = re.compile(
     r"\b(?:(?:switch|go)(?: to)?|workspace)\s+(?:workspace\s+)?(\d+|[a-z]+)\b"
 )
@@ -48,6 +69,48 @@ def _parse_number(token: str, allow_homophones: bool) -> int | None:
     if number is None and allow_homophones:
         number = _HOMOPHONE_NUMBERS.get(token)
     return number
+
+
+# a transcript that trails off mid-thought ("what version of", "um...")
+# is a pause, not a finished turn: the pipeline keeps listening and
+# splices the continuation instead of answering fragments
+_TRAILING_UNFINISHED = {
+    "um",
+    "uh",
+    "er",
+    "hmm",
+    "like",
+    "so",
+    "and",
+    "or",
+    "but",
+    "of",
+    "the",
+    "a",
+    "an",
+    "to",
+    "for",
+    "with",
+    "in",
+    "on",
+    "my",
+    "is",
+    "are",
+    "was",
+    "what",
+    "which",
+    "that",
+}
+
+
+def looks_unfinished(text: str) -> bool:
+    stripped = text.strip()
+    if not stripped:
+        return False
+    if stripped.endswith(("...", "…", "-", ",")):
+        return True
+    last = stripped.split()[-1].strip(".,!?…").lower()
+    return last in _TRAILING_UNFINISHED
 
 
 # status questions are answerable from live local state; a code-level
@@ -75,6 +138,11 @@ def classify(text: str) -> Intent | None:
 
     if _CLOSE_RE.search(t):
         return Intent("close-window", ack="closed")
+
+    if len(t.split()) <= _MEDIA_MAX_WORDS:
+        for pattern, action in _MEDIA_RES:
+            if pattern.search(t):
+                return Intent("media", ack=action, task=action)
 
     if _SLEEP_RE.search(t):
         return Intent("sleep", ack="sleeping")

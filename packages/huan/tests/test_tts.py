@@ -70,6 +70,34 @@ class TestFillers:
         assert bytes(speaker._buffer) == before
 
 
+class TestInterrupt:
+    def test_interrupt_clears_buffer_and_state(self, tmp_path):
+        speaker = make_speaker(tmp_path)
+        speaker._enqueue(b"\x00" * 4096)
+        assert speaker.speaking
+        speaker.interrupt()
+        assert not speaker.speaking
+        assert len(speaker._buffer) == 0
+
+    def test_interrupt_when_silent_is_noop(self, tmp_path):
+        make_speaker(tmp_path).interrupt()  # must not raise
+
+
+class TestTagStripping:
+    def test_tags_removed_for_piper(self):
+        from huan.tts import _strip_tags
+
+        assert _strip_tags("[chuckles] On three.") == "On three."
+        assert _strip_tags("Done. [sighs] Finally.") == "Done. Finally."
+        assert _strip_tags("no tags here") == "no tags here"
+
+    def test_brackets_in_real_content_survive(self):
+        from huan.tts import _strip_tags
+
+        # a spoken array index should not be eaten (no lowercase-word shape)
+        assert _strip_tags("check index [42] there") == "check index [42] there"
+
+
 class TestVoiceSettings:
     def test_settings_assembled_from_config(self, tmp_path):
         speaker = make_speaker(tmp_path, eleven_stability=0.2, eleven_style=0.9)

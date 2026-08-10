@@ -77,6 +77,11 @@ in
         tts.elevenlabs = {
           enable = true;
           voiceId = "yj30vwTGJxSHezdAGsv9";
+          # v3: most expressive, understands [audio tags]; no websocket
+          # (HTTP streaming only), slower first-audio than flash/v2 —
+          # fillers cover the gap
+          modelId = "eleven_v3";
+          style = 0.55;
         };
       };
     };

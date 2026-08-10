@@ -56,6 +56,11 @@ class Config:
     # when they finish (0 disables)
     announce_min_s: float = 60.0
 
+    # Proactive brain heartbeats on notable events (fail loops); the brain
+    # may speak or stay silent. Rate-limited; False disables.
+    heartbeat: bool = True
+    heartbeat_min_gap_s: float = 120.0
+
     # Reasoning tier: the Claude Code CLI run headless (empty cmd disables)
     agent_cmd: str = ""
     agent_model: str = "sonnet"

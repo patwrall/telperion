@@ -53,6 +53,7 @@ class Daemon:
                 config.brain_model,
                 config.brain_max_turns,
                 store=self.store,
+                mcp_config=config.agent_mcp_config,
             )
             if config.agent_cmd and config.brain_model
             else None
@@ -63,6 +64,7 @@ class Daemon:
             self.store.recent_exchanges(8), maxlen=8
         )
         self.sleeping = False
+        self._last_chat_ts = 0.0
         self._pipeline_lock = asyncio.Lock()
         self._ptt_stop: asyncio.Event | None = None
 
@@ -84,12 +86,17 @@ class Daemon:
         )
         log.info("control socket at %s", self.config.control_socket)
 
-        tasks = [asyncio.create_task(collectors.watch_hyprland(self.world))]
+        tasks = [
+            asyncio.create_task(collectors.watch_hyprland(self.world)),
+            asyncio.create_task(collectors.watch_notifications(self.world)),
+        ]
         if self.brain is not None:
             # pay the process cold-start at boot, not on the first question
             tasks.append(asyncio.create_task(self.brain.start()))
         tasks.append(asyncio.create_task(self.speaker.prime_fillers()))
         if self.config.wake_enabled:
+            # the wake stream stays live during huan's own speech so the
+            # wake word barges in; capture stays echo-gated separately
             tasks.append(
                 asyncio.create_task(
                     wake.listen(
@@ -97,7 +104,6 @@ class Daemon:
                         self.config.wake_uri,
                         self.config.wake_names,
                         self._on_wake_word,
-                        suppress=lambda: self.speaker.speaking,
                     )
                 )
             )
@@ -108,6 +114,8 @@ class Daemon:
     # -- activation paths ----------------------------------------------------
 
     async def _on_wake_word(self, name: str):
+        # barge-in: the wake word mid-speech cuts huan off and listens
+        self.speaker.interrupt()
         if self._pipeline_lock.locked():
             log.info("wake word %r ignored: pipeline busy", name)
             return
@@ -122,6 +130,7 @@ class Daemon:
         )
 
     def _ptt_start(self) -> str:
+        self.speaker.interrupt()  # push-to-talk doubles as the barge-in button
         if self._ptt_stop is not None:
             return "already recording"
         if self._pipeline_lock.locked():
@@ -172,12 +181,43 @@ class Daemon:
                     if not text:
                         log.info("%s %s: empty transcript", source, watch.summary())
                         return
+                    # mid-thought pause: keep listening and splice instead
+                    # of answering fragments ("what version of" ... "cuda").
+                    # never delay a transcript that already resolves to a
+                    # command ("switch to workspace to" is complete)
+                    for _ in range(3):
+                        if intent.classify(text) is not None:
+                            break
+                        if not intent.looks_unfinished(text):
+                            break
+                        log.info(
+                            "%s: unfinished (%r), listening on", source, text[-30:]
+                        )
+                        more = await audio.capture_utterance(
+                            self.mic,
+                            self.detector,
+                            silence_ms=self.config.silence_ms,
+                            max_s=self.config.max_utterance_s,
+                            suppress=lambda: self.speaker.speaking,
+                            onset_timeout_ms=2000,
+                        )
+                        if len(more) == 0:
+                            break
+                        continuation = await asyncio.to_thread(
+                            self.stt.transcribe, more
+                        )
+                        if not continuation:
+                            break
+                        text = f"{text} {continuation}"
+                    watch.lap("splice")
                 result = await self._act(text, watch, quiet=source == "followup")
                 log.info("%s %s text=%r -> %s", source, watch.summary(), text, result)
+                # chat turns ("unknown"/"status") schedule their own hot
+                # window after the reply finishes speaking
                 followup = (
                     self.config.followup_s > 0
                     and source.startswith(("wake:", "followup"))
-                    and result not in ("unknown", "sleep")
+                    and result not in ("unknown", "status", "sleep")
                 )
             except Exception:
                 log.exception("%s pipeline failed after %s", source, watch.summary())
@@ -206,9 +246,10 @@ class Daemon:
                 log.warning("llm intent failed: %s", exc)
             watch.lap("intent_llm")
         if parsed is None:
-            # in the follow-up window, unmatched speech is probably not
-            # aimed at us; complaining about it would be obnoxious
-            if not quiet:
+            # in the follow-up window, unmatched speech is usually musing —
+            # unless a chat exchange just happened, in which case the
+            # conversation is hot and continuing it is the human behavior
+            if not quiet or self._conversation_hot():
                 self._say_chat(text)
             return "unknown"
 
@@ -219,6 +260,13 @@ class Daemon:
         elif parsed.action == "wake":
             await self._wake_models()
             self._say_response(text, "woke up; models reloaded", fallback=parsed.ack)
+        elif parsed.action == "media":
+            ok = await collectors.media_control(parsed.task or "play-pause")
+            self._say_response(
+                text,
+                f"media {parsed.task}: {'done' if ok else 'no player responded'}",
+                fallback="Done." if ok else "No player's listening.",
+            )
         elif parsed.action == "delegate":
             if intent.is_status_question(text):
                 # answerable from live state; don't burn an agent run on it
@@ -324,6 +372,24 @@ class Daemon:
 
         self.agent.last_task = task
         self.store.set("agent_last_task", task)
+        # the brain relays results: better summaries than the 3B, and the
+        # report enters its conversation so follow-ups work natively
+        if self.brain is not None:
+            try:
+                line = await self.brain.ask(
+                    f"[background task finished — '{task[:80]}'. Report:]\n"
+                    f"{report[:4000]}\n"
+                    "Relay the key finding to the user now in one or two "
+                    "spoken sentences, opening with a few words naming the topic.",
+                    await self._world_context(),
+                )
+                self._remember("huan", f"(after working on '{task[:60]}') {line}")
+                log.info("agent summary: %r", line)
+                self._last_chat_ts = time.time()
+                await self.speaker.say(line)
+                return
+            except Exception as exc:
+                log.warning("brain relay failed (%s); 3B summarizer", exc)
         try:
             line = await llm.summarize(
                 self._ensure_http(), self.config.llama_url, task, report
@@ -362,6 +428,9 @@ class Daemon:
         self.history.append(f"{role}: {text}")
         self.store.add_exchange(role, text)
 
+    def _conversation_hot(self) -> bool:
+        return (time.time() - getattr(self, "_last_chat_ts", 0.0)) < 30
+
     def _say_chat(self, said: str):
         """Conversational turn: the brain (real model, own memory) when
         available, 3B responder as fallback. Off the critical path."""
@@ -382,6 +451,16 @@ class Daemon:
                     )
                     self._remember("huan", reply)
                     log.info("brain: %r", reply)
+                    self._last_chat_ts = time.time()
+                    # hot window: keep listening so the user can continue
+                    # the conversation without the wake word
+                    if self.config.followup_s > 0 and not self._pipeline_lock.locked():
+                        asyncio.create_task(
+                            self._run_pipeline(
+                                source="followup",
+                                onset_timeout_ms=int(self.config.followup_s * 1000),
+                            )
+                        )
                     return
                 except Exception as exc:
                     log.warning("brain failed (%s); 3B fallback", exc)
@@ -415,6 +494,14 @@ class Daemon:
         playing = await collectors.now_playing()
         if playing:
             parts.append(f"playing: {playing}")
+        # background-task truth: without this the brain invents phantom
+        # tasks from stale conversation memory (seen live)
+        if self.agent is not None and self.agent.busy:
+            parts.append(
+                f"background task running: {self.agent.current_task[:60] or 'unnamed'}"
+            )
+        else:
+            parts.append("background tasks: none running")
         facts = self._memory_facts()
         if facts:
             parts.append(f"known facts about the user: {facts}")
@@ -444,8 +531,23 @@ class Daemon:
     # -- proactive announcements ---------------------------------------------
 
     def _on_command_end(self, entry: dict):
+        if self.sleeping:
+            return
+        # a fail loop is worth a thoughtful interruption: the brain decides
+        # whether to speak (and may offer to investigate on its own)
+        if entry.get("streak", 0) >= 2 and self.config.heartbeat:
+            # 3+ failures, or repeated failures of a long command, are
+            # always worth a line; the brain only chooses the phrasing
+            must_speak = entry["streak"] >= 3 or entry["duration_s"] >= 60
+            self._heartbeat(
+                f"the user's command `{entry['cmd'][:80]}` has now failed "
+                f"{entry['streak']} times in a row (latest exit "
+                f"{entry.get('exit')}, {entry['duration_s']:.0f}s)",
+                must_speak=must_speak,
+            )
+            return
         threshold = self.config.announce_min_s
-        if threshold <= 0 or entry["duration_s"] < threshold or self.sleeping:
+        if threshold <= 0 or entry["duration_s"] < threshold:
             return
         status = (
             "succeeded"
@@ -459,6 +561,46 @@ class Daemon:
             "unprompted, like a colleague calling it across the room",
             fallback=f"Your command {status}.",
         )
+
+    def _heartbeat(self, observation: str, must_speak: bool = False):
+        """A silent brain turn on a notable event: it may speak one line
+        (and act via its tools) or answer SILENT and nothing happens."""
+        now = time.time()
+        last = getattr(self, "_last_heartbeat_ts", 0)
+        if self.brain is None or now - last < self.config.heartbeat_min_gap_s:
+            return
+        self._last_heartbeat_ts = now
+
+        async def _beat():
+            if must_speak:
+                instruction = (
+                    "This IS worth one short helpful spoken line — say it "
+                    "(you may also start an investigation with your tools)."
+                )
+            else:
+                instruction = (
+                    "If this is worth interrupting the user, say ONE short "
+                    "helpful line (you may also start an investigation with "
+                    "your tools); if not, reply with exactly: SILENT"
+                )
+            prompt = (
+                "[background observation — the user did NOT speak] "
+                f"{observation}. {instruction}"
+            )
+            try:
+                reply = await self.brain.ask(prompt, await self._world_context())
+            except Exception as exc:
+                log.warning("heartbeat failed: %s", exc)
+                return
+            if reply.strip().upper().startswith("SILENT"):
+                log.info("heartbeat: brain chose silence (%s)", observation[:60])
+                return
+            log.info("heartbeat: %r", reply)
+            self._remember("huan", f"(unprompted) {reply}")
+            self._last_chat_ts = time.time()
+            await self.speaker.say(reply)
+
+        asyncio.create_task(_beat())
 
     def _ensure_http(self):
         import httpx
@@ -573,6 +715,32 @@ class Daemon:
             return {"ok": True}
         if cmd == "context":
             return {"ok": True, "context": await self._context_line()}
+        # brain-initiated verbs (via the MCP server): the brain speaks for
+        # itself, so these skip the daemon's own handoff/confirmation lines
+        if cmd == "delegate":
+            if self.agent is None:
+                return {"ok": False, "state": "no reasoning tier configured"}
+            if self.agent.busy:
+                return {"ok": True, "state": "already busy with the previous task"}
+            task = request.get("text", "")
+            asyncio.create_task(self._run_agent(task, task))
+            return {"ok": True, "state": "started"}
+        if cmd == "remember":
+            self._memory_append(request.get("text", ""))
+            return {"ok": True}
+        if cmd == "cancel":
+            cancelled = self.agent is not None and self.agent.cancel()
+            return {
+                "ok": True,
+                "state": "cancelled" if cancelled else "nothing running",
+            }
+        if cmd == "recall":
+            notes = self.store.daily_notes(int(request.get("days", 7)))
+            return {
+                "ok": True,
+                "notes": "\n".join(f"{day}: {note}" for day, note in notes)
+                or "no daily notes yet",
+            }
         return {"ok": False, "error": f"unknown command {cmd!r}"}
 
 

@@ -20,6 +20,18 @@ log = logging.getLogger("huan.tts")
 SPEAKING_TAIL_S = 0.35  # sink latency margin after the buffer drains
 ELEVEN_RATE = 22050  # pcm_22050 output; matches the default piper voices
 
+_TAG_RE = None
+
+
+def _strip_tags(text: str) -> str:
+    """Remove [audio tags] meant for eleven v3; piper would read them aloud."""
+    global _TAG_RE
+    if _TAG_RE is None:
+        import re
+
+        _TAG_RE = re.compile(r"\[[a-z][a-z ']{0,25}\]\s*", re.IGNORECASE)
+    return _TAG_RE.sub("", text).strip()
+
 
 class Speaker:
     """TTS with two synthesis sources feeding one playback path.
@@ -79,6 +91,19 @@ class Speaker:
         deadline = time.monotonic() + timeout_s
         while self.speaking and time.monotonic() < deadline:
             await asyncio.sleep(0.05)
+
+    def interrupt(self):
+        """Barge-in: stop talking immediately. Drops buffered audio and
+        kills the in-flight synthesis stream so no stale speech trickles in."""
+        with self._buffer_lock:
+            had_audio = bool(self._buffer)
+            self._buffer.clear()
+        self._last_active = 0.0
+        if self._ws is not None:
+            ws, self._ws = self._ws, None
+            asyncio.ensure_future(ws.close())
+        if had_audio:
+            log.info("speech interrupted")
 
     # -- playback ------------------------------------------------------------
 
@@ -305,14 +330,16 @@ class Speaker:
         self._enqueue(random.choice(clips).read_bytes())
 
     async def _say_with_fallback(self, text: str):
-        try:
-            await self._say_eleven_ws(text)
-            return
-        except Exception as exc:
-            log.warning("elevenlabs ws failed (%s); trying http", exc)
-            self._ws = None
+        # v3 has no stream-input websocket; go straight to HTTP streaming
+        if "v3" not in self.eleven_model_id:
+            try:
+                await self._say_eleven_ws(text)
+                return
+            except Exception as exc:
+                log.warning("elevenlabs ws failed (%s); trying http", exc)
+                self._ws = None
         try:
             await self._say_eleven(text)
         except Exception as exc:
             log.warning("elevenlabs failed (%s); falling back to piper", exc)
-            await self._say_piper(text)
+            await self._say_piper(_strip_tags(text))

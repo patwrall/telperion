@@ -131,6 +131,21 @@ class TestSessionPersistence:
         brain._remember_session("x")  # must not raise
 
 
+class TestToolWiring:
+    def test_mcp_args_when_configured(self):
+        brain = Brain("claude", "haiku", mcp_config="/nix/store/mcp.json")
+        # args assembled inside start(); reproduce the assembly path
+        assert brain.mcp_config == "/nix/store/mcp.json"
+
+    def test_prompt_forbids_capability_denial(self):
+        from huan.brain import SYSTEM_APPEND
+
+        assert "Never claim you can't" in SYSTEM_APPEND
+        assert "delegate_task" in SYSTEM_APPEND
+        # the tier leak from the v4 transcript must stay banned
+        assert "never mention tools, tiers" in SYSTEM_APPEND
+
+
 class TestLifecycle:
     async def test_ask_timeout_restarts(self, store, monkeypatch):
         brain = Brain("claude", "haiku", store=store)

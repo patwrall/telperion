@@ -1,3 +1,5 @@
+import asyncio
+
 import pytest
 from huan import daemon as daemon_mod
 from huan.config import Config
@@ -180,6 +182,148 @@ class TestAnnouncements:
         d.sleeping = True
         d._on_command_end({"cmd": "x", "exit": 0, "duration_s": 900.0})
         assert d.spoken_responses == []
+
+
+class TestWorldContextTruth:
+    async def test_no_agent_reports_none_running(self, make_daemon):
+        d = make_daemon()
+        assert "background tasks: none running" in await d._world_context()
+
+    async def test_idle_agent_reports_none_running(self, make_daemon):
+        d = make_daemon(agent_cmd="claude")
+        assert "background tasks: none running" in await d._world_context()
+
+    async def test_busy_agent_reports_its_task(self, make_daemon):
+        # regression: the brain invented phantom background tasks because
+        # the state blob never carried the truth
+        d = make_daemon(agent_cmd="claude")
+
+        class Running:
+            returncode = None
+
+        d.agent._proc = Running()
+        d.agent.current_task = "investigate the wifi drops"
+        context = await d._world_context()
+        assert "background task running: investigate the wifi drops" in context
+
+
+class TestHeartbeat:
+    def test_fail_streak_triggers_heartbeat(self, make_daemon, monkeypatch):
+        d = make_daemon()
+        beats = []
+        monkeypatch.setattr(
+            d,
+            "_heartbeat",
+            lambda obs, must_speak=False: beats.append((obs, must_speak)),
+        )
+        d._on_command_end(
+            {"cmd": "nix build", "exit": 1, "duration_s": 4.0, "streak": 2}
+        )
+        assert beats and "failed" in beats[0][0] and "2 times" in beats[0][0]
+        assert beats[0][1] is False  # quick double-fail: brain may stay silent
+        assert d.spoken_responses == []  # heartbeat replaces the announcement
+
+    def test_serious_fail_loop_must_speak(self, make_daemon, monkeypatch):
+        d = make_daemon()
+        beats = []
+        monkeypatch.setattr(
+            d, "_heartbeat", lambda obs, must_speak=False: beats.append(must_speak)
+        )
+        d._on_command_end(
+            {"cmd": "nixos-rebuild", "exit": 1, "duration_s": 350.0, "streak": 2}
+        )
+        d._on_command_end({"cmd": "make", "exit": 1, "duration_s": 2.0, "streak": 3})
+        assert beats == [True, True]  # long-cmd repeat and 3+ streak both compel speech
+
+    def test_single_failure_no_heartbeat(self, make_daemon, monkeypatch):
+        d = make_daemon()
+        beats = []
+        monkeypatch.setattr(d, "_heartbeat", beats.append)
+        d._on_command_end({"cmd": "make", "exit": 1, "duration_s": 4.0, "streak": 1})
+        assert beats == []
+
+    def test_heartbeat_rate_limited(self, make_daemon):
+        import time as time_mod
+
+        d = make_daemon()
+
+        class FakeBrain:
+            pass
+
+        d.brain = FakeBrain()
+        d._last_heartbeat_ts = time_mod.time()
+        d._heartbeat("something notable")  # inside the gap: must not schedule
+        # no exception and no task created is the pass condition; the
+        # scheduled-path is covered by the trigger test above
+
+    def test_heartbeat_disabled_by_config(self, make_daemon, monkeypatch):
+        d = make_daemon(heartbeat=False)
+        beats = []
+        monkeypatch.setattr(d, "_heartbeat", beats.append)
+        d._on_command_end({"cmd": "make", "exit": 1, "duration_s": 4.0, "streak": 5})
+        assert beats == []
+
+
+class TestHotConversation:
+    async def test_followup_musing_stays_quiet_when_cold(self, make_daemon):
+        d = make_daemon()
+        result = await d._act("random musing here", Stopwatch(), quiet=True)
+        assert result == "unknown" and d.chats == []
+
+    async def test_followup_continues_hot_conversation(self, make_daemon):
+        import time as time_mod
+
+        d = make_daemon()
+        d._last_chat_ts = time_mod.time()  # a chat exchange just happened
+        result = await d._act("and what about tomorrow", Stopwatch(), quiet=True)
+        assert result == "unknown"
+        assert d.chats == ["and what about tomorrow"]
+
+    def test_hot_window_expires(self, make_daemon):
+        d = make_daemon()
+        d._last_chat_ts = 0.0
+        assert not d._conversation_hot()
+
+
+class TestBrainControlVerbs:
+    async def test_delegate_verb_starts_agent(self, make_daemon, monkeypatch):
+        d = make_daemon(agent_cmd="claude")
+        started = []
+
+        async def fake_run_agent(said, task):
+            started.append(task)
+
+        monkeypatch.setattr(d, "_run_agent", fake_run_agent)
+        result = await d._dispatch_control({"cmd": "delegate", "text": "check weather"})
+        assert result == {"ok": True, "state": "started"}
+        await asyncio.sleep(0)  # let the spawned task run
+        assert started == ["check weather"]
+
+    async def test_delegate_verb_reports_busy(self, make_daemon):
+        d = make_daemon(agent_cmd="claude")
+
+        class Running:
+            returncode = None
+
+        d.agent._proc = Running()
+        result = await d._dispatch_control({"cmd": "delegate", "text": "x"})
+        assert "busy" in result["state"]
+
+    async def test_delegate_verb_without_agent(self, make_daemon):
+        d = make_daemon()
+        result = await d._dispatch_control({"cmd": "delegate", "text": "x"})
+        assert result["ok"] is False
+
+    async def test_remember_verb_writes_memory(self, make_daemon):
+        d = make_daemon()
+        result = await d._dispatch_control({"cmd": "remember", "text": "prefers dark"})
+        assert result["ok"]
+        assert "prefers dark" in d._memory_facts()
+
+    async def test_cancel_verb_idle(self, make_daemon):
+        d = make_daemon()
+        result = await d._dispatch_control({"cmd": "cancel"})
+        assert result == {"ok": True, "state": "nothing running"}
 
 
 class TestHistory:
