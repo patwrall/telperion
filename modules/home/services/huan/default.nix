@@ -23,6 +23,7 @@ let
     agent_cmd = lib.optionalString cfg.agent.enable "claude";
     brain_model = lib.optionalString (cfg.agent.enable && cfg.brain.enable) cfg.brain.model;
     brain_collaborator = cfg.brain.collaborator;
+    extra_path = map (p: "${p}/bin") cfg.brain.tools;
     announce_min_s = cfg.announceMinSeconds;
     heartbeat = cfg.proactive;
     agent_model = cfg.agent.model;
@@ -203,6 +204,16 @@ in
           Give the brain real tools (files, shell, web, edits) so it works
           directly and narrates — voice-driven Claude Code. Pair with a
           sonnet-class model.
+        '';
+      };
+
+      tools = mkOption {
+        type = types.listOf types.package;
+        default = [ ];
+        description = ''
+          Capability CLIs put on the daemon's PATH for the collaborator
+          (e.g. gcalcli, himalaya). Interactive auth setup for such tools
+          is done once by the user in a terminal.
         '';
       };
     };
@@ -387,7 +398,7 @@ in
   };
 
   config = mkIf cfg.enable {
-    home.packages = [ cfg.package ];
+    home.packages = [ cfg.package ] ++ cfg.brain.tools;
 
     systemd.user.services = {
       huan = {

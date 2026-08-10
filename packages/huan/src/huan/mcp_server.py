@@ -9,6 +9,7 @@ primitives the fast tier uses.
 import asyncio
 import json
 import os
+import re
 import socket
 
 from mcp.server.fastmcp import FastMCP
@@ -149,6 +150,37 @@ def cancel_background_task() -> str:
         return _mock_log("cancel_background_task")
     result = _daemon({"cmd": "cancel"})
     return result.get("state", "done") if result.get("ok") else f"failed: {result}"
+
+
+# Permission policy for the collaborator brain (--permission-prompt-tool):
+# the user's global settings put curl/systemctl/kill on an 'ask' list,
+# which headless mode auto-denies. We answer instead: approve routine
+# commands, refuse the destructive ones so the brain has to tell the user.
+# \bgit\b.*\bpush\b, not git\s+push: 'git -C <path> push' dodged the
+# adjacent form and a real push escaped to the remote (2026-08-10)
+_DESTRUCTIVE_RE = re.compile(
+    r"\bsudo\b|\brm\s+(-\w*\s+)*-\w*r|\bmkfs\b|\bdd\s+if=|\bgit\b.*\bpush\b"
+    r"|\bshutdown\b|\breboot\b|\bpoweroff\b|systemctl\s+(?!--user)"
+)
+
+
+def approve_decision(tool_name: str, tool_input: dict) -> dict:
+    command = str(tool_input.get("command", "")) if tool_name == "Bash" else ""
+    if _DESTRUCTIVE_RE.search(command):
+        return {
+            "behavior": "deny",
+            "message": "policy: destructive command — tell the user to run it "
+            "themselves instead",
+        }
+    return {"behavior": "allow", "updatedInput": tool_input}
+
+
+# structured_output=False: the CLI demands the decision as one plain
+# text block; FastMCP's structured wrapping makes it reject the result
+@mcp.tool(structured_output=False)
+def approve(tool_name: str, input: dict, tool_use_id: str = "") -> str:
+    """Permission gate for tool calls that would prompt interactively."""
+    return json.dumps(approve_decision(tool_name, input))
 
 
 def main():

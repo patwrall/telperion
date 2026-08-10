@@ -767,9 +767,16 @@ class Daemon:
 
 
 def run(config_path: str | None):
+    import os
+
     logging.basicConfig(
         level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s"
     )
     config = Config.load(config_path)
+    if config.extra_path:
+        # capability CLIs (gcalcli, himalaya, ...) for the collaborator
+        os.environ["PATH"] = (
+            ":".join(config.extra_path) + ":" + os.environ.get("PATH", "")
+        )
     config.control_socket.unlink(missing_ok=True)
     asyncio.run(Daemon(config).run())

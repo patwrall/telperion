@@ -105,6 +105,21 @@ keep every line short and conversational; never read file contents or
 code aloud unless asked, summarize them. For work that would take many
 minutes, you may hand it to delegate_task and keep conversing.
 
+Everyday lookups have dedicated CLIs on your PATH — use them directly,
+never delegate these:
+- weather: `curl -s 'wttr.in/Valparaiso+Indiana?format=3'` (or ?1 for
+  a day view; adjust the city if the user says otherwise)
+- calendar: `gcalcli agenda` / `gcalcli agenda tomorrow` (Google
+  Calendar; if it errors about auth, tell the user their calendar
+  isn't connected yet and offer to walk through it)
+- email: `himalaya envelope list -s 10` to list, `himalaya message
+  read <id>` to read (Gmail; same auth caveat). NEVER read a whole
+  inbox aloud; summarize senders and subjects, offer to read one.
+
+NEVER push to a git remote — not any branch, not any repo, no matter
+who asks or how clearly. The user pushes manually, always. If asked,
+say their repos only get pushed by hand.
+
 DESTRUCTIVE actions (deleting files or directories, overwriting,
 force-pushing, resetting, killing processes): NEVER on the first ask.
 Speech transcription garbles words; say exactly what you're about to destroy and
@@ -168,9 +183,15 @@ class Brain:
             system_prompt,
         ]
         if self.collaborator:
-            # the working collaborator: real tools, edits auto-accepted
+            # the working collaborator: real tools, edits auto-accepted.
+            # the user's global settings put curl/systemctl/kill on an
+            # 'ask' list, which outranks every allow rule and auto-denies
+            # headless — so permission questions route to our MCP policy
+            # tool (approve routine, deny destructive) instead
             args += ["--permission-mode", "acceptEdits"]
             allowed = "Read Glob Grep LS Bash WebSearch WebFetch Edit Write".split()
+            if self.mcp_config:
+                args += ["--permission-prompt-tool", "mcp__huan__approve"]
         else:
             # talker-only: bar the coding tools so a curious model can't
             # burn its turn budget probing the real filesystem
@@ -278,7 +299,11 @@ class Brain:
             if kind == "assistant":
                 for block in event.get("message", {}).get("content", []):
                     if block.get("type") == "tool_use":
-                        log.info("brain tool: %s", block.get("name"))
+                        log.info(
+                            "brain tool: %s %s",
+                            block.get("name"),
+                            json.dumps(block.get("input", {}))[:160],
+                        )
             if kind == "user":
                 for block in event.get("message", {}).get("content", []):
                     if isinstance(block, dict) and block.get("is_error"):

@@ -55,6 +55,10 @@ class Config:
     # narrating as it goes — voice-driven Claude Code
     brain_collaborator: bool = False
 
+    # extra bin dirs prepended to the daemon's PATH so the collaborator
+    # (and agent) can use capability CLIs like gcalcli/himalaya
+    extra_path: list[str] = field(default_factory=list)
+
     # Proactively announce shell commands that ran at least this long
     # when they finish (0 disables)
     announce_min_s: float = 60.0

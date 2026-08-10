@@ -1,4 +1,5 @@
 { lib
+, pkgs
 , ...
 }:
 let
@@ -71,6 +72,10 @@ in
           # the pivot: voice-driven Claude Code — the brain works directly
           model = "sonnet";
           collaborator = true;
+          tools = with pkgs; [
+            gcalcli # Google Calendar (one-time OAuth: gcalcli init)
+            himalaya # Gmail via IMAP OAuth2 (one-time setup)
+          ];
         };
         intent.llm = enabled;
         wakeWord = {
