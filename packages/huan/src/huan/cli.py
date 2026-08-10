@@ -32,6 +32,14 @@ def main() -> int:
 
     sub.add_parser("mcp", help="run the MCP server exposing desktop primitives")
 
+    shellev = sub.add_parser("shellev", help="report a shell command event (fish hook)")
+    shellev.add_argument("phase", choices=["start", "end"])
+    shellev.add_argument("id")
+    shellev.add_argument("exit")
+    shellev.add_argument("duration")
+    shellev.add_argument("cwd")
+    shellev.add_argument("cmd", nargs=argparse.REMAINDER)
+
     ctl_parser = sub.add_parser("ctl", help="send a command to the running daemon")
     ctl_parser.add_argument(
         "command",
@@ -44,6 +52,7 @@ def main() -> int:
             "toggle",
             "text",
             "say",
+            "context",
         ],
     )
     ctl_parser.add_argument("text", nargs="*", help="text for the text/say commands")
@@ -58,6 +67,28 @@ def main() -> int:
         from .mcp_server import main as mcp_main
 
         mcp_main()
+        return 0
+    if args.mode == "shellev":
+        data = {
+            "phase": args.phase,
+            "id": args.id,
+            "cwd": args.cwd,
+            "cmd": " ".join(args.cmd)[:300],
+        }
+        if args.phase == "end":
+            try:
+                data["exit"] = int(args.exit)
+                data["duration"] = float(args.duration)
+            except ValueError:
+                pass
+        try:
+            with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as sock:
+                sock.connect(str(Config().control_socket))
+                sock.sendall(
+                    (json.dumps({"cmd": "event", "data": data}) + "\n").encode()
+                )
+        except OSError:
+            pass  # daemon down: shell must never notice
         return 0
     return _ctl(args)
 

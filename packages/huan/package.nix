@@ -1,6 +1,7 @@
 { lib
 , python3Packages
 , piper-tts
+, playerctl
 , ctranslate2
 , withCuda ? false
 , ...
@@ -32,6 +33,7 @@ python3Packages.buildPythonApplication {
     fileset = lib.fileset.unions [
       ./pyproject.toml
       ./src
+      ./tests
     ];
   };
 
@@ -47,9 +49,16 @@ python3Packages.buildPythonApplication {
     python3Packages.wyoming
   ];
 
-  # piper is invoked by name at runtime for TTS synthesis
+  # piper (TTS synthesis) and playerctl (MPRIS now-playing) by name at runtime
   makeWrapperArgs = [
-    "--prefix PATH : ${lib.makeBinPath [ piper-tts ]}"
+    "--prefix PATH : ${lib.makeBinPath [ piper-tts playerctl ]}"
+  ];
+
+  # every build runs the full suite; a failing test is a failing build
+  nativeCheckInputs = [
+    python3Packages.pytestCheckHook
+    python3Packages.pytest-asyncio
+    python3Packages.hypothesis
   ];
 
   meta = {

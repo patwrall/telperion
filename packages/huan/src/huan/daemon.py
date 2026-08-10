@@ -6,7 +6,9 @@ import logging
 import time
 
 from . import agent as agent_mod
-from . import audio, hypr, intent, llm, tts, wake
+from . import audio
+from . import brain as brain_mod
+from . import collectors, hypr, intent, llm, store, tts, wake
 from .config import Config
 
 log = logging.getLogger("huan")
@@ -41,10 +43,25 @@ class Daemon:
         self.mic = None
         self.speaker = tts.Speaker(config)
         self._llm_http = None
-        self.agent = agent_mod.Agent(config) if config.agent_cmd else None
-        # rolling conversation memory: makes the fast tier reference what
-        # was just said instead of treating every wake as a first meeting
-        self.history: collections.deque[str] = collections.deque(maxlen=8)
+        self.store = store.Store()
+        self.world = collectors.WorldState(self.store)
+        self.world.on_command_end = self._on_command_end
+        self.agent = agent_mod.Agent(config, self.store) if config.agent_cmd else None
+        self.brain = (
+            brain_mod.Brain(
+                config.agent_cmd,
+                config.brain_model,
+                config.brain_max_turns,
+                store=self.store,
+            )
+            if config.agent_cmd and config.brain_model
+            else None
+        )
+        # rolling conversation memory, reloaded from disk so a restart is
+        # not amnesia; makes the fast tier reference what was just said
+        self.history: collections.deque[str] = collections.deque(
+            self.store.recent_exchanges(8), maxlen=8
+        )
         self.sleeping = False
         self._pipeline_lock = asyncio.Lock()
         self._ptt_stop: asyncio.Event | None = None
@@ -67,7 +84,11 @@ class Daemon:
         )
         log.info("control socket at %s", self.config.control_socket)
 
-        tasks = []
+        tasks = [asyncio.create_task(collectors.watch_hyprland(self.world))]
+        if self.brain is not None:
+            # pay the process cold-start at boot, not on the first question
+            tasks.append(asyncio.create_task(self.brain.start()))
+        tasks.append(asyncio.create_task(self.speaker.prime_fillers()))
         if self.config.wake_enabled:
             tasks.append(
                 asyncio.create_task(
@@ -188,11 +209,7 @@ class Daemon:
             # in the follow-up window, unmatched speech is probably not
             # aimed at us; complaining about it would be obnoxious
             if not quiet:
-                self._say_response(
-                    text,
-                    "nothing matched; no action taken",
-                    fallback="I didn't catch that",
-                )
+                self._say_chat(text)
             return "unknown"
 
         if parsed.action == "sleep":
@@ -203,9 +220,22 @@ class Daemon:
             await self._wake_models()
             self._say_response(text, "woke up; models reloaded", fallback=parsed.ack)
         elif parsed.action == "delegate":
+            if intent.is_status_question(text):
+                # answerable from live state; don't burn an agent run on it
+                self._say_chat(text)
+                return "status"
             return self._delegate(text, parsed.task or text, watch)
         elif parsed.action == "details":
             return await self._details(text)
+        elif parsed.action == "remember":
+            fact = (parsed.task or text).strip()
+            self._memory_append(fact)
+            self._say_response(
+                text,
+                f"noted to long-term memory: {fact}. Confirm briefly",
+                fallback="Noted.",
+            )
+            return "remember"
         elif parsed.action == "cancel":
             if self.agent is not None and self.agent.cancel():
                 self._say_response(
@@ -293,6 +323,7 @@ class Daemon:
             status.cancel()
 
         self.agent.last_task = task
+        self.store.set("agent_last_task", task)
         try:
             line = await llm.summarize(
                 self._ensure_http(), self.config.llama_url, task, report
@@ -300,7 +331,7 @@ class Daemon:
         except Exception as exc:
             log.warning("summarizer failed (%s); speaking first sentence", exc)
             line = report.split(". ")[0][:200]
-        self.history.append(f"huan (after working on '{task[:60]}'): {line}")
+        self._remember("huan", f"(after working on '{task[:60]}') {line}")
         log.info("agent summary: %r", line)
         await self.speaker.say(line)
 
@@ -322,10 +353,112 @@ class Daemon:
         except Exception as exc:
             log.warning("expand failed: %s", exc)
             line = self.agent.last_result[:400]
-        self.history.append(f"huan (details): {line[:120]}")
+        self._remember("huan", f"(details) {line[:120]}")
         log.info("details: %r", line)
         await self.speaker.say(line)
         return "details"
+
+    def _remember(self, role: str, text: str):
+        self.history.append(f"{role}: {text}")
+        self.store.add_exchange(role, text)
+
+    def _say_chat(self, said: str):
+        """Conversational turn: the brain (real model, own memory) when
+        available, 3B responder as fallback. Off the critical path."""
+        self._remember("user", said)
+
+        async def _chat():
+            if self.brain is not None:
+                loop = asyncio.get_running_loop()
+                filler = loop.call_later(1.3, self.speaker.play_filler)
+
+                def speak_sentence(sentence: str):
+                    filler.cancel()
+                    asyncio.create_task(self.speaker.say(sentence))
+
+                try:
+                    reply = await self.brain.ask(
+                        said, await self._world_context(), on_sentence=speak_sentence
+                    )
+                    self._remember("huan", reply)
+                    log.info("brain: %r", reply)
+                    return
+                except Exception as exc:
+                    log.warning("brain failed (%s); 3B fallback", exc)
+                finally:
+                    filler.cancel()
+            self._ensure_http()
+            try:
+                line = await llm.respond(
+                    self._llm_http,
+                    self.config.llama_url,
+                    said,
+                    "no command action taken; answer from the context state if "
+                    "it contains the answer, otherwise say you don't have that",
+                    await self._context_line(),
+                )
+            except Exception:
+                line = "I didn't catch that."
+            self._remember("huan", line)
+            log.info("respond: %r", line)
+            await self.speaker.say(line)
+
+        asyncio.create_task(_chat())
+
+    async def _world_context(self) -> str:
+        """Context for the brain: live state only — it keeps its own
+        conversation memory, so feeding history back would double it."""
+        parts = [
+            f"local time {datetime.datetime.now():%a %H:%M}",
+            self.world.describe(),
+        ]
+        playing = await collectors.now_playing()
+        if playing:
+            parts.append(f"playing: {playing}")
+        facts = self._memory_facts()
+        if facts:
+            parts.append(f"known facts about the user: {facts}")
+        return ", ".join(parts)
+
+    # -- long-term memory (user-editable markdown file) ----------------------
+
+    @property
+    def _memory_path(self):
+        return self.store.path.parent / "memory.md"
+
+    def _memory_append(self, fact: str):
+        with open(self._memory_path, "a") as f:
+            f.write(f"- {fact} ({datetime.date.today()})\n")
+        log.info("memory: %r", fact)
+
+    def _memory_facts(self, cap: int = 800) -> str:
+        try:
+            text = self._memory_path.read_text().strip()
+        except OSError:
+            return ""
+        facts = [
+            line.lstrip("- ").strip() for line in text.splitlines() if line.strip()
+        ]
+        return "; ".join(facts)[-cap:]
+
+    # -- proactive announcements ---------------------------------------------
+
+    def _on_command_end(self, entry: dict):
+        threshold = self.config.announce_min_s
+        if threshold <= 0 or entry["duration_s"] < threshold or self.sleeping:
+            return
+        status = (
+            "succeeded"
+            if entry.get("exit") == 0
+            else f"failed with exit {entry.get('exit')}"
+        )
+        self._say_response(
+            "(no user utterance: proactive announcement)",
+            f"SYSTEM STATE: the user's command `{entry['cmd'][:60]}` just "
+            f"{status} after {entry['duration_s']:.0f}s. Briefly announce this "
+            "unprompted, like a colleague calling it across the room",
+            fallback=f"Your command {status}.",
+        )
 
     def _ensure_http(self):
         import httpx
@@ -335,11 +468,7 @@ class Daemon:
         return self._llm_http
 
     async def _context_line(self) -> str:
-        title = await hypr.active_window_title()
-        parts = [
-            f"local time {datetime.datetime.now():%H:%M}",
-            f"focused window: {title or 'none'}",
-        ]
+        parts = [await self._world_context()]
         if self.history:
             recent = "; ".join(list(self.history)[-4:])
             parts.append(f"recent conversation: {recent}")
@@ -348,7 +477,7 @@ class Daemon:
     def _say_response(self, said: str, happened: str, fallback: str):
         """Speak an LLM-generated line off the critical path; the action has
         already been dispatched by the time this is even scheduled."""
-        self.history.append(f"user: {said}")
+        self._remember("user", said)
         if not self.config.llama_url:
             asyncio.create_task(self.speaker.say(fallback))
             return
@@ -366,7 +495,7 @@ class Daemon:
             except Exception as exc:
                 log.warning("responder failed (%s); using fallback line", exc)
                 line = fallback
-            self.history.append(f"huan: {line}")
+            self._remember("huan", line)
             log.info("respond: %r", line)
             await self.speaker.say(line)
 
@@ -439,6 +568,11 @@ class Daemon:
         if cmd == "say":
             await self.speaker.say(request.get("text", ""))
             return {"ok": True}
+        if cmd == "event":
+            self.world.shell_event(request.get("data", {}))
+            return {"ok": True}
+        if cmd == "context":
+            return {"ok": True, "context": await self._context_line()}
         return {"ok": False, "error": f"unknown command {cmd!r}"}
 
 

@@ -168,6 +168,10 @@ async def capture_utterance(
 
     async for chunk in mic.chunks():
         total_ms += CHUNK_MS
+        # cap first: a stuck suppress() must never spin this loop forever
+        if total_ms >= max_s * 1000:
+            log.warning("utterance capture hit %.0fs cap", max_s)
+            break
         if suppress is not None and suppress():
             continue
         buf.append(chunk)
@@ -188,9 +192,6 @@ async def capture_utterance(
                 and total_ms >= onset_timeout_ms
             ):
                 return np.zeros(0, dtype=np.float32)
-        if total_ms >= max_s * 1000:
-            log.warning("utterance capture hit %.0fs cap", max_s)
-            break
 
     samples = np.frombuffer(b"".join(buf), dtype=np.int16)
     return samples.astype(np.float32) / 32768.0

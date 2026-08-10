@@ -25,6 +25,7 @@ SCHEMA = {
                 "delegate",
                 "details",
                 "cancel",
+                "remember",
                 "none",
             ],
         },
@@ -42,16 +43,25 @@ Map the user's transcript to exactly one action:
 - "close-window": close the currently focused window.
 - "sleep": the user tells the assistant to sleep / stand down.
 - "wake": the user tells the assistant to wake up.
-- "delegate": anything needing real thought or work: questions about
-  code/files/systems, "why/how/explain" questions, research, summaries,
-  multi-step tasks, anything referencing what's on screen. Set "task" to
-  a cleaned-up restatement of what the user wants.
+- "delegate": work that requires reading files, running commands, or
+  research: "why/how/explain" questions about code or systems,
+  summaries, multi-step tasks. NOT status questions about what is
+  currently running or playing (those are "none"). Set "task" to a
+  cleaned-up restatement of what the user wants.
 - "details": the user asks to hear more about the previous answer
   ("tell me more", "go deeper", "what else").
 - "cancel": the user wants to stop/drop the current background task
   ("never mind", "stop that", "forget it").
-- "none": greetings, chit-chat, trivia the context can answer (time),
-  or garbage transcripts.
+- "remember": the user asks to remember/note a fact or preference
+  ("remember that I ...", "note that ..."). Set "task" to the fact,
+  phrased in third person about the user.
+- "none": greetings, chit-chat, garbage transcripts, opinions and
+  reflections ("what do you think...", "how do you feel about..."),
+  questions addressed to the assistant personally, and STATUS
+  questions the live desktop context already answers: current/recent
+  shell commands and builds, what's running, what's playing, what
+  window/workspace is active, the time. The voice layer holds a real
+  conversation and sees that state; do NOT delegate these.
 Transcripts come from speech recognition and may contain small errors;
 infer the obvious meaning ("workspace to" means workspace 2).
 Respond with JSON only.
@@ -63,7 +73,12 @@ Examples:
 "what's this error on my screen" -> {"action":"delegate","workspace":null,"task":"explain the error currently visible on screen"}
 "tell me more" -> {"action":"details","workspace":null,"task":null}
 "never mind, stop" -> {"action":"cancel","workspace":null,"task":null}
+"remember that I keep my notes in obsidian" -> {"action":"remember","workspace":null,"task":"keeps notes in Obsidian"}
 "what time is it" -> {"action":"none","workspace":null,"task":null}
+"how is my build doing" -> {"action":"none","workspace":null,"task":null}
+"what am I working on right now" -> {"action":"none","workspace":null,"task":null}
+"what do you know about me" -> {"action":"none","workspace":null,"task":null}
+"what's your honest opinion on this" -> {"action":"none","workspace":null,"task":null}
 """
 
 _ACKS = {
@@ -140,6 +155,8 @@ async def classify(http, url: str, text: str, timeout_s: float = 3.0) -> Intent 
         return None
     if action == "delegate":
         return Intent("delegate", task=decision.get("task") or None)
+    if action == "remember":
+        return Intent("remember", task=decision.get("task") or None)
     if action in ("details", "cancel"):
         return Intent(action)
     if action in _ACKS:

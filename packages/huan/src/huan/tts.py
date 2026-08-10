@@ -251,6 +251,59 @@ class Speaker:
         else:
             await self._say_piper(text)
 
+    # -- thinking fillers ----------------------------------------------------
+    # short pre-synthesized clips played instantly while the brain thinks;
+    # silence is what makes a 3s reply feel slow
+
+    FILLER_PHRASES = ["Hmm.", "Hm, let me look.", "One sec.", "Let me think."]
+
+    def _filler_dir(self):
+        import pathlib
+
+        base = pathlib.Path(
+            os.environ.get("XDG_DATA_HOME", "~/.local/share")
+        ).expanduser()
+        return base / "huan" / "fillers"
+
+    async def prime_fillers(self):
+        """Synthesize the filler clips once and cache them as raw PCM."""
+        if not self.eleven_enabled:
+            return
+        import httpx
+
+        directory = self._filler_dir()
+        directory.mkdir(parents=True, exist_ok=True)
+        for i, phrase in enumerate(self.FILLER_PHRASES):
+            target = directory / f"filler_{i}.pcm"
+            if target.exists():
+                continue
+            try:
+                async with httpx.AsyncClient(timeout=15.0) as http:
+                    response = await http.post(
+                        f"https://api.elevenlabs.io/v1/text-to-speech/{self.eleven_voice_id}",
+                        params={"output_format": f"pcm_{ELEVEN_RATE}"},
+                        headers={"xi-api-key": self._api_key},
+                        json={"text": phrase, "model_id": self.eleven_model_id},
+                    )
+                    response.raise_for_status()
+                target.write_bytes(response.content)
+                log.info("cached filler %r", phrase)
+            except Exception as exc:
+                log.warning("filler synthesis failed (%s)", exc)
+                return
+
+    def play_filler(self):
+        """Instantly play a cached thinking sound; no-op if already talking."""
+        if self.speaking:
+            return
+        import random
+
+        clips = sorted(self._filler_dir().glob("filler_*.pcm"))
+        if not clips:
+            return
+        self._ensure_output_stream()
+        self._enqueue(random.choice(clips).read_bytes())
+
     async def _say_with_fallback(self, text: str):
         try:
             await self._say_eleven_ws(text)

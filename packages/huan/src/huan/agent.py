@@ -35,7 +35,7 @@ class AgentError(Exception):
 
 
 class Agent:
-    def __init__(self, config):
+    def __init__(self, config, store):
         self.cmd = config.agent_cmd
         self.model = config.agent_model
         self.timeout_s = config.agent_timeout_s
@@ -43,9 +43,12 @@ class Agent:
         self.mcp_config = config.agent_mcp_config
         self.allowed_tools = config.agent_allowed_tools
         self.permission_mode = config.agent_permission_mode
-        self.session_id: str | None = None
-        self.last_task = ""
-        self.last_result = ""
+        self._store = store
+        # session id persists across daemon restarts: the reasoning tier
+        # keeps its conversation context through reboots
+        self.session_id: str | None = store.get("agent_session_id")
+        self.last_task = store.get("agent_last_task", "") or ""
+        self.last_result = store.get("agent_last_result", "") or ""
         self._proc: asyncio.subprocess.Process | None = None
 
     @property
@@ -137,11 +140,13 @@ class Agent:
             payload = results[-1]
 
         self.session_id = payload.get("session_id") or self.session_id
+        self._store.set("agent_session_id", self.session_id)
         result = (payload.get("result") or "").strip()
         if payload.get("is_error") or not result:
             raise AgentError(result or "agent returned an error with no message")
 
         self.last_result = result
+        self._store.set("agent_last_result", result)
         log.info(
             "agent finished: %d chars, cost $%.4f",
             len(result),

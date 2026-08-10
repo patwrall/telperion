@@ -47,6 +47,15 @@ class Config:
     # fast-path always runs first)
     llama_url: str = ""
 
+    # Conversational brain: persistent Claude process (empty model disables;
+    # uses agent_cmd as the binary)
+    brain_model: str = "haiku"
+    brain_max_turns: int = 40
+
+    # Proactively announce shell commands that ran at least this long
+    # when they finish (0 disables)
+    announce_min_s: float = 60.0
+
     # Reasoning tier: the Claude Code CLI run headless (empty cmd disables)
     agent_cmd: str = ""
     agent_model: str = "sonnet"

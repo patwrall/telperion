@@ -21,6 +21,8 @@ let
     llama_url =
       lib.optionalString cfg.intent.llm.enable "http://127.0.0.1:${toString cfg.intent.llm.port}";
     agent_cmd = lib.optionalString cfg.agent.enable "claude";
+    brain_model = lib.optionalString (cfg.agent.enable && cfg.brain.enable) cfg.brain.model;
+    announce_min_s = cfg.announceMinSeconds;
     agent_model = cfg.agent.model;
     agent_timeout_s = cfg.agent.timeoutSeconds;
     agent_cwd = cfg.agent.cwd;
@@ -175,6 +177,24 @@ in
       };
     };
 
+    brain = {
+      enable = mkOption {
+        type = types.bool;
+        default = true;
+        description = ''
+          Conversational brain: a persistent Claude process (haiku-class)
+          holding one continuous conversation, fed the live world-state.
+          Requires agent.enable for the claude binary.
+        '';
+      };
+
+      model = mkOption {
+        type = types.str;
+        default = "haiku";
+        description = "Model for the conversational brain.";
+      };
+    };
+
     agent = {
       enable = mkEnableOption "the reasoning tier (Claude Code CLI, headless)";
 
@@ -315,6 +335,25 @@ in
       };
     };
 
+    announceMinSeconds = mkOption {
+      type = types.ints.unsigned;
+      default = 60;
+      description = ''
+        Proactively announce shell commands that ran at least this long
+        when they finish. 0 disables announcements.
+      '';
+    };
+
+    shellHook = mkOption {
+      type = types.bool;
+      default = true;
+      description = ''
+        Report shell commands (start/end, cwd, exit, duration) to the
+        daemon from fish, giving huan live awareness of builds and
+        long-running commands. Fire-and-forget; the shell never blocks.
+      '';
+    };
+
     sleepToggleBind = mkOption {
       type = types.nullOr types.str;
       default = "SUPER_SHIFT, V";
@@ -393,6 +432,22 @@ in
         Install.WantedBy = [ "graphical-session.target" ];
       };
     };
+
+    programs.fish.interactiveShellInit = lib.mkIf cfg.shellHook ''
+      function __huan_preexec --on-event fish_preexec
+        set -g __huan_id (random)(random)
+        set -g __huan_t0 (date +%s.%N)
+        ${lib.getExe cfg.package} shellev start $__huan_id - - $PWD -- $argv[1] &>/dev/null &
+        disown 2>/dev/null
+      end
+      function __huan_postexec --on-event fish_postexec
+        set -l st $status
+        set -q __huan_t0; or return
+        set -l dur (math (date +%s.%N) - $__huan_t0)
+        ${lib.getExe cfg.package} shellev end $__huan_id $st $dur $PWD -- $argv[1] &>/dev/null &
+        disown 2>/dev/null
+      end
+    '';
 
     wayland.windowManager.hyprland.extraConfig = lib.concatStringsSep "\n" (
       lib.optionals cfg.ptt.enable [
