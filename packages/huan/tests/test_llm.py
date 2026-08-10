@@ -24,21 +24,17 @@ class TestClassify:
         http = fake_http([chat_reply(decision("workspace", None))])
         assert await llm.classify(http, "http://x", "x") is None
 
-    async def test_delegate_carries_task(self, fake_http, chat_reply):
-        http = fake_http([chat_reply(decision("delegate", task="dig into the build"))])
-        intent = await llm.classify(http, "http://x", "why is it broken")
-        assert intent.action == "delegate" and intent.task == "dig into the build"
-
-    async def test_remember_carries_fact(self, fake_http, chat_reply):
-        http = fake_http([chat_reply(decision("remember", task="likes tea"))])
-        intent = await llm.classify(http, "http://x", "remember I like tea")
-        assert intent.action == "remember" and intent.task == "likes tea"
-
-    @pytest.mark.parametrize("action", ["details", "cancel"])
-    async def test_bare_actions(self, fake_http, chat_reply, action):
+    @pytest.mark.parametrize("action", ["delegate", "details", "remember"])
+    async def test_dieted_actions_fall_through(self, fake_http, chat_reply, action):
+        # v7 router diet: even if a stale model emits a removed class,
+        # the parser treats it as none (brain fallthrough)
         http = fake_http([chat_reply(decision(action))])
+        assert await llm.classify(http, "http://x", "x") is None
+
+    async def test_bare_cancel(self, fake_http, chat_reply):
+        http = fake_http([chat_reply(decision("cancel"))])
         intent = await llm.classify(http, "http://x", "x")
-        assert intent.action == action
+        assert intent.action == "cancel"
 
     @pytest.mark.parametrize(
         ("action", "text"),
@@ -129,10 +125,7 @@ class TestSchema:
             "close-window",
             "sleep",
             "wake",
-            "delegate",
-            "details",
             "cancel",
-            "remember",
             "none",
         }
         assert set(llm.SCHEMA["properties"]["action"]["enum"]) == parsed_actions
@@ -147,13 +140,6 @@ class TestSpeechShaping:
         http = fake_http([chat_reply('"On three."')])
         line = await llm.respond(http, "http://x", "said", "did", "ctx")
         assert line == "On three."
-
-    async def test_summarize_truncates_huge_reports(self, fake_http, chat_reply):
-        http = fake_http([chat_reply("Short summary.")])
-        await llm.summarize(http, "http://x", "task", "x" * 50_000)
-        _, kwargs = http.requests[0]
-        sent = kwargs["json"]["messages"][1]["content"]
-        assert len(sent) < 10_000
 
 
 @given(

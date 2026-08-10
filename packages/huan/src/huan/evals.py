@@ -44,8 +44,6 @@ async def eval_routing(config: Config) -> dict:
                 continue
         # mirror the daemon's status guard
         action = got.action if got is not None else "none"
-        if action == "delegate" and intent.is_status_question(case["text"]):
-            action = "none"
         ok = action == case["expect"] and (
             case.get("arg") is None or (got is not None and got.arg == case["arg"])
         )

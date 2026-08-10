@@ -43,10 +43,7 @@ class TestCorpusIntegrity:
             "media",
             "sleep",
             "wake",
-            "delegate",
-            "details",
             "cancel",
-            "remember",
             "none",
         }
         for case in ROUTING_CASES:

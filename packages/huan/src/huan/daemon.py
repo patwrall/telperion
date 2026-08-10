@@ -268,25 +268,6 @@ class Daemon:
                 f"media {parsed.task}: {'done' if ok else 'no player responded'}",
                 fallback="Done." if ok else "No player's listening.",
             )
-        elif parsed.action == "delegate":
-            if intent.is_status_question(text):
-                # answerable from live state; don't burn an agent run on it
-                self._say_chat(text)
-                return "status"
-            # the brain decides: a concrete task gets delegate_task, a vague
-            # one gets a clarifying question first ('write a python script'
-            # burned an agent run just to ask what script)
-            self._say_chat(text)
-            return "delegate-via-brain"
-        elif parsed.action == "details":
-            # agent reports live in the brain's conversation since the relay
-            # change; it expands them with full context
-            self._say_chat(text)
-            return "details-via-brain"
-        elif parsed.action == "remember":
-            # the brain persists via remember_fact and phrases it in context
-            self._say_chat(text)
-            return "remember-via-brain"
         elif parsed.action == "cancel":
             if self.agent is not None and self.agent.cancel():
                 self._say_response(
@@ -299,10 +280,18 @@ class Daemon:
                     fallback="Nothing running.",
                 )
             return "cancel"
+        elif parsed.action == "workspace":
+            await hypr.run_intent(parsed.action, parsed.arg)
+            # deterministic ack: the 3B responder invents numbers
+            # ('Switched to workspace 4' after a switch to 2)
+            import random
+
+            template = random.choice(("On {n}.", "Over to {n}.", "There, {n}."))
+            self._remember("user", text)
+            asyncio.create_task(self.speaker.say(template.format(n=parsed.arg)))
         else:
             await hypr.run_intent(parsed.action, parsed.arg)
-            arg = f" {parsed.arg}" if parsed.arg is not None else ""
-            self._say_response(text, f"done: {parsed.action}{arg}", fallback=parsed.ack)
+            self._say_response(text, f"done: {parsed.action}", fallback=parsed.ack)
         watch.lap("act")
 
         arg = f"({parsed.arg})" if parsed.arg is not None else ""
@@ -402,29 +391,6 @@ class Daemon:
         self._remember("huan", f"(after working on '{task[:60]}') {line}")
         log.info("agent summary (report head): %r", line)
         await self.speaker.say(line)
-
-    async def _details(self, said: str) -> str:
-        if self.agent is None or not self.agent.last_result:
-            self._say_response(
-                said,
-                "there is no previous answer to expand on",
-                fallback="Nothing to expand yet.",
-            )
-            return "details-empty"
-        try:
-            line = await llm.expand(
-                self._ensure_http(),
-                self.config.llama_url,
-                self.agent.last_task,
-                self.agent.last_result,
-            )
-        except Exception as exc:
-            log.warning("expand failed: %s", exc)
-            line = self.agent.last_result[:400]
-        self._remember("huan", f"(details) {line[:120]}")
-        log.info("details: %r", line)
-        await self.speaker.say(line)
-        return "details"
 
     def _remember(self, role: str, text: str):
         self.history.append(f"{role}: {text}")

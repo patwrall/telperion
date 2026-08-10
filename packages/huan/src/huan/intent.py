@@ -115,16 +115,6 @@ def looks_unfinished(text: str) -> bool:
 
 # status questions are answerable from live local state; a code-level
 # guard because the 3B router keeps delegating them despite examples
-_STATUS_RE = re.compile(
-    r"\bhow(?:'s| is| about)\b.*\b(build|compile|command|task|job|going|now)\b"
-    r"|\bwhat(?:'s| am i| are we)\b.*\b(running|working on|playing|doing)\b"
-)
-
-
-def is_status_question(text: str) -> bool:
-    return bool(_STATUS_RE.search(text.lower()))
-
-
 def classify(text: str) -> Intent | None:
     t = text.lower().strip().rstrip(".!?")
     if not t:

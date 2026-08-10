@@ -18,22 +18,23 @@ SCHEMA = {
     "properties": {
         "action": {
             "type": "string",
+            # the v7 router diet: pure desk reflexes only. delegate/
+            # details/remember used to be classes here; every class the
+            # 3B can output is a class it can misroute into ('dispose of
+            # <project>' -> close-window), and the collaborator brain
+            # handles all of that better as the fallthrough anyway.
             "enum": [
                 "workspace",
                 "close-window",
                 "sleep",
                 "wake",
-                "delegate",
-                "details",
                 "cancel",
-                "remember",
                 "none",
             ],
         },
         "workspace": {"type": ["integer", "null"]},
-        "task": {"type": ["string", "null"]},
     },
-    "required": ["action", "workspace", "task"],
+    "required": ["action", "workspace"],
     "additionalProperties": False,
 }
 
@@ -44,44 +45,28 @@ Map the user's transcript to exactly one action:
 - "close-window": close the currently focused window.
 - "sleep": the user tells the assistant to sleep / stand down.
 - "wake": the user tells the assistant to wake up.
-- "delegate": work that requires reading files, running commands, or
-  research: "why/how/explain" questions about code or systems,
-  summaries, multi-step tasks. NOT status questions about what is
-  currently running or playing (those are "none"). Set "task" to a
-  cleaned-up restatement of what the user wants.
-- "details": the user asks to hear more about the previous answer
-  ("tell me more", "go deeper", "what else").
 - "cancel": ONLY stopping the current background task ("never mind,
   stop", "drop the task", "forget it"). NOT "undo" — undoing or
   reversing a desktop action is "none" (handled conversationally).
-- "remember": the user asks to remember/note a fact or preference
-  ("remember that I ...", "note that ..."). Set "task" to the fact,
-  phrased in third person about the user.
-- "none": greetings, chit-chat, garbage transcripts, opinions and
-  reflections ("what do you think...", "how do you feel about..."),
-  questions addressed to the assistant personally, and STATUS
-  questions the live desktop context already answers: current/recent
-  shell commands and builds, what's running, what's playing, what
-  window/workspace is active, the time. The voice layer holds a real
-  conversation and sees that state; do NOT delegate these.
+- "none": EVERYTHING else. Questions, requests for work or research,
+  memory requests, follow-ups, greetings, chit-chat, opinions, status
+  questions, garbage transcripts. The voice layer holds a real
+  conversation with full tools and live desktop state; when in any
+  doubt, answer "none".
 Transcripts come from speech recognition and may contain small errors;
 infer the obvious meaning ("workspace to" means workspace 2).
 Respond with JSON only.
 
 Examples:
-"switch to workspace three" -> {"action":"workspace","workspace":3,"task":null}
-"get rid of this window" -> {"action":"close-window","workspace":null,"task":null}
-"why is my build failing" -> {"action":"delegate","workspace":null,"task":"investigate why the user's current build is failing"}
-"what's this error on my screen" -> {"action":"delegate","workspace":null,"task":"explain the error currently visible on screen"}
-"tell me more" -> {"action":"details","workspace":null,"task":null}
-"never mind, stop" -> {"action":"cancel","workspace":null,"task":null}
-"remember that I keep my notes in obsidian" -> {"action":"remember","workspace":null,"task":"keeps notes in Obsidian"}
-"what time is it" -> {"action":"none","workspace":null,"task":null}
-"how is my build doing" -> {"action":"none","workspace":null,"task":null}
-"what am I working on right now" -> {"action":"none","workspace":null,"task":null}
-"what do you know about me" -> {"action":"none","workspace":null,"task":null}
-"what's your honest opinion on this" -> {"action":"none","workspace":null,"task":null}
-"okay undo that" -> {"action":"none","workspace":null,"task":null}
+"switch to workspace three" -> {"action":"workspace","workspace":3}
+"get rid of this window" -> {"action":"close-window","workspace":null}
+"never mind, stop" -> {"action":"cancel","workspace":null}
+"why is my build failing" -> {"action":"none","workspace":null}
+"tell me more" -> {"action":"none","workspace":null}
+"remember that I use neovim" -> {"action":"none","workspace":null}
+"what time is it" -> {"action":"none","workspace":null}
+"dispose of that old project folder" -> {"action":"none","workspace":null}
+"okay undo that" -> {"action":"none","workspace":null}
 """
 
 _ACKS = {
@@ -156,10 +141,6 @@ async def classify(http, url: str, text: str, timeout_s: float = 3.0) -> Intent 
         if isinstance(n, int) and 1 <= n <= 10:
             return Intent("workspace", n, f"workspace {n}")
         return None
-    if action == "delegate":
-        return Intent("delegate", task=decision.get("task") or None)
-    if action == "remember":
-        return Intent("remember", task=decision.get("task") or None)
     # deterministic guards over a small model's judgment (eval-caught):
     # "undo" is a conversational reversal, not a task cancel; sleep/wake
     # require the actual words ("good morning" is not a wake command)
@@ -176,59 +157,11 @@ async def classify(http, url: str, text: str, timeout_s: float = 3.0) -> Intent 
         r"\b(window|this|it|that|app|tab|screen)\b", lowered
     ):
         return None
-    if action in ("details", "cancel"):
+    if action == "cancel":
         return Intent(action)
     if action in _ACKS:
         return Intent(action, ack=_ACKS[action])
     return None
-
-
-SUMMARIZE_PROMPT = """\
-You are huan, a voice desktop assistant (dry wit, quietly loyal, never
-robotic). Your reasoning tier just finished a task; the user will HEAR
-what you write, so make it spoken language: 1-2 conversational
-sentences, lead with the answer, first person, no markdown, no lists,
-no file paths unless essential. Time has passed since the user asked,
-so open with a 2-4 word callback naming the actual topic of THIS task
-(never a generic phrase) before the answer. If the report is bad news, deliver it straight. End
-cleanly; the user can always ask for more detail.
-"""
-
-EXPAND_PROMPT = """\
-You are huan, a voice desktop assistant. The user asked to hear more
-about the reasoning tier's last report. Retell its substance in 3-6
-conversational spoken sentences: concrete facts, plain prose, no
-markdown, no lists. Don't pad; if there is little more to add, say so.
-"""
-
-
-async def summarize(http, url: str, task: str, report: str) -> str:
-    return await _speak_from(http, url, SUMMARIZE_PROMPT, task, report, max_tokens=90)
-
-
-async def expand(http, url: str, task: str, report: str) -> str:
-    return await _speak_from(http, url, EXPAND_PROMPT, task, report, max_tokens=220)
-
-
-async def _speak_from(http, url, system, task, report, max_tokens):
-    response = await http.post(
-        f"{url}/v1/chat/completions",
-        json={
-            "messages": [
-                {"role": "system", "content": system},
-                {
-                    "role": "user",
-                    "content": f"task: {task}\nreport from reasoning tier:\n{report[:6000]}",
-                },
-            ],
-            "temperature": 0.6,
-            "max_tokens": max_tokens,
-            "cache_prompt": True,
-        },
-        timeout=20.0,
-    )
-    response.raise_for_status()
-    return response.json()["choices"][0]["message"]["content"].strip().strip('"')
 
 
 async def _request(http, url: str, text: str, timeout_s: float):

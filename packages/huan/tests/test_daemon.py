@@ -49,10 +49,19 @@ def dispatched(monkeypatch):
 class TestActRouting:
     async def test_regex_workspace_dispatches(self, make_daemon, dispatched):
         d = make_daemon()
+        spoken = []
+
+        async def fake_say(text):
+            spoken.append(text)
+
+        d.speaker.say = fake_say
         result = await d._act("switch to workspace 3", Stopwatch())
+        await asyncio.sleep(0)  # let the ack task run
         assert dispatched == [("workspace", 3)]
         assert result == "workspace(3)"
-        assert d.spoken_responses  # a confirmation line was generated
+        # deterministic ack carries the REAL number (the 3B responder
+        # once said 'workspace 4' after a switch to 2)
+        assert spoken and "3" in spoken[0]
 
     async def test_close_window(self, make_daemon, dispatched):
         d = make_daemon()
@@ -87,32 +96,6 @@ class TestActRouting:
         assert d.sleeping and not d.stt.loaded
         assert said  # canned ack, since the responder LLM is going down
 
-    @pytest.mark.parametrize(
-        ("action", "expected"),
-        [
-            ("remember", "remember-via-brain"),
-            ("delegate", "delegate-via-brain"),
-            ("details", "details-via-brain"),
-        ],
-    )
-    async def test_brain_owned_actions_route_to_chat(
-        self, make_daemon, monkeypatch, action, expected
-    ):
-        # v6: the brain clarifies-or-acts for these; the daemon no longer
-        # short-circuits them (vague delegations burned agent runs)
-        d = make_daemon(agent_cmd="claude")
-        from huan import llm
-        from huan.intent import Intent
-
-        async def classify(http, url, text, timeout_s=3.0):
-            return Intent(action, task="something")
-
-        monkeypatch.setattr(llm, "classify", classify)
-        d.config.llama_url = "http://x"
-        result = await d._act("do a thing for me", Stopwatch())
-        assert result == expected
-        assert d.chats == ["do a thing for me"]
-
     async def test_cancel_without_agent(self, make_daemon):
         d = make_daemon()
         result = await d._act("never mind, stop", Stopwatch())
@@ -138,20 +121,6 @@ class TestDelegateGating:
         result = d._delegate("another task", "another task", Stopwatch())
         assert result == "agent-busy"
         assert "still running" in d.spoken_responses[0]
-
-    async def test_status_question_never_delegates(self, make_daemon, monkeypatch):
-        d = make_daemon(agent_cmd="claude")
-        from huan import llm
-        from huan.intent import Intent
-
-        async def classify_delegate(http, url, text, timeout_s=3.0):
-            return Intent("delegate", task="check the build")
-
-        monkeypatch.setattr(llm, "classify", classify_delegate)
-        d.config.llama_url = "http://x"
-        result = await d._act("how is my build doing", Stopwatch())
-        assert result == "status"
-        assert d.chats == ["how is my build doing"]
 
 
 class TestMemoryHelpers:

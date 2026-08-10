@@ -1,5 +1,5 @@
 import pytest
-from huan.intent import Intent, classify, is_status_question
+from huan.intent import Intent, classify
 from hypothesis import given
 from hypothesis import strategies as st
 
@@ -142,33 +142,6 @@ class TestUnfinishedDetector:
         assert not looks_unfinished(text)
 
 
-class TestStatusDetector:
-    @pytest.mark.parametrize(
-        "text",
-        [
-            "how is my build doing",
-            "how's the build going",
-            "how about now",
-            "what am I working on right now",
-            "what's playing",
-            "what are we doing",
-        ],
-    )
-    def test_status_questions(self, text):
-        assert is_status_question(text)
-
-    @pytest.mark.parametrize(
-        "text",
-        [
-            "switch to workspace two",
-            "explain this rust error",
-            "remember that I like tea",
-        ],
-    )
-    def test_non_status(self, text):
-        assert not is_status_question(text)
-
-
 @given(st.text(max_size=200))
 def test_classify_never_crashes_and_stays_in_range(text):
     intent = classify(text)
@@ -176,8 +149,3 @@ def test_classify_never_crashes_and_stays_in_range(text):
         assert isinstance(intent, Intent)
         if intent.action == "workspace":
             assert 1 <= intent.arg <= 10
-
-
-@given(st.text(max_size=200))
-def test_status_detector_never_crashes(text):
-    is_status_question(text)
