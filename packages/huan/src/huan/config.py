@@ -47,6 +47,15 @@ class Config:
     # fast-path always runs first)
     llama_url: str = ""
 
+    # Reasoning tier: the Claude Code CLI run headless (empty cmd disables)
+    agent_cmd: str = ""
+    agent_model: str = "sonnet"
+    agent_timeout_s: float = 300.0
+    agent_cwd: str = "~"
+    agent_mcp_config: str = ""
+    agent_allowed_tools: list[str] = field(default_factory=list)
+    agent_permission_mode: str = "acceptEdits"
+
     @property
     def control_socket(self) -> Path:
         return _runtime_dir() / "huan.sock"

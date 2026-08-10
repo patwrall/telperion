@@ -40,6 +40,7 @@ python3Packages.buildPythonApplication {
   dependencies = [
     faster-whisper
     python3Packages.httpx
+    python3Packages.mcp
     python3Packages.numpy
     python3Packages.sounddevice
     python3Packages.websockets

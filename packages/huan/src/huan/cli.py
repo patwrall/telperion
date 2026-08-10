@@ -30,6 +30,8 @@ def main() -> int:
     daemon_parser = sub.add_parser("daemon", help="run the voice agent daemon")
     daemon_parser.add_argument("--config", default=None, help="path to config JSON")
 
+    sub.add_parser("mcp", help="run the MCP server exposing desktop primitives")
+
     ctl_parser = sub.add_parser("ctl", help="send a command to the running daemon")
     ctl_parser.add_argument(
         "command",
@@ -51,6 +53,11 @@ def main() -> int:
         from .daemon import run
 
         run(args.config)
+        return 0
+    if args.mode == "mcp":
+        from .mcp_server import main as mcp_main
+
+        mcp_main()
         return 0
     return _ctl(args)
 

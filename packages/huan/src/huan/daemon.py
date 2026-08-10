@@ -1,8 +1,11 @@
 import asyncio
+import collections
+import datetime
 import json
 import logging
 import time
 
+from . import agent as agent_mod
 from . import audio, hypr, intent, llm, tts, wake
 from .config import Config
 
@@ -38,6 +41,10 @@ class Daemon:
         self.mic = None
         self.speaker = tts.Speaker(config)
         self._llm_http = None
+        self.agent = agent_mod.Agent(config) if config.agent_cmd else None
+        # rolling conversation memory: makes the fast tier reference what
+        # was just said instead of treating every wake as a first meeting
+        self.history: collections.deque[str] = collections.deque(maxlen=8)
         self.sleeping = False
         self._pipeline_lock = asyncio.Lock()
         self._ptt_stop: asyncio.Event | None = None
@@ -195,6 +202,22 @@ class Daemon:
         elif parsed.action == "wake":
             await self._wake_models()
             self._say_response(text, "woke up; models reloaded", fallback=parsed.ack)
+        elif parsed.action == "delegate":
+            return self._delegate(text, parsed.task or text, watch)
+        elif parsed.action == "details":
+            return await self._details(text)
+        elif parsed.action == "cancel":
+            if self.agent is not None and self.agent.cancel():
+                self._say_response(
+                    text, "background task cancelled", fallback="Dropped it."
+                )
+            else:
+                self._say_response(
+                    text,
+                    "there was nothing running to cancel",
+                    fallback="Nothing running.",
+                )
+            return "cancel"
         else:
             await hypr.run_intent(parsed.action, parsed.arg)
             arg = f" {parsed.arg}" if parsed.arg is not None else ""
@@ -204,29 +227,146 @@ class Daemon:
         arg = f"({parsed.arg})" if parsed.arg is not None else ""
         return f"{parsed.action}{arg}"
 
+    # -- reasoning tier ------------------------------------------------------
+
+    def _delegate(self, said: str, task: str, watch) -> str:
+        if self.agent is None:
+            self._say_response(
+                said,
+                "no reasoning tier is configured",
+                fallback="I can't think that hard yet.",
+            )
+            return "unknown"
+        if self.agent.busy:
+            self._say_response(
+                said,
+                "SYSTEM STATE: a background task for the user's earlier question "
+                "is still running. Say ONLY a short plain line that you're still "
+                "on it and the answer is coming",
+                fallback="Still on it.",
+            )
+            return "agent-busy"
+        self._say_response(
+            said,
+            f"you just started working on: {task}. Say a short natural on-it "
+            "line naming the topic in a few words. Do NOT attempt to answer yet",
+            fallback="On it.",
+        )
+        asyncio.create_task(self._run_agent(said, task))
+        watch.lap("act")
+        return f"delegate({task[:60]})"
+
+    async def _run_agent(self, said: str, task: str):
+        agent_task = asyncio.create_task(
+            self.agent.run(task, await self._context_line())
+        )
+
+        async def status_line():
+            await asyncio.sleep(30)
+            if not agent_task.done():
+                self._say_response(
+                    said, "still working on it, going deep", fallback="Still digging."
+                )
+
+        status = asyncio.create_task(status_line())
+        try:
+            report = await agent_task
+        except agent_mod.AgentError as exc:
+            if str(exc) == "cancelled":
+                return  # the cancel handler already spoke
+            log.warning("agent task failed: %s", exc)
+            self._say_response(
+                said,
+                f"the task failed: {str(exc)[:200]}",
+                fallback="That one fell apart on me.",
+            )
+            return
+        except Exception:
+            log.exception("agent task crashed")
+            self._say_response(
+                said,
+                "the reasoning tier crashed",
+                fallback="Something broke back there.",
+            )
+            return
+        finally:
+            status.cancel()
+
+        self.agent.last_task = task
+        try:
+            line = await llm.summarize(
+                self._ensure_http(), self.config.llama_url, task, report
+            )
+        except Exception as exc:
+            log.warning("summarizer failed (%s); speaking first sentence", exc)
+            line = report.split(". ")[0][:200]
+        self.history.append(f"huan (after working on '{task[:60]}'): {line}")
+        log.info("agent summary: %r", line)
+        await self.speaker.say(line)
+
+    async def _details(self, said: str) -> str:
+        if self.agent is None or not self.agent.last_result:
+            self._say_response(
+                said,
+                "there is no previous answer to expand on",
+                fallback="Nothing to expand yet.",
+            )
+            return "details-empty"
+        try:
+            line = await llm.expand(
+                self._ensure_http(),
+                self.config.llama_url,
+                self.agent.last_task,
+                self.agent.last_result,
+            )
+        except Exception as exc:
+            log.warning("expand failed: %s", exc)
+            line = self.agent.last_result[:400]
+        self.history.append(f"huan (details): {line[:120]}")
+        log.info("details: %r", line)
+        await self.speaker.say(line)
+        return "details"
+
+    def _ensure_http(self):
+        import httpx
+
+        if self._llm_http is None:
+            self._llm_http = httpx.AsyncClient()
+        return self._llm_http
+
+    async def _context_line(self) -> str:
+        title = await hypr.active_window_title()
+        parts = [
+            f"local time {datetime.datetime.now():%H:%M}",
+            f"focused window: {title or 'none'}",
+        ]
+        if self.history:
+            recent = "; ".join(list(self.history)[-4:])
+            parts.append(f"recent conversation: {recent}")
+        return ", ".join(parts)
+
     def _say_response(self, said: str, happened: str, fallback: str):
         """Speak an LLM-generated line off the critical path; the action has
         already been dispatched by the time this is even scheduled."""
+        self.history.append(f"user: {said}")
         if not self.config.llama_url:
             asyncio.create_task(self.speaker.say(fallback))
             return
 
         async def _generate():
-            import httpx
-
-            if self._llm_http is None:
-                self._llm_http = httpx.AsyncClient()
+            self._ensure_http()
             try:
-                import datetime
-
-                title = await hypr.active_window_title()
-                context = f"local time {datetime.datetime.now():%H:%M}, focused window: {title or 'none'}"
                 line = await llm.respond(
-                    self._llm_http, self.config.llama_url, said, happened, context
+                    self._llm_http,
+                    self.config.llama_url,
+                    said,
+                    happened,
+                    await self._context_line(),
                 )
             except Exception as exc:
                 log.warning("responder failed (%s); using fallback line", exc)
                 line = fallback
+            self.history.append(f"huan: {line}")
             log.info("respond: %r", line)
             await self.speaker.say(line)
 

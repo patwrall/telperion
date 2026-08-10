@@ -27,9 +27,10 @@ _HOMOPHONE_MAX_WORDS = 5
 
 @dataclass
 class Intent:
-    action: str  # "workspace" | "close-window" | "sleep" | "wake"
+    action: str  # workspace | close-window | sleep | wake | delegate | details | cancel
     arg: int | None = None
     ack: str = ""
+    task: str | None = None  # for delegate: the cleaned-up task text
 
 
 _WORKSPACE_RE = re.compile(

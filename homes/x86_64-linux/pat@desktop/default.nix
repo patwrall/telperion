@@ -66,6 +66,7 @@ in
     services = {
       huan = {
         enable = true;
+        agent = enabled;
         intent.llm = enabled;
         wakeWord = {
           # custom-trained model (modules/home/services/huan/models);

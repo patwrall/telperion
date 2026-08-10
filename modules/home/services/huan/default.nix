@@ -20,6 +20,13 @@ let
     followup_s = cfg.capture.followupSeconds;
     llama_url =
       lib.optionalString cfg.intent.llm.enable "http://127.0.0.1:${toString cfg.intent.llm.port}";
+    agent_cmd = lib.optionalString cfg.agent.enable "claude";
+    agent_model = cfg.agent.model;
+    agent_timeout_s = cfg.agent.timeoutSeconds;
+    agent_cwd = cfg.agent.cwd;
+    agent_mcp_config = lib.optionalString cfg.agent.enable (toString agentMcpConfig);
+    agent_allowed_tools = cfg.agent.allowedTools;
+    agent_permission_mode = cfg.agent.permissionMode;
     tts_voice = if cfg.tts.voice == null then "" else toString cfg.tts.voice;
     eleven_voice_id = lib.optionalString cfg.tts.elevenlabs.enable cfg.tts.elevenlabs.voiceId;
     eleven_model_id = cfg.tts.elevenlabs.modelId;
@@ -31,6 +38,13 @@ let
   };
 
   huanCtl = "${lib.getExe cfg.package} ctl";
+
+  agentMcpConfig = (pkgs.formats.json { }).generate "huan-mcp.json" {
+    mcpServers.huan = {
+      command = lib.getExe cfg.package;
+      args = [ "mcp" ];
+    };
+  };
 
   # faster-whisper accepts a local model directory; pinning it here removes
   # the imperative first-run download into ~/.cache/huggingface
@@ -158,6 +172,49 @@ in
           After a voice command, keep listening this long for a chained
           command without requiring the wake word again. 0 disables.
         '';
+      };
+    };
+
+    agent = {
+      enable = mkEnableOption "the reasoning tier (Claude Code CLI, headless)";
+
+      model = mkOption {
+        type = types.str;
+        default = "sonnet";
+        description = "Model passed to the Claude CLI for delegated tasks.";
+      };
+
+      timeoutSeconds = mkOption {
+        type = types.ints.positive;
+        default = 300;
+        description = "Hard limit on a single delegated task.";
+      };
+
+      cwd = mkOption {
+        type = types.str;
+        default = "~";
+        description = "Working directory for the agent (loads that dir's CLAUDE.md).";
+      };
+
+      permissionMode = mkOption {
+        type = types.str;
+        default = "acceptEdits";
+        description = "Claude CLI permission mode for headless runs.";
+      };
+
+      allowedTools = mkOption {
+        type = types.listOf types.str;
+        default = [
+          "Read"
+          "Grep"
+          "Glob"
+          "LS"
+          "WebSearch"
+          "WebFetch"
+          "Bash"
+          "mcp__huan"
+        ];
+        description = "Tools the headless agent may use without prompting.";
       };
     };
 

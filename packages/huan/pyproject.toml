@@ -6,6 +6,7 @@ requires-python = ">=3.12"
 dependencies = [
   "faster-whisper",
   "httpx",
+  "mcp",
   "numpy",
   "sounddevice",
   "websockets",
