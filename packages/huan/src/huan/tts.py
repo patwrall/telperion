@@ -304,7 +304,23 @@ class Speaker:
     # short pre-synthesized clips played instantly while the brain thinks;
     # silence is what makes a 3s reply feel slow
 
-    FILLER_PHRASES = ["Hmm.", "Hm, let me look.", "One sec.", "Let me think."]
+    # short, dry, low-energy — variety without theater; sparse [tags]
+    # give eleven_v3 natural delivery. Clips are cached by content hash,
+    # so editing this list regenerates only what changed.
+    FILLER_PHRASES = [
+        "Hmm.",
+        "[thoughtful] Hmm, hold on.",
+        "Mm, one sec.",
+        "Let me look.",
+        "Checking.",
+        "Give me a second here.",
+        "Right, let's see.",
+        "Mm-hm, looking.",
+        "Hang on.",
+        "Okay, let me actually check.",
+        "Let's see what we've got.",
+        "Bear with me.",
+    ]
 
     def _filler_dir(self):
         import pathlib
@@ -318,12 +334,21 @@ class Speaker:
         """Synthesize the filler clips once and cache them as raw PCM."""
         if not self.eleven_enabled:
             return
+        import hashlib
+
         import httpx
 
         directory = self._filler_dir()
         directory.mkdir(parents=True, exist_ok=True)
-        for i, phrase in enumerate(self.FILLER_PHRASES):
-            target = directory / f"filler_{i}.pcm"
+        wanted = {
+            f"filler_{hashlib.sha1(p.encode()).hexdigest()[:12]}.pcm": p
+            for p in self.FILLER_PHRASES
+        }
+        for stale in directory.glob("filler_*.pcm"):
+            if stale.name not in wanted:
+                stale.unlink()
+        for name, phrase in wanted.items():
+            target = directory / name
             if target.exists():
                 continue
             try:
@@ -350,8 +375,12 @@ class Speaker:
         clips = sorted(self._filler_dir().glob("filler_*.pcm"))
         if not clips:
             return
+        # variety guard: never the same filler twice in a row
+        pool = [c for c in clips if c.name != getattr(self, "_last_filler", None)]
+        choice = random.choice(pool or clips)
+        self._last_filler = choice.name
         self._ensure_output_stream()
-        self._enqueue(random.choice(clips).read_bytes())
+        self._enqueue(choice.read_bytes())
 
     async def _say_with_fallback(self, text: str):
         # v3 has no stream-input websocket; go straight to HTTP streaming

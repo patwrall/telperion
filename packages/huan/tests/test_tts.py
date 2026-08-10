@@ -154,3 +154,32 @@ class TestVoiceSettings:
         assert speaker.eleven_voice_settings["stability"] == 0.2
         assert speaker.eleven_voice_settings["style"] == 0.9
         assert speaker.eleven_voice_settings["use_speaker_boost"] is True
+
+
+class TestFillerVariety:
+    def test_no_immediate_repeat(self, tmp_path, monkeypatch):
+        monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path))
+        speaker = make_speaker(tmp_path)
+        clips = tmp_path / "huan" / "fillers"
+        clips.mkdir(parents=True)
+        for name in ("filler_aaa.pcm", "filler_bbb.pcm", "filler_ccc.pcm"):
+            (clips / name).write_bytes(b"\x01" * 512)
+        speaker._ensure_output_stream = lambda: None
+        played = []
+        speaker._enqueue = lambda pcm: played.append(speaker._last_filler)
+        for _ in range(20):
+            speaker.play_filler()
+        assert all(a != b for a, b in zip(played, played[1:]))
+
+    def test_single_clip_still_plays(self, tmp_path, monkeypatch):
+        monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path))
+        speaker = make_speaker(tmp_path)
+        clips = tmp_path / "huan" / "fillers"
+        clips.mkdir(parents=True)
+        (clips / "filler_only.pcm").write_bytes(b"\x01" * 512)
+        speaker._ensure_output_stream = lambda: None
+        count = []
+        speaker._enqueue = lambda pcm: count.append(1)
+        speaker.play_filler()
+        speaker.play_filler()
+        assert len(count) == 2
