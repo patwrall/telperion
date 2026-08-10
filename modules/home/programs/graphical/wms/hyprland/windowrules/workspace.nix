@@ -16,7 +16,6 @@ in
           "workspace special:music, match:class Spotify|feishin|Supersonic|spotify_player"
           "workspace special:music, match:initial_title Spotify( Free)?"
           "workspace special:discord, match:class discord|equibop|vesktop|whatsapp|discordo"
-          "workspace special:todo, match:class Todoist"
         ];
 
         workspace = [

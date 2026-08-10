@@ -43,6 +43,10 @@ let
     # Named scratchpads
     "SUPER, M, togglespecialworkspace, music"
     "SUPER, J, togglespecialworkspace, discord"
+    "CTRL_SHIFT, Tab, togglespecialworkspace, sysmon"
+    "SUPER_ALT, M, movetoworkspace, special:music"
+    "SUPER_ALT, J, movetoworkspace, special:discord"
+    "SUPER_ALT, Tab, movetoworkspace, special:sysmon"
     # Window groups
     "$kbToggleGroup, togglegroup"
     "$kbUngroup, moveoutofgroup"
