@@ -63,6 +63,18 @@ in
       };
     };
 
+    services = {
+      huan = {
+        enable = true;
+        tts.elevenlabs = {
+          enable = true;
+          # Sarah (premade; free tier can't use library voices like Rachel).
+          # Swap for a library voice id after the Starter upgrade.
+          voiceId = "EXAVITQu4vr4xnSDxMaL";
+        };
+      };
+    };
+
     system = {
       xdg = enabled;
     };

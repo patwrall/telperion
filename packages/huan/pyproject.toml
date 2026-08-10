@@ -1,0 +1,16 @@
+[project]
+name = "huan"
+version = "0.1.0"
+description = "Fast/slow voice agent daemon for Hyprland (telperion)"
+requires-python = ">=3.12"
+dependencies = ["faster-whisper", "httpx", "numpy", "sounddevice", "wyoming"]
+
+[project.scripts]
+huan = "huan.cli:main"
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
