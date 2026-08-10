@@ -54,6 +54,7 @@ class Daemon:
                 config.brain_max_turns,
                 store=self.store,
                 mcp_config=config.agent_mcp_config,
+                collaborator=config.brain_collaborator,
             )
             if config.agent_cmd and config.brain_model
             else None
@@ -272,18 +273,20 @@ class Daemon:
                 # answerable from live state; don't burn an agent run on it
                 self._say_chat(text)
                 return "status"
-            return self._delegate(text, parsed.task or text, watch)
+            # the brain decides: a concrete task gets delegate_task, a vague
+            # one gets a clarifying question first ('write a python script'
+            # burned an agent run just to ask what script)
+            self._say_chat(text)
+            return "delegate-via-brain"
         elif parsed.action == "details":
-            return await self._details(text)
+            # agent reports live in the brain's conversation since the relay
+            # change; it expands them with full context
+            self._say_chat(text)
+            return "details-via-brain"
         elif parsed.action == "remember":
-            fact = (parsed.task or text).strip()
-            self._memory_append(fact)
-            self._say_response(
-                text,
-                f"noted to long-term memory: {fact}. Confirm briefly",
-                fallback="Noted.",
-            )
-            return "remember"
+            # the brain persists via remember_fact and phrases it in context
+            self._say_chat(text)
+            return "remember-via-brain"
         elif parsed.action == "cancel":
             if self.agent is not None and self.agent.cancel():
                 self._say_response(
@@ -383,22 +386,21 @@ class Daemon:
                     "spoken sentences, opening with a few words naming the topic.",
                     await self._world_context(),
                 )
+                line = brain_mod.sanitize_reply(line)
                 self._remember("huan", f"(after working on '{task[:60]}') {line}")
                 log.info("agent summary: %r", line)
                 self._last_chat_ts = time.time()
                 await self.speaker.say(line)
                 return
             except Exception as exc:
-                log.warning("brain relay failed (%s); 3B summarizer", exc)
-        try:
-            line = await llm.summarize(
-                self._ensure_http(), self.config.llama_url, task, report
-            )
-        except Exception as exc:
-            log.warning("summarizer failed (%s); speaking first sentence", exc)
-            line = report.split(". ")[0][:200]
+                log.warning("brain relay failed (%s); speaking report head", exc)
+        # truthful fallback: the report's own opening sentences. The 3B
+        # summarizer hallucinated technical numbers here ('16 SMs per die')
+        # and is banned from relaying findings.
+        sentences = report.replace("\n", " ").split(". ")
+        line = ". ".join(sentences[:2])[:280].strip()
         self._remember("huan", f"(after working on '{task[:60]}') {line}")
-        log.info("agent summary: %r", line)
+        log.info("agent summary (report head): %r", line)
         await self.speaker.say(line)
 
     async def _details(self, said: str) -> str:
@@ -441,14 +443,31 @@ class Daemon:
                 loop = asyncio.get_running_loop()
                 filler = loop.call_later(1.3, self.speaker.play_filler)
 
+                spoke = False
+
                 def speak_sentence(sentence: str):
+                    nonlocal spoke
                     filler.cancel()
-                    asyncio.create_task(self.speaker.say(sentence))
+                    clean = brain_mod.sanitize_sentence(sentence)
+                    if clean is None:
+                        log.info("leak dropped: %r", sentence[:80])
+                        return
+                    spoke = True
+                    asyncio.create_task(self.speaker.say(clean))
 
                 try:
                     reply = await self.brain.ask(
-                        said, await self._world_context(), on_sentence=speak_sentence
+                        said,
+                        await self._world_context(),
+                        on_sentence=speak_sentence,
+                        # a working collaborator turn can run real commands;
+                        # its narration covers the wait
+                        timeout_s=300 if self.brain.collaborator else 25,
                     )
+                    reply = brain_mod.sanitize_reply(reply)
+                    if not spoke:
+                        # every sentence leaked; speak the sanitized fallback
+                        await self.speaker.say(reply)
                     self._remember("huan", reply)
                     log.info("brain: %r", reply)
                     self._last_chat_ts = time.time()
@@ -675,8 +694,11 @@ class Daemon:
             response = await self._dispatch_control(request)
         except Exception as exc:
             response = {"ok": False, "error": str(exc)}
-        writer.write((json.dumps(response) + "\n").encode())
-        await writer.drain()
+        try:
+            writer.write((json.dumps(response) + "\n").encode())
+            await writer.drain()
+        except (ConnectionResetError, BrokenPipeError):
+            pass  # fire-and-forget clients (the shell hook) never read replies
         writer.close()
 
     async def _dispatch_control(self, request: dict) -> dict:

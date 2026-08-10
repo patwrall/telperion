@@ -63,6 +63,9 @@ class Speaker:
         self._buffer = bytearray()
         self._buffer_lock = threading.Lock()  # callback runs on PortAudio thread
         self._last_active = 0.0
+        self._say_queue: asyncio.Queue[str] = asyncio.Queue()
+        self._say_worker: asyncio.Task | None = None
+        self._current_utterance = None
         if self.eleven_enabled:
             log.info("elevenlabs TTS enabled (voice %s)", self.eleven_voice_id)
 
@@ -93,8 +96,13 @@ class Speaker:
             await asyncio.sleep(0.05)
 
     def interrupt(self):
-        """Barge-in: stop talking immediately. Drops buffered audio and
-        kills the in-flight synthesis stream so no stale speech trickles in."""
+        """Barge-in: stop talking immediately. Drops queued utterances,
+        buffered audio, and the in-flight synthesis stream."""
+        while not self._say_queue.empty():
+            self._say_queue.get_nowait()
+        if self._say_worker is not None and not self._say_worker.done():
+            self._say_worker.cancel()
+            self._say_worker = None
         with self._buffer_lock:
             had_audio = bool(self._buffer)
             self._buffer.clear()
@@ -268,13 +276,29 @@ class Speaker:
     # -- public --------------------------------------------------------------
 
     async def say(self, text: str):
+        """Queue an utterance. One worker synthesizes strictly in order, so
+        concurrent speakers (acks, brain replies, agent summaries) can never
+        interleave their audio — the jank when two things talked at once."""
         if not text or not (self.eleven_enabled or self.voice):
             return
         self._ensure_output_stream()
-        if self.eleven_enabled:
-            asyncio.create_task(self._say_with_fallback(text))
-        else:
-            await self._say_piper(text)
+        if self._say_worker is None or self._say_worker.done():
+            self._say_worker = asyncio.create_task(self._speech_worker())
+        self._say_queue.put_nowait(text)
+
+    async def _speech_worker(self):
+        while True:
+            text = await self._say_queue.get()
+            self._current_utterance = asyncio.current_task()
+            try:
+                if self.eleven_enabled:
+                    await self._say_with_fallback(text)
+                else:
+                    await self._say_piper(_strip_tags(text))
+            except asyncio.CancelledError:
+                raise
+            except Exception as exc:
+                log.warning("utterance failed (%s): %r", exc, text[:60])
 
     # -- thinking fillers ----------------------------------------------------
     # short pre-synthesized clips played instantly while the brain thinks;

@@ -73,6 +73,9 @@ ROUTING_CASES = [
     {"text": "drop the task", "expect": "cancel"},
     # regression: undo is a conversational reversal, not a task cancel
     {"text": "okay undo that", "expect": "none"},
+    # regression: a file-deletion request misrouted to close-window and
+    # closed an unrelated window; no window words -> conversational
+    {"text": "dispose of khanelivim in my projects folder", "expect": "none"},
     # -- remember
     {"text": "remember that I keep my notes in obsidian", "expect": "remember"},
     {"text": "note that my main editor is neovim", "expect": "remember"},

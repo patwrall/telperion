@@ -22,6 +22,7 @@ let
       lib.optionalString cfg.intent.llm.enable "http://127.0.0.1:${toString cfg.intent.llm.port}";
     agent_cmd = lib.optionalString cfg.agent.enable "claude";
     brain_model = lib.optionalString (cfg.agent.enable && cfg.brain.enable) cfg.brain.model;
+    brain_collaborator = cfg.brain.collaborator;
     announce_min_s = cfg.announceMinSeconds;
     heartbeat = cfg.proactive;
     agent_model = cfg.agent.model;
@@ -193,6 +194,16 @@ in
         type = types.str;
         default = "haiku";
         description = "Model for the conversational brain.";
+      };
+
+      collaborator = mkOption {
+        type = types.bool;
+        default = false;
+        description = ''
+          Give the brain real tools (files, shell, web, edits) so it works
+          directly and narrates — voice-driven Claude Code. Pair with a
+          sonnet-class model.
+        '';
       };
     };
 

@@ -67,6 +67,11 @@ in
       huan = {
         enable = true;
         agent = enabled;
+        brain = {
+          # the pivot: voice-driven Claude Code — the brain works directly
+          model = "sonnet";
+          collaborator = true;
+        };
         intent.llm = enabled;
         wakeWord = {
           # custom-trained model (modules/home/services/huan/models);

@@ -87,20 +87,31 @@ class TestActRouting:
         assert d.sleeping and not d.stt.loaded
         assert said  # canned ack, since the responder LLM is going down
 
-    async def test_remember_writes_memory_file(self, make_daemon, monkeypatch):
-        d = make_daemon()
+    @pytest.mark.parametrize(
+        ("action", "expected"),
+        [
+            ("remember", "remember-via-brain"),
+            ("delegate", "delegate-via-brain"),
+            ("details", "details-via-brain"),
+        ],
+    )
+    async def test_brain_owned_actions_route_to_chat(
+        self, make_daemon, monkeypatch, action, expected
+    ):
+        # v6: the brain clarifies-or-acts for these; the daemon no longer
+        # short-circuits them (vague delegations burned agent runs)
+        d = make_daemon(agent_cmd="claude")
         from huan import llm
         from huan.intent import Intent
 
-        async def classify_remember(http, url, text, timeout_s=3.0):
-            return Intent("remember", task="likes tea")
+        async def classify(http, url, text, timeout_s=3.0):
+            return Intent(action, task="something")
 
-        monkeypatch.setattr(llm, "classify", classify_remember)
+        monkeypatch.setattr(llm, "classify", classify)
         d.config.llama_url = "http://x"
-        result = await d._act("remember that I like tea", Stopwatch())
-        assert result == "remember"
-        assert "likes tea" in d._memory_path.read_text()
-        assert "likes tea" in d._memory_facts()
+        result = await d._act("do a thing for me", Stopwatch())
+        assert result == expected
+        assert d.chats == ["do a thing for me"]
 
     async def test_cancel_without_agent(self, make_daemon):
         d = make_daemon()

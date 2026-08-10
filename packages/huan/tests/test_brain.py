@@ -131,6 +131,33 @@ class TestSessionPersistence:
         brain._remember_session("x")  # must not raise
 
 
+class TestLeakSanitizer:
+    def test_clean_sentence_passes(self):
+        from huan.brain import sanitize_sentence
+
+        assert sanitize_sentence("On three.") == "On three."
+
+    def test_leaky_sentence_dropped(self):
+        from huan.brain import sanitize_sentence
+
+        assert sanitize_sentence("That's Claude Code territory.") is None
+        assert sanitize_sentence("ask Claude about it") is None
+        assert sanitize_sentence("the MCP tools handle that") is None
+
+    def test_mixed_reply_keeps_clean_sentences(self):
+        from huan.brain import sanitize_reply
+
+        reply = (
+            "No email access. That's Claude Code territory. Want me to look into it?"
+        )
+        assert sanitize_reply(reply) == "No email access. Want me to look into it?"
+
+    def test_fully_leaky_reply_becomes_fallback(self):
+        from huan.brain import _LEAK_FALLBACK, sanitize_reply
+
+        assert sanitize_reply("Claude Code handles that.") == _LEAK_FALLBACK
+
+
 class TestToolWiring:
     def test_mcp_args_when_configured(self):
         brain = Brain("claude", "haiku", mcp_config="/nix/store/mcp.json")

@@ -1,3 +1,4 @@
+import asyncio
 import time
 
 from huan.config import Config
@@ -68,6 +69,55 @@ class TestFillers:
         before = bytes(speaker._buffer)
         speaker.play_filler()
         assert bytes(speaker._buffer) == before
+
+
+class TestSpeechSerialization:
+    async def test_utterances_synthesize_strictly_in_order(self, tmp_path, monkeypatch):
+        # regression: v3's HTTP path let concurrent say() calls interleave
+        # their audio chunks — two voices cutting each other off
+        speaker = make_speaker(tmp_path)
+        speaker.eleven_voice_id = "v"
+        speaker._api_key = "k"
+        order = []
+
+        async def fake_synth(text):
+            order.append(f"start:{text}")
+            await asyncio.sleep(0.01)
+            order.append(f"end:{text}")
+
+        monkeypatch.setattr(speaker, "_say_with_fallback", fake_synth)
+        monkeypatch.setattr(speaker, "_ensure_output_stream", lambda: None)
+        await speaker.say("one")
+        await speaker.say("two")
+        await speaker.say("three")
+        await asyncio.sleep(0.1)
+        assert order == [
+            "start:one",
+            "end:one",
+            "start:two",
+            "end:two",
+            "start:three",
+            "end:three",
+        ]
+
+    async def test_interrupt_drops_queued_utterances(self, tmp_path, monkeypatch):
+        speaker = make_speaker(tmp_path)
+        speaker.eleven_voice_id = "v"
+        speaker._api_key = "k"
+        spoken = []
+
+        async def slow_synth(text):
+            spoken.append(text)
+            await asyncio.sleep(1)
+
+        monkeypatch.setattr(speaker, "_say_with_fallback", slow_synth)
+        monkeypatch.setattr(speaker, "_ensure_output_stream", lambda: None)
+        await speaker.say("one")
+        await speaker.say("two")
+        await asyncio.sleep(0.02)  # worker starts 'one'
+        speaker.interrupt()
+        await asyncio.sleep(0.05)
+        assert spoken == ["one"]  # 'two' never synthesized
 
 
 class TestInterrupt:

@@ -170,6 +170,12 @@ async def classify(http, url: str, text: str, timeout_s: float = 3.0) -> Intent 
         r"\b(sleep|wake|stand down)\b", lowered
     ):
         return None
+    # 'dispose of <project> in my folder' misrouted to close-window and
+    # closed an unrelated window; window actions need window-ish words
+    if action == "close-window" and not re.search(
+        r"\b(window|this|it|that|app|tab|screen)\b", lowered
+    ):
+        return None
     if action in ("details", "cancel"):
         return Intent(action)
     if action in _ACKS:

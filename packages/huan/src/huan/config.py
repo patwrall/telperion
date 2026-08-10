@@ -51,6 +51,9 @@ class Config:
     # uses agent_cmd as the binary)
     brain_model: str = "haiku"
     brain_max_turns: int = 40
+    # collaborator mode: the brain gets real tools and works directly,
+    # narrating as it goes — voice-driven Claude Code
+    brain_collaborator: bool = False
 
     # Proactively announce shell commands that ran at least this long
     # when they finish (0 disables)

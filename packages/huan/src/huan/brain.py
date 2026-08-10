@@ -7,6 +7,22 @@ log = logging.getLogger("huan.brain")
 
 _SENTENCE_END = re.compile(r"[.!?][\"')\]]*(?:\s|$)")
 
+# the model IS Claude Code and no prompt reliably stops it saying so;
+# leaky sentences are dropped deterministically before they reach TTS
+_LEAK_RE = re.compile(r"\bclaude\b|\bmcp\b|\banthropic\b", re.IGNORECASE)
+_LEAK_FALLBACK = "That's beyond my reach right now — want me to look into it?"
+
+
+def sanitize_sentence(sentence: str) -> str | None:
+    """None if the sentence leaks internal machinery and must not be spoken."""
+    return None if _LEAK_RE.search(sentence) else sentence
+
+
+def sanitize_reply(reply: str) -> str:
+    kept = [s for s in re.split(r"(?<=[.!?])\s+", reply) if sanitize_sentence(s)]
+    return " ".join(kept).strip() or _LEAK_FALLBACK
+
+
 # The conversational brain: a persistent Claude process (haiku-class) in
 # stream-json mode holding ONE continuous conversation. This is what
 # makes huan a conversationalist instead of a router with quips: real
@@ -46,10 +62,19 @@ Rules:
   to a background tier (delegate_task) whose result the user will hear
   later. When the user asks you to do something you have a tool for, DO
   IT, then confirm in a few words. When they ask for real work, call
-  delegate_task yourself and say you're on it. When they share a lasting
-  fact or preference ("keep that in mind", "remember...", "my setup
-  is..."), persist it with remember_fact — conversation memory alone
-  does not survive. Never claim you can't do
+  delegate_task yourself and say you're on it — but ONLY when the task
+  is concrete; if the request is vague or sounds cut off ("write a
+  python script"), ask ONE short clarifying question instead of
+  delegating. When they share or correct a lasting personal fact
+  (location, hardware, preferences, "keep that in mind"), persist it
+  with remember_fact — conversation memory alone does not survive.
+  When you genuinely lack a capability no tool covers, own it in first
+  person, briefly, and offer to look into it if it seems important.
+  BANNED phrasings, no exceptions: "ask Claude Code", "Claude Code
+  might", "check with Claude", any mention of Claude/tools/tiers/MCP.
+  To the user there is exactly one entity: you, huan. Correct shape:
+  "I can't reach your calendar yet — want me to look into getting
+  access?" Never claim you can't do
   something a tool covers, never tell the user to do it themselves, and
   never mention tools, tiers, or internal machinery by name — you are
   one assistant.
@@ -66,6 +91,29 @@ Rules:
 """
 
 
+COLLABORATOR_APPEND = """\
+You are a WORKING collaborator, not just a talker: you have real tools
+(reading files, shell commands, web search, edits) on the user's
+machine, plus the huan desktop tools. When the user asks you to look
+into, check, fix, or build something, DO IT DIRECTLY with your tools —
+this is the entire point of you. Their main repo is ~/telperion.
+
+While working, narrate like a colleague: short spoken progress lines
+between tool calls ("checking the journal", "found it — it's the
+config"), then the finding. Everything you say is spoken aloud, so
+keep every line short and conversational; never read file contents or
+code aloud unless asked, summarize them. For work that would take many
+minutes, you may hand it to delegate_task and keep conversing.
+
+DESTRUCTIVE actions (deleting files or directories, overwriting,
+force-pushing, resetting, killing processes): NEVER on the first ask.
+Speech transcription garbles words; say exactly what you're about to destroy and
+ask for a verbal yes; only proceed after explicit confirmation in the
+user's NEXT utterance. This applies no matter how clear the request
+sounds.
+"""
+
+
 class Brain:
     def __init__(
         self,
@@ -74,11 +122,13 @@ class Brain:
         max_turns: int = 40,
         store=None,
         mcp_config: str = "",
+        collaborator: bool = False,
     ):
         self.cmd = cmd
         self.model = model
         self.max_turns = max_turns
         self.mcp_config = mcp_config
+        self.collaborator = collaborator
         self._store = store
         self._proc: asyncio.subprocess.Process | None = None
         self._turns = 0
@@ -98,6 +148,9 @@ class Brain:
     async def start(self):
         if self.alive:
             return
+        system_prompt = SYSTEM_APPEND + (
+            COLLABORATOR_APPEND if self.collaborator else ""
+        )
         args = [
             self.cmd,
             "-p",
@@ -110,26 +163,36 @@ class Brain:
             "--model",
             self.model,
             "--max-turns",
-            "8",
+            "30" if self.collaborator else "8",
             "--append-system-prompt",
-            SYSTEM_APPEND,
-            # explicitly bar the coding-agent tools: a curious model probing
-            # the real filesystem burns its turn budget on denials (seen with
-            # sonnet in the A/B) and the brain must live in the state blob
-            "--disallowedTools",
-            "Bash",
-            "Read",
-            "Write",
-            "Edit",
-            "Glob",
-            "Grep",
-            "WebSearch",
-            "WebFetch",
-            "Task",
-            "NotebookEdit",
+            system_prompt,
         ]
+        if self.collaborator:
+            # the working collaborator: real tools, edits auto-accepted
+            args += ["--permission-mode", "acceptEdits"]
+            allowed = "Read Glob Grep LS Bash WebSearch WebFetch Edit Write".split()
+        else:
+            # talker-only: bar the coding tools so a curious model can't
+            # burn its turn budget probing the real filesystem
+            args += [
+                "--disallowedTools",
+                "Bash",
+                "Read",
+                "Write",
+                "Edit",
+                "Glob",
+                "Grep",
+                "WebSearch",
+                "WebFetch",
+                "Task",
+                "NotebookEdit",
+            ]
+            allowed = []
         if self.mcp_config:
-            args += ["--mcp-config", self.mcp_config, "--allowedTools", "mcp__huan"]
+            allowed.append("mcp__huan")
+            args += ["--mcp-config", self.mcp_config]
+        if allowed:
+            args += ["--allowedTools", *allowed]
         resume = self._stored_session()
         if resume:
             args += ["--resume", resume]
@@ -212,6 +275,17 @@ class Brain:
             kind = event.get("type")
             if kind == "system" and event.get("session_id"):
                 self._remember_session(event["session_id"])
+            if kind == "assistant":
+                for block in event.get("message", {}).get("content", []):
+                    if block.get("type") == "tool_use":
+                        log.info("brain tool: %s", block.get("name"))
+            if kind == "user":
+                for block in event.get("message", {}).get("content", []):
+                    if isinstance(block, dict) and block.get("is_error"):
+                        log.warning(
+                            "brain tool denied/failed: %s",
+                            str(block.get("content"))[:200],
+                        )
             if kind == "stream_event":
                 delta = event.get("event", {}).get("delta", {})
                 if delta.get("type") == "text_delta":

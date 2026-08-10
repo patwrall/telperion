@@ -72,6 +72,21 @@ class TestClassify:
         intent = await llm.classify(http, "http://x", "wake up buddy")
         assert intent is not None and intent.action == "wake"
 
+    async def test_close_window_guard_requires_window_words(
+        self, fake_http, chat_reply
+    ):
+        # 'dispose of khanelivim in my projects folder' closed a window
+        http = fake_http([chat_reply(decision("close-window"))])
+        result = await llm.classify(
+            http, "http://x", "dispose of khanelivim in my projects folder"
+        )
+        assert result is None
+
+    async def test_real_close_passes_guard(self, fake_http, chat_reply):
+        http = fake_http([chat_reply(decision("close-window"))])
+        intent = await llm.classify(http, "http://x", "make this window vanish")
+        assert intent is not None and intent.action == "close-window"
+
     async def test_503_retries_then_succeeds(self, fake_http, chat_reply, monkeypatch):
         # regression: llama-server answers 503 while reloading after the
         # sleep toggle; commands in that window must not be dropped
