@@ -236,9 +236,31 @@ class Speaker:
         except Exception:
             pass
 
+    # v3 renders each sentence as an independent take, and takes vary in
+    # loudness. Per-utterance AGC toward a fixed RMS evens sentences out;
+    # gain is clamped so whispers stay whispers, just not inaudible ones.
+    _AGC_TARGET_RMS = 2200.0
+    _AGC_SILENCE_RMS = 200.0
+
+    def _agc(self, chunk: bytes) -> bytes:
+        import numpy as np
+
+        pcm = np.frombuffer(chunk, dtype=np.int16).astype(np.float32)
+        if len(pcm) == 0:
+            return chunk
+        self._agc_sumsq += float((pcm * pcm).sum())
+        self._agc_samples += len(pcm)
+        rms = (self._agc_sumsq / self._agc_samples) ** 0.5
+        if rms < self._AGC_SILENCE_RMS:
+            return chunk
+        gain = min(2.0, max(0.5, self._AGC_TARGET_RMS / rms))
+        return np.clip(pcm * gain, -32768, 32767).astype(np.int16).tobytes()
+
     async def _say_eleven(self, text: str):
         import httpx
 
+        self._agc_sumsq = 0.0
+        self._agc_samples = 0
         if self._http is None:
             self._http = httpx.AsyncClient(timeout=10.0)
         url = (
@@ -276,7 +298,7 @@ class Speaker:
                         (time.monotonic() - t0) * 1000,
                     )
                     first = False
-                self._enqueue(chunk)
+                self._enqueue(self._agc(chunk))
         self._prev_synth_text = text
 
     # -- piper fallback ------------------------------------------------------

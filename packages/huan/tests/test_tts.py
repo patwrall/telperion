@@ -236,3 +236,37 @@ class TestProsodyContinuity:
             return hashlib.sha1(("Hmm." + tag).encode()).hexdigest()
 
         assert key(a) != key(b)
+
+
+class TestAgc:
+    def _speaker(self, tmp_path):
+        s = make_speaker(tmp_path)
+        s._agc_sumsq = 0.0
+        s._agc_samples = 0
+        return s
+
+    def test_quiet_take_boosted_toward_target(self, tmp_path):
+        import numpy as np
+
+        s = self._speaker(tmp_path)
+        quiet = np.full(2048, 800, dtype=np.int16).tobytes()
+        out = np.frombuffer(s._agc(quiet), dtype=np.int16)
+        assert out[0] > 1200  # boosted, clamped at 2x
+
+    def test_loud_take_attenuated(self, tmp_path):
+        import numpy as np
+
+        s = self._speaker(tmp_path)
+        loud = np.full(2048, 8000, dtype=np.int16).tobytes()
+        out = np.frombuffer(s._agc(loud), dtype=np.int16)
+        assert out[0] < 8000
+        assert out[0] >= 4000  # 0.5x clamp: never crushed
+
+    def test_silence_passes_untouched(self, tmp_path):
+        s = self._speaker(tmp_path)
+        silence = b"\x00" * 4096
+        assert s._agc(silence) == silence
+
+    def test_empty_chunk_safe(self, tmp_path):
+        s = self._speaker(tmp_path)
+        assert s._agc(b"") == b""
