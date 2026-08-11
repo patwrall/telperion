@@ -246,15 +246,17 @@ class Speaker:
         )
         t0 = time.monotonic()
         first = True
-        # previous_text: each sentence of a reply is its own request, and
-        # v3 renders each as an independent take — audibly different mid
-        # reply. Passing the prior sentence keeps the prosody continuous.
+        # previous_text: each sentence of a reply is its own request,
+        # rendered as an independent take — audibly different mid-reply.
+        # The prior sentence anchors the prosody — but the API rejects
+        # the param for v3 models (verified 400 'unsupported_model'), so
+        # v3 requests must not carry it.
         body = {
             "text": text,
             "model_id": self.eleven_model_id,
             "voice_settings": self.eleven_voice_settings,
         }
-        if getattr(self, "_prev_synth_text", ""):
+        if "v3" not in self.eleven_model_id and getattr(self, "_prev_synth_text", ""):
             body["previous_text"] = self._prev_synth_text[-300:]
         async with self._http.stream(
             "POST",
@@ -263,6 +265,9 @@ class Speaker:
             headers={"xi-api-key": self._api_key},
             json=body,
         ) as response:
+            if response.status_code >= 400:
+                detail = (await response.aread())[:200]
+                log.warning("elevenlabs %d: %s", response.status_code, detail)
             response.raise_for_status()
             async for chunk in response.aiter_bytes():
                 if first:
