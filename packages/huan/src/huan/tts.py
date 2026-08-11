@@ -245,6 +245,11 @@ class Speaker:
     def _agc(self, chunk: bytes) -> bytes:
         import numpy as np
 
+        # HTTP chunks split on arbitrary byte boundaries; an odd-length
+        # chunk is not whole int16 samples — carry the spare byte over
+        chunk = getattr(self, "_agc_tail", b"") + chunk
+        odd = len(chunk) % 2
+        chunk, self._agc_tail = chunk[: len(chunk) - odd], chunk[len(chunk) - odd :]
         pcm = np.frombuffer(chunk, dtype=np.int16).astype(np.float32)
         if len(pcm) == 0:
             return chunk
@@ -261,6 +266,7 @@ class Speaker:
 
         self._agc_sumsq = 0.0
         self._agc_samples = 0
+        self._agc_tail = b""
         if self._http is None:
             self._http = httpx.AsyncClient(timeout=10.0)
         url = (

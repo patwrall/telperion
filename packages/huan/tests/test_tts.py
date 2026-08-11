@@ -270,3 +270,17 @@ class TestAgc:
     def test_empty_chunk_safe(self, tmp_path):
         s = self._speaker(tmp_path)
         assert s._agc(b"") == b""
+
+    def test_odd_length_chunks_never_crash(self, tmp_path):
+        # HTTP chunks split anywhere: odd byte counts must carry over
+        import numpy as np
+
+        s = self._speaker(tmp_path)
+        s._agc_tail = b""
+        signal = np.full(1001, 3000, dtype=np.int16).tobytes()
+        out = b""
+        for i in range(0, len(signal), 333):  # odd-sized chunks
+            out += s._agc(signal[i : i + 333])
+        out += s._agc(b"")
+        assert len(out) + len(s._agc_tail) == len(signal)
+        assert len(out) % 2 == 0
