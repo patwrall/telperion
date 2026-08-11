@@ -154,11 +154,28 @@ class Daemon:
             task.cancel()
             self._converse_task = None
             asyncio.create_task(self.speaker.say("Ears off."))
+            asyncio.create_task(self._converse_media(resume=True))
             return "converse off"
         self.speaker.interrupt()  # pedal doubles as the barge-in button
         self._converse_task = asyncio.create_task(self._converse_loop())
         asyncio.create_task(self.speaker.say("Ears on."))
+        asyncio.create_task(self._converse_media(resume=False))
         return "converse on"
+
+    async def _converse_media(self, resume: bool):
+        """Background media wrecks conversation (stream audio held the VAD
+        open 7-15s and fed STT 'Buddha' for 'CUDA'): pause it while ears
+        are on, resume only what we ourselves paused."""
+        try:
+            if resume:
+                if getattr(self, "_converse_paused_media", False):
+                    self._converse_paused_media = False
+                    await collectors.media_control("play")
+            elif await collectors.now_playing():
+                self._converse_paused_media = True
+                await collectors.media_control("pause")
+        except Exception as exc:
+            log.warning("converse media pause failed: %s", exc)
 
     async def _converse_loop(self):
         """The mic re-arms after every turn, no wake word needed. Wake
@@ -173,6 +190,7 @@ class Daemon:
                 quiet_windows = 0 if heard is not None else quiet_windows + 1
             log.info("converse: 5 minutes of silence, ears off")
             await self.speaker.say("Going quiet.")
+            await self._converse_media(resume=True)
         finally:
             self._converse_task = None
 
@@ -443,7 +461,10 @@ class Daemon:
                 # TLS handshake hides inside the model's first-token time
                 asyncio.ensure_future(self.speaker.warm())
                 loop = asyncio.get_running_loop()
-                filler = loop.call_later(1.0, self.speaker.play_filler)
+                # 1.5s: chat replies land ~1.5-2.5s, so 1.0s fired a filler
+                # before nearly every turn — chatter, not cover. Tool turns
+                # are covered by the speak-then-work leading ack instead.
+                filler = loop.call_later(1.5, self.speaker.play_filler)
 
                 spoke = False
 

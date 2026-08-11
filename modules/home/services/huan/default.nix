@@ -51,22 +51,23 @@ let
     };
   };
 
-  # faster-whisper accepts a local model directory; pinning it here removes
-  # the imperative first-run download into ~/.cache/huggingface
-  whisperSmallEn = pkgs.linkFarm "faster-whisper-small.en" (
+  # distil-large-v3: near large-v3 accuracy at ~2x speed. small.en heard
+  # 'Buddha' for 'CUDA' and 'a bakili's' for 'Achilles' in live use.
+  whisperDistilLargeV3 = pkgs.linkFarm "faster-distil-whisper-large-v3" (
     lib.mapAttrsToList
       (name: sha256: {
         inherit name;
         path = pkgs.fetchurl {
-          url = "https://huggingface.co/Systran/faster-whisper-small.en/resolve/main/${name}";
+          url = "https://huggingface.co/Systran/faster-distil-whisper-large-v3/resolve/main/${name}";
           inherit sha256;
         };
       })
       {
-        "config.json" = "1bjz3mk35k4zhc82dr29cybckknsnh13fzqpm0gzdh8aac2rcsk6";
-        "model.bin" = "0yp3irv9wk7ymhc8lhcd6xfkjhg06pp366rllnsaqngf0mds9ck2";
-        "tokenizer.json" = "1pr25px1bnafw3j29qyqf38k5qdmpjmx2xcanghxqdll8195574j";
-        "vocabulary.txt" = "1kqml5svagpwcv5k6xf5392f4p5rszznjnxb69fmk8nk8s3mhxzz";
+        "config.json" = "08cbb2ipaq4fppx8da6y41plhyjmjqpz22rx54bvpq64bivmzich";
+        "model.bin" = "1xf5qzg95ri0g3ylkg0yf031b9q9wdg6w6j314v828v6kghni4xp";
+        "tokenizer.json" = "1ji1bw7bqanfs5v6s32y3xyfgfr6baw6gb4d8xg83mfqs1ybv33d";
+        "vocabulary.json" = "1hch2skwpn9gg0k76zdlqcbdzl4fnjra5ycqqfvmkmi6mgr614n6";
+        "preprocessor_config.json" = "0497akxnvjzf06f8n7020md869j4i6swj03cnkrz2nknyb365k3w";
       }
   );
 
@@ -142,12 +143,12 @@ in
     stt = {
       model = mkOption {
         type = types.str;
-        default = toString whisperSmallEn;
-        defaultText = "small.en (pinned in the store)";
+        default = toString whisperDistilLargeV3;
+        defaultText = "distil-large-v3 (pinned in the store)";
         description = ''
           faster-whisper model: either a local model directory (the default
-          is small.en pinned in the Nix store) or a HuggingFace model name
-          like distil-large-v3, which downloads imperatively to
+          is distil-large-v3 pinned in the Nix store) or a HuggingFace
+          model name, which downloads imperatively to
           ~/.cache/huggingface on first load.
         '';
       };

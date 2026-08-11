@@ -376,3 +376,40 @@ class TestConverseMode:
         result = await d._dispatch_control({"cmd": "converse"})
         assert result == {"ok": True, "state": "converse on"}
         d._converse_task.cancel()
+
+
+class TestConverseMediaPause:
+    async def test_pauses_playing_media_and_resumes(self, make_daemon, monkeypatch):
+        d = make_daemon()
+        actions = []
+
+        async def fake_control(action):
+            actions.append(action)
+            return True
+
+        async def fake_playing():
+            return "IShowSpeed - Minecraft Hardcore"
+
+        monkeypatch.setattr(daemon_mod.collectors, "media_control", fake_control)
+        monkeypatch.setattr(daemon_mod.collectors, "now_playing", fake_playing)
+        await d._converse_media(resume=False)
+        assert actions == ["pause"]
+        await d._converse_media(resume=True)
+        assert actions == ["pause", "play"]
+
+    async def test_never_resumes_what_it_did_not_pause(self, make_daemon, monkeypatch):
+        d = make_daemon()
+        actions = []
+
+        async def fake_control(action):
+            actions.append(action)
+            return True
+
+        async def fake_playing():
+            return ""  # nothing playing at ears-on
+
+        monkeypatch.setattr(daemon_mod.collectors, "media_control", fake_control)
+        monkeypatch.setattr(daemon_mod.collectors, "now_playing", fake_playing)
+        await d._converse_media(resume=False)
+        await d._converse_media(resume=True)
+        assert actions == []
