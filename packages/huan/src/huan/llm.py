@@ -137,6 +137,14 @@ async def classify(http, url: str, text: str, timeout_s: float = 3.0) -> Intent 
     action = decision.get("action")
 
     if action == "workspace":
+        # 'Hey, huan' heard by STT as 'Hey, one.' switched workspaces;
+        # a bare greeting+number is a chopped wake word, not a command
+        if re.fullmatch(
+            r"(hey|hi|yo|huan|juan)[\s,.!?]*"
+            r"(one|two|three|four|five|six|seven|eight|nine|ten|\d+)?[\s.!?]*",
+            text.lower().strip(),
+        ):
+            return None
         n = decision.get("workspace")
         if isinstance(n, int) and 1 <= n <= 10:
             return Intent("workspace", n, f"workspace {n}")

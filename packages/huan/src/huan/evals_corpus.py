@@ -79,6 +79,10 @@ ROUTING_CASES = [
     # regression: a file-deletion request misrouted to close-window and
     # closed an unrelated window; no window words -> conversational
     {"text": "dispose of khanelivim in my projects folder", "expect": "none"},
+    # regression: 'Hey, huan' transcribed as 'Hey, one.' switched to
+    # workspace 1; bare greeting+number is a chopped wake word
+    {"text": "Hey, one.", "expect": "none"},
+    {"text": "hey huan", "expect": "none"},
     # -- status questions: answerable from live state, never delegated
     {"text": "how is my build doing", "expect": "none"},
     {"text": "what am I working on right now", "expect": "none"},

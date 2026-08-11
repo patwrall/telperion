@@ -329,20 +329,19 @@ class Speaker:
 
     # short, dry, low-energy — variety without theater; sparse [tags]
     # give eleven_v3 natural delivery. Clips are cached by content hash,
-    # so editing this list regenerates only what changed.
+    # so editing this list regenerates only what changed. NEUTRAL
+    # thinking sounds only: work-flavored fillers ("Checking.", "Let me
+    # look.") played before casual banter and read as robotic ack spam —
+    # a filler must fit both "fix my build" and "what's your genre".
     FILLER_PHRASES = [
         "Hmm.",
+        "Mm.",
         "[thoughtful] Hmm, hold on.",
         "Mm, one sec.",
-        "Let me look.",
-        "Checking.",
-        "Give me a second here.",
-        "Right, let's see.",
-        "Mm-hm, looking.",
         "Hang on.",
-        "Okay, let me actually check.",
-        "Let's see what we've got.",
+        "Right...",
         "Bear with me.",
+        "Give me a second here.",
     ]
 
     def _filler_dir(self):
@@ -402,6 +401,7 @@ class Speaker:
         pool = [c for c in clips if c.name != getattr(self, "_last_filler", None)]
         choice = random.choice(pool or clips)
         self._last_filler = choice.name
+        log.info("filler: %s", choice.stem)
         self._ensure_output_stream()
         self._enqueue(choice.read_bytes())
 

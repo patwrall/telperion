@@ -178,3 +178,16 @@ async def test_classify_tolerates_arbitrary_decisions(action, workspace):
     intent = await llm.classify(OneShot(), "http://x", "anything")
     if intent is not None and intent.action == "workspace":
         assert 1 <= intent.arg <= 10
+
+
+class TestChoppedWakeGuard:
+    async def test_greeting_number_never_switches(self, fake_http, chat_reply):
+        # 'Hey, huan' -> STT -> 'Hey, one.' -> 3B said workspace 1
+        http = fake_http([chat_reply(decision("workspace", 1))])
+        assert await llm.classify(http, "http://x", "Hey, one.") is None
+
+    async def test_real_workspace_requests_still_pass(self, fake_http, chat_reply):
+        for text in ("put me back on four", "take me to the third workspace"):
+            http = fake_http([chat_reply(decision("workspace", 4))])
+            intent = await llm.classify(http, "http://x", text)
+            assert intent is not None and intent.action == "workspace"
