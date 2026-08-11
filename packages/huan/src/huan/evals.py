@@ -79,11 +79,12 @@ def _mock_mcp_config(log_path: str) -> str:
     return path
 
 
-def _tools_match(expected: list, called: list) -> bool:
+def _tools_match(expected: list, called: list, optional: list = ()) -> bool:
     """Expected tools must appear in order; extra speak calls are fine.
-    With no expectations, any *acting* tool call is a failure but
-    speaking isn't."""
-    acting = [t for t in called if t != "speak"]
+    Optional tools are allowed but not required (e.g. checking instead
+    of admitting ignorance is fine — inventing an answer is not). With
+    no expectations, any non-optional *acting* call is a failure."""
+    acting = [t for t in called if t != "speak" and t not in optional]
     if not expected:
         return not acting
     it = iter(acting)
@@ -112,7 +113,11 @@ async def eval_convo(config: Config) -> dict:
             for line in Path(tool_log).read_text().splitlines()
             if line.strip()
         ]
-        tools_ok = _tools_match(scenario["expect_tools"], tools_called)
+        tools_ok = _tools_match(
+            scenario["expect_tools"],
+            tools_called,
+            scenario.get("optional_tools", ()),
+        )
         judged = await judge(scenario, transcript, tools_called, config)
         scenario_results.append(
             {

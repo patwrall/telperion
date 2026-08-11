@@ -61,3 +61,15 @@ class TestCorpusIntegrity:
         assert "no_leaks" in JUDGE_RUBRIC
         assert "agency" in JUDGE_RUBRIC
         assert "grounded" in JUDGE_RUBRIC
+
+
+class TestOptionalTools:
+    def test_optional_acting_call_passes_empty_expectation(self):
+        from huan.evals import _tools_match
+
+        assert _tools_match([], ["delegate_task", "speak"], ["delegate_task"])
+
+    def test_non_optional_acting_call_still_fails(self):
+        from huan.evals import _tools_match
+
+        assert not _tools_match([], ["close_focused_window"], ["delegate_task"])
