@@ -64,3 +64,28 @@ retrieves them) and prunes raw data.
 
 Configuration lives in `modules/home/services/huan`; the ElevenLabs API key is a
 runtime file (`~/.config/huan/elevenlabs-key`), never in the repo.
+
+## Known issues / ideas
+
+- Short garbled fragments (STT mishears a couple words, e.g. "buds", "team
+  marks") still get passed straight to routing instead of triggering a
+  clarifying question — a confidence threshold that asks for a repeat would cut
+  down on wrong guesses.
+- Media-pause-at-ears-on (see `a52996c`) only pauses one MPRIS player; other
+  concurrent audio sources (browser tab, terminal bell) can still bleed into the
+  mic during converse mode.
+- `silence_ms` (config.py, default 450ms) cuts capture on any pause that long,
+  including mid-sentence thinking pauses — bump to ~650ms as a first pass,
+  validate with `huan eval convo`. Real fix for "thinking out loud" pauses is a
+  two-stage endpointing: on hitting silence_ms, run a partial transcript through
+  the existing 3B router asking whether the utterance sounds finished; if not,
+  extend the window instead of cutting. Only costs extra latency on
+  already-ambiguous pauses.
+- Conversational turns ("the brain", haiku-class persistent process in brain.py)
+  take ~4-5s from end of capture to first spoken sentence even though STT
+  (<250ms) and TTS-first-audio (440-900ms) are both fast — streaming is already
+  wired up (brain.py flushes per-sentence), so the gap is genuine model
+  think-time. Two unverified suspects worth profiling: (1) whether
+  extended-thinking/reasoning is on by default for that subprocess and adding
+  hidden latency before the first sentence, and (2) accumulated conversation
+  history cost as the persistent session grows toward its max_turns=8 rotation.
