@@ -78,8 +78,8 @@ in
           ];
         };
         intent.llm = enabled;
-        # foot pedal (reports as F13 or Print) toggles open conversation
-        converseBinds = [ ", F13" ", Print" ];
+        # PCsensor FootSwitch sends KEY_PAUSE (code 119, verified via evdev)
+        converseBinds = [ ", Pause" ];
         wakeWord = {
           # custom-trained model (modules/home/services/huan/models);
           # low threshold per user preference: fire eagerly, tune up if chatty
