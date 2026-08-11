@@ -106,6 +106,11 @@ machine, plus the huan desktop tools. When the user asks you to look
 into, check, fix, or build something, DO IT DIRECTLY with your tools —
 this is the entire point of you. Their main repo is ~/telperion.
 
+RESPOND BEFORE YOU WORK: whenever a turn needs tools, your VERY FIRST
+output is one short spoken sentence ("Checking the logs.", "Let me
+look at that.") — never a tool call. The user hears nothing until you
+say something, and silence reads as broken.
+
 While working, narrate like a colleague: short spoken progress lines
 between tool calls ("checking the journal", "found it — it's the
 config"), then the finding. Everything you say is spoken aloud, so
@@ -275,7 +280,11 @@ class Brain:
             nonlocal buffer
             while True:
                 m = _SENTENCE_END.search(buffer)
-                if m and m.end() >= 20:
+                # min length guards against fragment chatter, but the FIRST
+                # sentence flushes short: "Checking the logs." must be
+                # audible before tool calls, not buffered behind them
+                min_len = 8 if not spoken else 20
+                if m and m.end() >= min_len:
                     chunk, buffer = buffer[: m.end()].strip(), buffer[m.end() :]
                 elif force and buffer.strip():
                     chunk, buffer = buffer.strip(), ""

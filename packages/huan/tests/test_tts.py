@@ -183,3 +183,35 @@ class TestFillerVariety:
         speaker.play_filler()
         speaker.play_filler()
         assert len(count) == 2
+
+
+class TestWarm:
+    async def test_warm_rate_limited(self, tmp_path):
+        speaker = make_speaker(tmp_path, eleven_voice_id="v")
+        speaker._api_key = "k"
+        calls = []
+
+        class FakeHttp:
+            async def get(self, *a, **kw):
+                calls.append(1)
+
+        speaker._http = FakeHttp()
+        await speaker.warm()
+        await speaker.warm()  # within 30s window: skipped
+        assert len(calls) == 1
+
+    async def test_warm_noop_without_eleven(self, tmp_path):
+        speaker = make_speaker(tmp_path)
+        await speaker.warm()  # must not raise or create a client
+        assert speaker._http is None
+
+    async def test_warm_swallows_network_errors(self, tmp_path):
+        speaker = make_speaker(tmp_path, eleven_voice_id="v")
+        speaker._api_key = "k"
+
+        class FailingHttp:
+            async def get(self, *a, **kw):
+                raise OSError("no network")
+
+        speaker._http = FailingHttp()
+        await speaker.warm()  # must not raise

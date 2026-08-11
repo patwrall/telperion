@@ -190,3 +190,22 @@ class TestLifecycle:
         monkeypatch.setattr(brain, "_ask_once", never)
         with pytest.raises(asyncio.TimeoutError):
             await brain.ask("q", "ctx", timeout_s=0.05)
+
+
+class TestLeadingAck:
+    async def test_short_first_sentence_flushes_immediately(self):
+        # "Checking." is under the 20-char steady-state minimum; as the
+        # FIRST sentence it must stream out before tool work, not sit
+        # buffered behind it
+        brain = make_brain(
+            events=[
+                delta("Checking."),
+                delta(" The logs look clean, nothing since noon."),
+                {"type": "result"},
+            ]
+        )
+        chunks = []
+        reply = await brain._ask_once("q", "ctx", chunks.append)
+        assert chunks[0] == "Checking."
+        assert len(chunks) == 2
+        assert reply.startswith("Checking.")

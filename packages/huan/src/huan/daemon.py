@@ -406,8 +406,11 @@ class Daemon:
 
         async def _chat():
             if self.brain is not None:
+                # pre-warm the TTS connection while the brain thinks; the
+                # TLS handshake hides inside the model's first-token time
+                asyncio.ensure_future(self.speaker.warm())
                 loop = asyncio.get_running_loop()
-                filler = loop.call_later(1.3, self.speaker.play_filler)
+                filler = loop.call_later(1.0, self.speaker.play_filler)
 
                 spoke = False
 
@@ -419,6 +422,7 @@ class Daemon:
                         log.info("leak dropped: %r", sentence[:80])
                         return
                     spoke = True
+                    log.info("say: %r", clean[:80])
                     asyncio.create_task(self.speaker.say(clean))
 
                 try:

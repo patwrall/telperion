@@ -212,6 +212,29 @@ class Speaker:
 
     # -- elevenlabs http backend (fallback for ws failures) ------------------
 
+    async def warm(self):
+        """Re-establish the TLS connection to ElevenLabs while the brain is
+        still thinking, so first audio doesn't pay the handshake. Called at
+        turn start; rate-limited; failures are irrelevant."""
+        if not self.eleven_enabled:
+            return
+        now = time.monotonic()
+        if now - getattr(self, "_last_warm", 0.0) < 30.0:
+            return
+        self._last_warm = now
+        import httpx
+
+        if self._http is None:
+            self._http = httpx.AsyncClient(timeout=10.0)
+        try:
+            await self._http.get(
+                "https://api.elevenlabs.io/v1/models",
+                headers={"xi-api-key": self._api_key},
+                timeout=3.0,
+            )
+        except Exception:
+            pass
+
     async def _say_eleven(self, text: str):
         import httpx
 
