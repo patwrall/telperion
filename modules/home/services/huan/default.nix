@@ -235,8 +235,13 @@ in
 
       cwd = mkOption {
         type = types.str;
-        default = "~";
-        description = "Working directory for the agent (loads that dir's CLAUDE.md).";
+        default = "~/.local/share/huan/work";
+        description = ''
+          Working directory for the agent. Not the home directory: sessions
+          spawned from ~ land in the user's root Claude project and bury
+          their own resumable sessions in the picker (and ~'s CLAUDE.md
+          would leak into huan's context).
+        '';
       };
 
       permissionMode = mkOption {
@@ -400,6 +405,9 @@ in
   config = mkIf cfg.enable {
     home.packages = [ cfg.package ] ++ cfg.brain.tools;
 
+    # the daemon's WorkingDirectory must exist before systemd starts it
+    home.file.".local/share/huan/work/.keep".text = "";
+
     systemd.user.services = {
       huan = {
         Unit = {
@@ -411,6 +419,10 @@ in
 
         Service = {
           ExecStart = "${lib.getExe cfg.package} daemon --config ${daemonConfig}";
+          # own working dir: the brain's sessions must not pollute the
+          # user's root Claude project (~) — they buried the user's own
+          # resumable sessions there
+          WorkingDirectory = "${config.home.homeDirectory}/.local/share/huan/work";
           Restart = "on-failure";
           RestartSec = 5;
         };
