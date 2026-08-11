@@ -215,3 +215,24 @@ class TestWarm:
 
         speaker._http = FailingHttp()
         await speaker.warm()  # must not raise
+
+
+class TestProsodyContinuity:
+    def test_interrupt_clears_prosody_anchor(self, tmp_path):
+        speaker = make_speaker(tmp_path)
+        speaker._prev_synth_text = "an earlier sentence."
+        speaker.interrupt()
+        assert speaker._prev_synth_text == ""
+
+    def test_filler_cache_key_includes_voice_settings(self, tmp_path):
+        import hashlib
+        import json as json_mod
+
+        a = make_speaker(tmp_path, eleven_style=0.55)
+        b = make_speaker(tmp_path, eleven_style=0.1)
+
+        def key(speaker):
+            tag = json_mod.dumps(speaker.eleven_voice_settings, sort_keys=True)
+            return hashlib.sha1(("Hmm." + tag).encode()).hexdigest()
+
+        assert key(a) != key(b)

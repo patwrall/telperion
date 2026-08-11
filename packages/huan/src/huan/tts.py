@@ -107,6 +107,7 @@ class Speaker:
             had_audio = bool(self._buffer)
             self._buffer.clear()
         self._last_active = 0.0
+        self._prev_synth_text = ""  # a cut-off take is no prosody anchor
         if self._ws is not None:
             ws, self._ws = self._ws, None
             asyncio.ensure_future(ws.close())
@@ -245,16 +246,22 @@ class Speaker:
         )
         t0 = time.monotonic()
         first = True
+        # previous_text: each sentence of a reply is its own request, and
+        # v3 renders each as an independent take — audibly different mid
+        # reply. Passing the prior sentence keeps the prosody continuous.
+        body = {
+            "text": text,
+            "model_id": self.eleven_model_id,
+            "voice_settings": self.eleven_voice_settings,
+        }
+        if getattr(self, "_prev_synth_text", ""):
+            body["previous_text"] = self._prev_synth_text[-300:]
         async with self._http.stream(
             "POST",
             url,
             params={"output_format": f"pcm_{ELEVEN_RATE}"},
             headers={"xi-api-key": self._api_key},
-            json={
-                "text": text,
-                "model_id": self.eleven_model_id,
-                "voice_settings": self.eleven_voice_settings,
-            },
+            json=body,
         ) as response:
             response.raise_for_status()
             async for chunk in response.aiter_bytes():
@@ -265,6 +272,7 @@ class Speaker:
                     )
                     first = False
                 self._enqueue(chunk)
+        self._prev_synth_text = text
 
     # -- piper fallback ------------------------------------------------------
 
@@ -362,8 +370,11 @@ class Speaker:
 
         directory = self._filler_dir()
         directory.mkdir(parents=True, exist_ok=True)
+        # settings are part of the hash: fillers rendered with default
+        # voice_settings sounded like a different speaker than the replies
+        settings_tag = json.dumps(self.eleven_voice_settings, sort_keys=True)
         wanted = {
-            f"filler_{hashlib.sha1(p.encode()).hexdigest()[:12]}.pcm": p
+            f"filler_{hashlib.sha1((p + settings_tag).encode()).hexdigest()[:12]}.pcm": p
             for p in self.FILLER_PHRASES
         }
         for stale in directory.glob("filler_*.pcm"):
@@ -379,7 +390,11 @@ class Speaker:
                         f"https://api.elevenlabs.io/v1/text-to-speech/{self.eleven_voice_id}",
                         params={"output_format": f"pcm_{ELEVEN_RATE}"},
                         headers={"xi-api-key": self._api_key},
-                        json={"text": phrase, "model_id": self.eleven_model_id},
+                        json={
+                            "text": phrase,
+                            "model_id": self.eleven_model_id,
+                            "voice_settings": self.eleven_voice_settings,
+                        },
                     )
                     response.raise_for_status()
                 target.write_bytes(response.content)

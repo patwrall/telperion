@@ -469,10 +469,10 @@ class Daemon:
                 # TLS handshake hides inside the model's first-token time
                 asyncio.ensure_future(self.speaker.warm())
                 loop = asyncio.get_running_loop()
-                # 1.5s: chat replies land ~1.5-2.5s, so 1.0s fired a filler
-                # before nearly every turn — chatter, not cover. Tool turns
-                # are covered by the speak-then-work leading ack instead.
-                filler = loop.call_later(1.5, self.speaker.play_filler)
+                # 2.5s: with speak-then-work covering tool turns and chat
+                # landing ~1.5-2.5s, a filler should be the exception —
+                # genuine dead air only, not a tic before every reply
+                filler = loop.call_later(2.5, self.speaker.play_filler)
 
                 spoke = False
 
