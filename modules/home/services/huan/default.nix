@@ -363,6 +363,17 @@ in
       };
     };
 
+    converseBinds = mkOption {
+      type = types.listOf types.str;
+      default = [ ];
+      example = [ ", F13" ];
+      description = ''
+        Hyprland binds (e.g. a foot pedal) toggling converse mode:
+        wake-word-free open conversation, mic re-arming after every
+        turn, auto-off after 5 minutes of silence.
+      '';
+    };
+
     proactive = mkOption {
       type = types.bool;
       default = true;
@@ -516,6 +527,7 @@ in
         "bind = ${cfg.ptt.bind}, exec, ${huanCtl} ptt-start"
         "bindr = ${cfg.ptt.bind}, exec, ${huanCtl} ptt-stop"
       ]
+      ++ map (b: "bind = ${b}, exec, ${huanCtl} converse") cfg.converseBinds
       ++ lib.optional (cfg.sleepToggleBind != null)
         "bind = ${cfg.sleepToggleBind}, exec, ${huanCtl} toggle"
     );

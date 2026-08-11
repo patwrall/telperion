@@ -53,6 +53,7 @@ def main() -> int:
             "status",
             "ptt-start",
             "ptt-stop",
+            "converse",
             "sleep",
             "wake",
             "toggle",

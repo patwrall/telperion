@@ -146,6 +146,36 @@ class Daemon:
         self._ptt_stop.set()
         return "stopped"
 
+    # -- converse mode (foot pedal): wake-word-free open conversation --------
+
+    def _converse_toggle(self) -> str:
+        task = getattr(self, "_converse_task", None)
+        if task is not None and not task.done():
+            task.cancel()
+            self._converse_task = None
+            asyncio.create_task(self.speaker.say("Ears off."))
+            return "converse off"
+        self.speaker.interrupt()  # pedal doubles as the barge-in button
+        self._converse_task = asyncio.create_task(self._converse_loop())
+        asyncio.create_task(self.speaker.say("Ears on."))
+        return "converse on"
+
+    async def _converse_loop(self):
+        """The mic re-arms after every turn, no wake word needed. Wake
+        detection self-disables meanwhile (pipeline lock held during the
+        listen window). Auto-off after ~5 minutes of silence."""
+        quiet_windows = 0
+        try:
+            while quiet_windows < 5:
+                heard = await self._run_pipeline(
+                    source="converse", onset_timeout_ms=60_000
+                )
+                quiet_windows = 0 if heard is not None else quiet_windows + 1
+            log.info("converse: 5 minutes of silence, ears off")
+            await self.speaker.say("Going quiet.")
+        finally:
+            self._converse_task = None
+
     # -- pipeline ------------------------------------------------------------
 
     async def _run_pipeline(
@@ -156,6 +186,7 @@ class Daemon:
         onset_timeout_ms: int | None = None,
     ):
         followup = False
+        heard = None
         async with self._pipeline_lock:
             watch = Stopwatch()
             try:
@@ -213,6 +244,7 @@ class Daemon:
                     watch.lap("splice")
                 result = await self._act(text, watch, quiet=source == "followup")
                 log.info("%s %s text=%r -> %s", source, watch.summary(), text, result)
+                heard = result
                 # chat turns ("unknown"/"status") schedule their own hot
                 # window after the reply finishes speaking
                 followup = (
@@ -232,6 +264,7 @@ class Daemon:
                     onset_timeout_ms=int(self.config.followup_s * 1000),
                 )
             )
+        return heard
 
     async def _act(self, text: str, watch: Stopwatch, quiet: bool = False) -> str:
         parsed = intent.classify(text)
@@ -690,6 +723,8 @@ class Daemon:
         if cmd == "wake":
             await self._wake_models()
             return {"ok": True}
+        if cmd == "converse":
+            return {"ok": True, "state": self._converse_toggle()}
         if cmd == "toggle":
             if self.sleeping:
                 await self._wake_models()

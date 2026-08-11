@@ -314,3 +314,65 @@ class TestHistory:
         monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path))
         d2 = Daemon(Config())
         assert list(d2.history)[-2:] == ["user: hello there", "huan: hi yourself"]
+
+
+class TestConverseMode:
+    async def test_toggle_on_starts_loop_and_speaks(self, make_daemon):
+        d = make_daemon()
+        said = []
+
+        async def fake_say(text):
+            said.append(text)
+
+        d.speaker.say = fake_say
+        result = d._converse_toggle()
+        assert result == "converse on"
+        assert d._converse_task is not None and not d._converse_task.done()
+        d._converse_task.cancel()
+        await asyncio.sleep(0)
+        assert said == ["Ears on."]
+
+    async def test_toggle_off_cancels_loop(self, make_daemon):
+        d = make_daemon()
+
+        async def fake_say(text):
+            pass
+
+        d.speaker.say = fake_say
+        d._converse_toggle()
+        task = d._converse_task
+        result = d._converse_toggle()
+        assert result == "converse off"
+        await asyncio.sleep(0)
+        assert task.cancelled() or task.done()
+
+    async def test_silence_windows_auto_off(self, make_daemon, monkeypatch):
+        d = make_daemon()
+        said = []
+
+        async def fake_say(text):
+            said.append(text)
+
+        d.speaker.say = fake_say
+        windows = []
+
+        async def fake_pipeline(source, onset_timeout_ms=None, **kw):
+            windows.append(source)
+            return None  # silence: nothing heard
+
+        monkeypatch.setattr(d, "_run_pipeline", fake_pipeline)
+        await d._converse_loop()
+        assert windows == ["converse"] * 5
+        assert said == ["Going quiet."]
+        assert d._converse_task is None
+
+    async def test_control_verb_dispatches(self, make_daemon):
+        d = make_daemon()
+
+        async def fake_say(text):
+            pass
+
+        d.speaker.say = fake_say
+        result = await d._dispatch_control({"cmd": "converse"})
+        assert result == {"ok": True, "state": "converse on"}
+        d._converse_task.cancel()
