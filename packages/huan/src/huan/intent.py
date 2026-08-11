@@ -113,8 +113,20 @@ def looks_unfinished(text: str) -> bool:
     return last in _TRAILING_UNFINISHED
 
 
-# status questions are answerable from live local state; a code-level
-# guard because the 3B router keeps delegating them despite examples
+# pure acknowledgments ("okay", "mm-hm") are backchannels: a human
+# conversation partner lets them pass instead of replying to each one
+_BACKCHANNEL_WORD = (
+    r"(?:m+|mm+[\s-]?hm+|uh[\s-]?huh|okay|ok|k|yeah|yep|yes|no|nah|right|"
+    r"cool|sure|gotcha|got it|nice|alright|all right|fair|fair enough|"
+    r"makes sense|i see|true|word|bet)"
+)
+_BACKCHANNEL_RE = re.compile(rf"(?:{_BACKCHANNEL_WORD}[\s,.!]*){{1,3}}", re.IGNORECASE)
+
+
+def is_backchannel(text: str) -> bool:
+    return bool(_BACKCHANNEL_RE.fullmatch(text.strip().strip(".!,? ")))
+
+
 def classify(text: str) -> Intent | None:
     t = text.lower().strip().rstrip(".!?")
     if not t:

@@ -413,3 +413,24 @@ class TestConverseMediaPause:
         await d._converse_media(resume=False)
         await d._converse_media(resume=True)
         assert actions == []
+
+
+class TestBackchannelGate:
+    async def test_backchannel_gets_no_reply(self, make_daemon):
+        d = make_daemon()
+        result = await d._act("Okay.", Stopwatch())
+        assert result == "backchannel"
+        assert d.chats == [] and d.spoken_responses == []
+
+    async def test_backchannel_after_question_is_an_answer(self, make_daemon):
+        d = make_daemon()
+        d._last_reply_question = True
+        result = await d._act("Yeah.", Stopwatch())
+        assert result == "unknown"
+        assert d.chats == ["Yeah."]
+
+    async def test_content_still_chats(self, make_daemon):
+        d = make_daemon()
+        result = await d._act("okay so how does the scheduler work", Stopwatch())
+        assert result == "unknown"
+        assert d.chats == ["okay so how does the scheduler work"]

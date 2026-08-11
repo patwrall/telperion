@@ -149,3 +149,44 @@ def test_classify_never_crashes_and_stays_in_range(text):
         assert isinstance(intent, Intent)
         if intent.action == "workspace":
             assert 1 <= intent.arg <= 10
+
+
+class TestBackchannel:
+    @pytest.mark.parametrize(
+        "text",
+        [
+            "Okay.",
+            "okay",
+            "Mmm.",
+            "mm-hm",
+            "uh huh",
+            "Yeah.",
+            "yeah okay",
+            "Fair enough, fair enough",
+            "got it",
+            "Cool cool.",
+            "Right.",
+            "makes sense",
+        ],
+    )
+    def test_pure_acknowledgments(self, text):
+        from huan.intent import is_backchannel
+
+        assert is_backchannel(text)
+
+    @pytest.mark.parametrize(
+        "text",
+        [
+            "okay so how does the scheduler work",
+            "yeah but why did it fail",
+            "no, the other one",
+            "right click the file",
+            "cool it down a bit",
+            "what's the weather",
+            "",
+        ],
+    )
+    def test_real_content_is_not_backchannel(self, text):
+        from huan.intent import is_backchannel
+
+        assert not is_backchannel(text)

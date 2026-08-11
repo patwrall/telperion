@@ -298,6 +298,14 @@ class Daemon:
                 log.warning("llm intent failed: %s", exc)
             watch.lap("intent_llm")
         if parsed is None:
+            # backchannels ("okay", "mm-hm") pass without a reply, like a
+            # human listener — unless huan just asked a question, in which
+            # case "yeah" is the answer and must go through
+            if intent.is_backchannel(text) and not getattr(
+                self, "_last_reply_question", False
+            ):
+                log.info("backchannel, staying quiet: %r", text)
+                return "backchannel"
             # in the follow-up window, unmatched speech is usually musing —
             # unless a chat exchange just happened, in which case the
             # conversation is hot and continuing it is the human behavior
@@ -495,6 +503,9 @@ class Daemon:
                     self._remember("huan", reply)
                     log.info("brain: %r", reply)
                     self._last_chat_ts = time.time()
+                    # a trailing question turns the user's next "yeah" from
+                    # an ignorable backchannel into an answer
+                    self._last_reply_question = reply.rstrip().endswith("?")
                     # hot window: keep listening so the user can continue
                     # the conversation without the wake word
                     if self.config.followup_s > 0 and not self._pipeline_lock.locked():
