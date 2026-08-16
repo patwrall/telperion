@@ -41,6 +41,7 @@ let
     "CTRL_SUPER_SHIFT, down, movetoworkspace, e+0"
     "SUPER_ALT, S, movetoworkspace, special:special"
     # Named scratchpads
+    "SUPER, grave, togglespecialworkspace, special"
     "SUPER, M, togglespecialworkspace, music"
     "SUPER, J, togglespecialworkspace, discord"
     "CTRL_SHIFT, Tab, togglespecialworkspace, sysmon"
