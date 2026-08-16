@@ -19,7 +19,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-
 # ---------------------------------------------------------------------------
 # Tunable constants — edit here to adjust behavior.
 # ---------------------------------------------------------------------------
@@ -29,14 +28,14 @@ DEFAULT_TARGET_GRADE = 90.0  # Percent. Used when user config is absent.
 # Urgency curve: piecewise, in days-until-due (dt).
 # Values chosen so the top of the list always skews toward "due soon" without
 # completely drowning out medium-term large-weight items.
-URGENCY_OVERDUE = 10.0      # dt < -0.5 (>12h late)
+URGENCY_OVERDUE = 10.0  # dt < -0.5 (>12h late)
 URGENCY_DUE_SOON_MAX = 6.0  # dt ~ 0
 URGENCY_DUE_SOON_MIN = 1.0  # dt ~ 1 day
-URGENCY_WEEK_MAX = 2.0      # dt ~ 1 day
-URGENCY_WEEK_MIN = 1.0      # dt ~ 7 days
-URGENCY_MONTH_MAX = 1.0     # dt ~ 7 days
-URGENCY_MONTH_MIN = 0.5     # dt ~ 21 days
-URGENCY_FAR = 0.3           # dt > 21 days
+URGENCY_WEEK_MAX = 2.0  # dt ~ 1 day
+URGENCY_WEEK_MIN = 1.0  # dt ~ 7 days
+URGENCY_MONTH_MAX = 1.0  # dt ~ 7 days
+URGENCY_MONTH_MIN = 0.5  # dt ~ 21 days
+URGENCY_FAR = 0.3  # dt > 21 days
 
 # Risk multiplier: amplifies items in courses where the user is below target.
 # At `gap` = RISK_GAP_FULL, multiplier hits 2x.
@@ -66,12 +65,13 @@ FALLBACK_EFFORT_HOURS = 3.0
 
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class Course:
     name: str
     current_grade: float | None
-    category_weights: dict[str, float]      # category name -> % of final
-    effort_defaults: dict[str, float]       # category -> hours
+    category_weights: dict[str, float]  # category name -> % of final
+    effort_defaults: dict[str, float]  # category -> hours
 
 
 @dataclass
@@ -131,12 +131,20 @@ def urgency(dt_days: float) -> float:
         return URGENCY_OVERDUE
     if dt_days < 1:
         # Linear 6.0 -> 1.0 over (0, 1) days. Hits 6.0 at the due moment.
-        return URGENCY_DUE_SOON_MAX - (URGENCY_DUE_SOON_MAX - URGENCY_DUE_SOON_MIN) * max(0.0, dt_days)
+        return URGENCY_DUE_SOON_MAX - (
+            URGENCY_DUE_SOON_MAX - URGENCY_DUE_SOON_MIN
+        ) * max(0.0, dt_days)
     if dt_days < 7:
         # Linear 2.0 -> 1.0 over (1, 7) days.
-        return URGENCY_WEEK_MAX - (URGENCY_WEEK_MAX - URGENCY_WEEK_MIN) * (dt_days - 1) / 6.0
+        return (
+            URGENCY_WEEK_MAX
+            - (URGENCY_WEEK_MAX - URGENCY_WEEK_MIN) * (dt_days - 1) / 6.0
+        )
     if dt_days < 21:
-        return URGENCY_MONTH_MAX - (URGENCY_MONTH_MAX - URGENCY_MONTH_MIN) * (dt_days - 7) / 14.0
+        return (
+            URGENCY_MONTH_MAX
+            - (URGENCY_MONTH_MAX - URGENCY_MONTH_MIN) * (dt_days - 7) / 14.0
+        )
     return URGENCY_FAR
 
 
@@ -245,7 +253,9 @@ def main() -> int:
         or user_config.get("target_grade")
         or DEFAULT_TARGET_GRADE
     )
-    now = parse_iso(payload["now"]) if payload.get("now") else datetime.now(timezone.utc)
+    now = (
+        parse_iso(payload["now"]) if payload.get("now") else datetime.now(timezone.utc)
+    )
     if now is None:
         now = datetime.now(timezone.utc)
 

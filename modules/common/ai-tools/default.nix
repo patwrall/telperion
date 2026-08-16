@@ -11,10 +11,12 @@ let
 
   convertAgentsToGemini =
     agents:
-    lib.mapAttrs (name: agent: {
-      prompt = agent.content;
-      description = agent.description or "AI agent: ${name}";
-    }) agents;
+    lib.mapAttrs
+      (name: agent: {
+        prompt = agent.content;
+        description = agent.description or "AI agent: ${name}";
+      })
+      agents;
 
 in
 {

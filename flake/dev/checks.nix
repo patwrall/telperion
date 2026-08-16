@@ -32,6 +32,12 @@
           typos = {
             enable = true;
             excludes = [ "generated/*" ];
+            # snd_hda_intel is a kernel module name, not "had". Scoped to the
+            # identifier so a genuine hda/had typo in prose still trips.
+            settings.configuration = ''
+              [default.extend-identifiers]
+              snd_hda_intel = "snd_hda_intel"
+            '';
           };
         };
       };

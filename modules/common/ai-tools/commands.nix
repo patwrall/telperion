@@ -78,10 +78,12 @@ let
 
   toOpenCodeMarkdown = lib.mapAttrs (_name: renderOpenCodeMarkdown) normalizedCommands;
 
-  toGeminiCommands = lib.mapAttrs (_name: command: {
-    inherit (command) prompt;
-    description = command.description or "AI command";
-  }) normalizedCommands;
+  toGeminiCommands = lib.mapAttrs
+    (_name: command: {
+      inherit (command) prompt;
+      description = command.description or "AI command";
+    })
+    normalizedCommands;
 
 in
 {
