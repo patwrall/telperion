@@ -47,8 +47,11 @@ _: {
           command = ''
             input=$(cat)
 
-            # Check for path traversal attempts
-            if echo "$input" | jq -r '.tool_input | to_entries[] | .value' 2>/dev/null | grep -qE '\.\./' ; then
+            # Check for path traversal attempts.
+            # Only the path-shaped fields. Scanning every tool_input value also
+            # scanned `content` and `new_string`, so any source file holding a
+            # relative parent import was rejected as an attack.
+            if echo "$input" | jq -r '.tool_input | (.file_path // empty), (.notebook_path // empty)' 2>/dev/null | grep -qE '\.\./' ; then
               echo '{"hookSpecificOutput":{"permissionDecision":"deny","permissionDecisionReason":"Path traversal attempt detected"}}'
               exit 2
             fi
