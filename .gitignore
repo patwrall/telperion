@@ -37,3 +37,9 @@ target/
 .venv
 
 **/.claude/settings.local.json
+
+# Agent tool debris — the Playwright MCP writes snapshots and screenshots into
+# whatever directory the session is running from.
+.playwright-mcp/
+page-*.yml
+console-*.log
