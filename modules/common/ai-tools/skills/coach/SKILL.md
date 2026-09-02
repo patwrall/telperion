@@ -12,11 +12,12 @@ from professional coaches on TrainingPeaks or similar platforms.
 
 ## Step 0: Read the Stored Athlete Profile
 
-**Always read `reference/athlete-profile.md` first.** This installation has a
-standing profile with the athlete's baseline, goal races, and constraints
-already captured. When it covers the athlete, **skip the setup interview below**
-— go straight to Phase 2 (validation), confirming only the fields the profile
-marks UNKNOWN or stale.
+**Always check `~/fitness/athlete-profile.md` first, if it exists.** This is a
+local, untracked file (outside the skill, outside version control) that some
+installations use to store a standing profile with the athlete's baseline, goal
+races, and constraints. When it covers the athlete, **skip the setup interview
+below** — go straight to Phase 2 (validation), confirming only the fields the
+profile marks UNKNOWN or stale.
 
 Only fall through to the setup flow below if the profile is missing or the
 athlete is someone else.
@@ -261,16 +262,16 @@ back to CLI otherwise).
 
 Read these files as needed during plan creation:
 
-| File                           | When to Read                | Contents                                     |
-| ------------------------------ | --------------------------- | -------------------------------------------- |
-| `reference/athlete-profile.md` | **Always, first**           | Stored baseline, goal races, constraints     |
-| `reference/queries.md`         | First step of assessment    | SQL queries for athlete analysis             |
-| `reference/assessment.md`      | After running queries       | How to interpret data, validate with athlete |
-| `reference/zones.md`           | Before prescribing workouts | Training zones, field testing protocols      |
-| `reference/load-management.md` | When setting volume targets | TSS, CTL/ATL/TSB, weekly load targets        |
-| `reference/periodization.md`   | When structuring phases     | Macrocycles, recovery, progressive overload  |
-| `reference/workouts.md`        | When writing weekly plans   | Sport-specific workout library               |
-| `reference/race-day.md`        | Final section of plan       | Pacing strategy, nutrition                   |
+| File                           | When to Read                  | Contents                                           |
+| ------------------------------ | ----------------------------- | -------------------------------------------------- |
+| `~/fitness/athlete-profile.md` | **Always, first, if present** | Local, untracked baseline, goal races, constraints |
+| `reference/queries.md`         | First step of assessment      | SQL queries for athlete analysis                   |
+| `reference/assessment.md`      | After running queries         | How to interpret data, validate with athlete       |
+| `reference/zones.md`           | Before prescribing workouts   | Training zones, field testing protocols            |
+| `reference/load-management.md` | When setting volume targets   | TSS, CTL/ATL/TSB, weekly load targets              |
+| `reference/periodization.md`   | When structuring phases       | Macrocycles, recovery, progressive overload        |
+| `reference/workouts.md`        | When writing weekly plans     | Sport-specific workout library                     |
+| `reference/race-day.md`        | Final section of plan         | Pacing strategy, nutrition                         |
 
 ---
 
@@ -278,8 +279,8 @@ Read these files as needed during plan creation:
 
 ### Phase 0: Setup
 
-0. Read `reference/athlete-profile.md`. If it covers this athlete, skip to
-   Phase 2.
+0. Check `~/fitness/athlete-profile.md`. If it exists and covers this athlete,
+   skip to Phase 2.
 1. Ask how athlete wants to provide data (Strava or manual)
 2. **If Strava:** Check for existing database, gather credentials if needed, run
    sync
@@ -557,9 +558,9 @@ After writing the JSON file, render it to an interactive HTML viewer:
 npx claude-coach render plan.json --output plan.html
 ```
 
-**Fallback:** if `node`/`npx` is unavailable (see `reference/athlete-profile.md`
-— it is not on PATH on this machine), do not stall. Write the HTML viewer
-yourself from the JSON, keeping the same feature set below.
+**Fallback:** if `node`/`npx` is unavailable (some installations note this in
+`~/fitness/athlete-profile.md`), do not stall. Write the HTML viewer yourself
+from the JSON, keeping the same feature set below.
 
 This creates a beautiful, interactive training plan with:
 
