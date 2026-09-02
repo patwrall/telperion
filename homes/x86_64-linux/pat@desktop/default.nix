@@ -16,6 +16,7 @@ in
       graphical = {
         apps = {
           gdlauncher = enabled;
+          iloader = enabled;
           obsidian = enabled;
           rnote = enabled;
           sioyek = enabled;

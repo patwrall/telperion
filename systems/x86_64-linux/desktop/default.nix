@@ -62,6 +62,7 @@ in
       mullvad-vpn = enabled;
       openssh = enabled;
       power = enabled;
+      usbmuxd = enabled;
     };
 
     suites = {

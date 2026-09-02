@@ -40,7 +40,7 @@ in
         dconf
         glib # gsettings
         gtk3.out # for gtk-launch
-        libappindicator-gtk3
+        libappindicator
         # Provides bluetooth-symbolic and other standard freedesktop icons
         # missing from Papirus-Dark (used by blueman and other applets)
         adwaita-icon-theme

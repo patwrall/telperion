@@ -46,6 +46,7 @@ in
       flatpak = enabled;
       geoclue = enabled;
       power = enabled;
+      usbmuxd = enabled;
     };
 
     suites.development = {
