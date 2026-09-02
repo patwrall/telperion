@@ -55,6 +55,9 @@ in
 
     services = {
       avahi = enabled;
+      # ddcci-driver fails to build against the current kernel (implicit
+      # strncpy declaration, gcc-15) — disabled until upstream fixes it.
+      ddccontrol.enable = lib.mkForce false;
       geoclue = enabled;
       mullvad-vpn = enabled;
       openssh = enabled;

@@ -3,7 +3,7 @@
 , ...
 }:
 let
-  inherit (lib.telperion) enabled;
+  inherit (lib.telperion) enabled disabled;
 in
 {
   telperion = {
@@ -66,7 +66,7 @@ in
 
     services = {
       huan = {
-        enable = true;
+        enable = false;
         agent = enabled;
         brain = {
           # the pivot: voice-driven Claude Code — the brain works directly
@@ -77,7 +77,7 @@ in
             himalaya # Gmail via IMAP OAuth2 (one-time setup)
           ];
         };
-        intent.llm = enabled;
+        intent.llm = disabled;
         # PCsensor FootSwitch sends KEY_PAUSE (code 119, verified via evdev)
         converseBinds = [ ", Pause" ];
         wakeWord = {
