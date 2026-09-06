@@ -40,6 +40,16 @@ in
         description = "Optional default Discord guild ID passed to the server.";
       };
     };
+
+    garmin = {
+      enable = lib.mkEnableOption "garmin-mcp server";
+
+      isCn = lib.mkOption {
+        type = lib.types.bool;
+        default = false;
+        description = "Use Garmin Connect China (garmin.cn) instead of the international service.";
+      };
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -109,6 +119,19 @@ in
           '');
         };
       })
+      (lib.mkIf cfg.garmin.enable {
+        garmin-mcp = {
+          type = "stdio";
+          command = lib.getExe (pkgs.writeShellScriptBin "garmin-mcp-server-wrapped" ''
+            ${lib.optionalString cfg.garmin.isCn "export GARMIN_IS_CN=true"}
+            exec ${lib.getExe pkgs.telperion.garmin-mcp-server} "$@"
+          '');
+        };
+      })
     ];
+
+    # Puts `garmin-mcp-auth` on PATH — run it once interactively to save
+    # OAuth tokens to ~/.garminconnect before the MCP server can fetch data.
+    home.packages = lib.mkIf cfg.garmin.enable [ pkgs.telperion.garmin-mcp-server ];
   };
 }

@@ -61,6 +61,7 @@ in
               enable = true;
               guildId = "1497351886624260128";
             };
+            garmin.enable = true;
           };
         };
       };
