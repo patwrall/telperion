@@ -8,10 +8,7 @@ let
 
   cfg = config.telperion.system.xdg;
 
-  browser = [
-    "firefox-devedition.desktop"
-    "firefox.desktop"
-  ];
+  browser = [ "zen-beta.desktop" ];
   editor = [ "nvim.desktop" ];
   excel = [ "libreoffice-calc.desktop" ];
   fileManager = [ "nautilus.desktop" ];

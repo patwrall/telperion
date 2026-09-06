@@ -15,6 +15,7 @@ in
     programs = {
       graphical = {
         apps = {
+          chatgpt-desktop = enabled;
           gdlauncher = enabled;
           iloader = enabled;
           obsidian = enabled;
