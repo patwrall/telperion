@@ -53,7 +53,7 @@ let
   # Vendor ships only a rolling "latest" URL, no versioned releases -- if
   # nixos-rebuild starts failing with a hash mismatch, upstream has shipped a
   # new build: re-download and update both version and hash below.
-  version = "26.901.41600";
+  version = "26.903.61454";
 
   runtimeLibs = [
     alsa-lib
@@ -104,7 +104,7 @@ stdenv.mkDerivation {
 
   src = fetchurl {
     url = "https://persistent.oaistatic.com/codex-app-prod/linux/deb/latest/chatgpt_amd64.deb";
-    hash = "sha256-Fc9CKnfo8op1U9MYC4xyeEqZRDihQXhMgtcs3pPvync=";
+    hash = "sha256-LKp98xTON+kEg1nY5qSnjiRXSjtU1r9RDxd1S2bdp3U=";
   };
 
   nativeBuildInputs = [
