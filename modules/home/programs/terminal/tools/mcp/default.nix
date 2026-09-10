@@ -1,10 +1,32 @@
 { config
 , lib
 , pkgs
+, inputs
 , ...
 }:
 let
   cfg = config.telperion.programs.terminal.tools.mcp;
+
+  # Workaround for a broken mcp-servers-nix build for the "filesystem" and
+  # "sequential-thinking" reference servers. Two independent upstream bugs:
+  # nixpkgs' `typescript` attr now defaults to the TypeScript 7 (Go-based
+  # preview) compiler, which fails to resolve @types/node for these
+  # packages' TS5 sources ("Cannot find name 'fs'" etc); and each workspace's
+  # "prepare": "npm run build" script races npm's own dependency hoisting
+  # during `npm ci --ignore-scripts` in Nix's npmConfigHook, occasionally
+  # building a sibling workspace before its devDependencies are linked.
+  # Remove this once mcp-servers-nix pins typescript_5 and/or upstream drops
+  # the redundant "prepare" scripts from the servers monorepo.
+  fixMcpTsServer = service: workspace:
+    (pkgs.callPackage
+      (import "${inputs.mcp-servers-nix}/pkgs/reference/generic-ts.nix" {
+        inherit service workspace;
+      })
+      { typescript = pkgs.typescript_5; }).overrideAttrs (old: {
+      postPatch = (old.postPatch or "") + ''
+        sed -i '/"prepare": "npm run build",/d' src/*/package.json
+      '';
+    });
 in
 {
   options.telperion.programs.terminal.tools.mcp = {
@@ -63,6 +85,7 @@ in
 
       filesystem = {
         enable = true;
+        package = fixMcpTsServer "filesystem" "filesystem";
         args = [
           config.home.homeDirectory
           "${config.home.homeDirectory}/Documents"
@@ -72,7 +95,10 @@ in
       };
 
       git.enable = true;
-      sequential-thinking.enable = true;
+      sequential-thinking = {
+        enable = true;
+        package = fixMcpTsServer "sequential-thinking" "sequentialthinking";
+      };
       context7.enable = true;
       playwright.enable = true;
 
