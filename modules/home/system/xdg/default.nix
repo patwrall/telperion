@@ -158,7 +158,7 @@ in
   };
 
   config = mkIf cfg.enable {
-    home.packages = [ pkgs.gcr ];
+    home.packages = [ pkgs.gcr_4 ];
 
     xdg = {
       enable = true;
