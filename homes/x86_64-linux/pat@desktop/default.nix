@@ -17,6 +17,7 @@ in
         apps = {
           chatgpt-desktop = enabled;
           gdlauncher = enabled;
+          grok-bot = enabled;
           iloader = enabled;
           obsidian = enabled;
           rnote = enabled;

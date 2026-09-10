@@ -14,6 +14,8 @@ in
     programs = {
       graphical = {
         apps = {
+          chatgpt-desktop = enabled;
+          grok-bot = enabled;
           iloader = enabled;
           obsidian = enabled;
           rnote = enabled;
