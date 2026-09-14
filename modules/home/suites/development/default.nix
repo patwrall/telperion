@@ -74,6 +74,7 @@ in
           tools = {
             act = mkDefault enabled;
             claude-code = mkDefault enabled;
+            codex = mkDefault enabled;
             git-crypt = mkDefault enabled;
             go.enable = cfg.goEnable;
             k9s.enable = cfg.kubernetesEnable;
