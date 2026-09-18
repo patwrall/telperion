@@ -30,7 +30,7 @@ in
       };
 
       virtualisation = {
-        # podman.enable = cfg.dockerEnable;
+        podman.enable = cfg.dockerEnable;
       };
     };
   };

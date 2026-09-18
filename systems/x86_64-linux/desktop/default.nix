@@ -88,6 +88,18 @@ in
       realtime = enabled;
     };
   };
+  # Docker alongside podman: the Paxel analysis client targets Docker CLI
+  # semantics (--tmpfs uid=, --user + bind-mount ownership) that rootless
+  # podman rejects. Podman stays for everything else; its docker-compat shim
+  # is off so the two don't both claim /run/docker.sock.
+  virtualisation = {
+    docker.enable = true;
+    podman = {
+      dockerCompat = lib.mkForce false;
+      dockerSocket.enable = lib.mkForce false;
+    };
+  };
+
   services.displayManager.defaultSession = "hyprland-uwsm";
 
   system.stateVersion = "26.11";

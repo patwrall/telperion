@@ -110,6 +110,7 @@ in
       common = enabled;
       development = {
         enable = true;
+        dockerEnable = true;
         cudaEnable = true;
       };
       music = enabled;
