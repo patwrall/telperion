@@ -88,6 +88,7 @@ in
         verbose = true;
         includeCoAuthoredBy = false;
         gitAttribution = false;
+        remoteControlAtStartup = false;
         attribution = {
           commit = "";
           pr = "";
