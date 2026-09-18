@@ -2,7 +2,7 @@
 , ...
 }:
 let
-  inherit (lib.telperion) enabled;
+  inherit (lib.telperion) enabled disabled;
 in
 {
   imports = [
@@ -54,12 +54,16 @@ in
     };
 
     services = {
+      # Capstone Desk: local brightspace-mcp over the tailnet (next: https serve).
+      # No autoconnect — run `sudo tailscale up` once after switch.
+      tailscale = enabled;
       avahi = enabled;
       # ddcci-driver fails to build against the current kernel (implicit
       # strncpy declaration, gcc-15) — disabled until upstream fixes it.
       ddccontrol.enable = lib.mkForce false;
       geoclue = enabled;
-      mullvad-vpn = enabled;
+      # Capstone Desk: off while wiring Tailscale (routing conflict).
+      mullvad-vpn = disabled;
       openssh = enabled;
       power = enabled;
       usbmuxd = enabled;
