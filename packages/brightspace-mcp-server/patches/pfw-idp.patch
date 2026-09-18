@@ -10,7 +10,7 @@ intact lets the user click their campus manually.
 +++ b/src/auth/purdue-sso.ts
 @@ -93,16 +93,11 @@ export class PurdueSSOFlow {
    }
-
+ 
    private async handleCampusSelector(page: Page): Promise<void> {
 +    // PFW patch: do not auto-redirect to West Lafayette's Shibboleth IdP.
 +    // Leave the campus selector visible so non-WL users can pick their campus.
