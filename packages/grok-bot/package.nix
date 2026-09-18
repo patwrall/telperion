@@ -55,7 +55,7 @@ let
   # versioned artifact it resolves to. To bump: follow
   # https://api2.cursor.sh/updates/download/stable/linux-x64/grok-bot-fb0a830618be0c54
   # and take the final URL.
-  version = "0.47.0";
+  version = "0.56.1";
 
   runtimeLibs = [
     alsa-lib
@@ -106,8 +106,8 @@ stdenv.mkDerivation {
   inherit version;
 
   src = fetchurl {
-    url = "https://downloads.cursor.com/grokbot/stable/c1e7d7a46549956d25f53e9c0b9f59666e03aa3a/linux/x64/grok-bot_${version}_amd64.deb";
-    hash = "sha256-EcoPUaU1uXr1GjUq35wPns0uGwQwpprpRRtoinoGWAg=";
+    url = "https://downloads.cursor.com/grokbot/stable/b938fe7791be84ce088d4a9a95332601710ba469/linux/x64/grok-bot_${version}_amd64.deb";
+    hash = "sha256-+3aLRAzLfMS07GVvXZ8ArtSMB4Mlx3RGAuuJYCh5pZc=";
   };
 
   nativeBuildInputs = [
