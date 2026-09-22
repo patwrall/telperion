@@ -24,8 +24,12 @@ in
         plugins = with pkgs; [
           networkmanager-l2tp
           networkmanager-openvpn
-          networkmanager-sstp
-          networkmanager-vpnc
+          # sstp dropped 2026-09-22: CVE-2026-91838 marks it insecure, and no
+          # connection here used it. Re-add with nixpkgs.config.permittedInsecurePackages
+          # if SSTP is ever needed.
+          # vpnc removed from nixpkgs 2026-09-20 (insecure, archived upstream);
+          # libreswan is the upstream-recommended IPsec replacement.
+          networkmanager-libreswan
         ];
 
         unmanaged = [
