@@ -1,5 +1,6 @@
 { config
 , lib
+, pkgs
 , ...
 }:
 let
@@ -49,7 +50,9 @@ in
       # rebuild and would otherwise go stale.
       PRESERVED=""
       if [ -f "$CONFIG" ]; then
-        PRESERVED="$(awk '/^\[/ { skip = ($0 ~ /^\[mcp_servers/) } !skip' "$CONFIG")"
+        # Full store path: activation runs with a minimal PATH that has no awk,
+        # which failed the whole home-manager unit with exit 127.
+        PRESERVED="$(${pkgs.gawk}/bin/awk '/^\[/ { skip = ($0 ~ /^\[mcp_servers/) } !skip' "$CONFIG")"
       fi
 
       {
