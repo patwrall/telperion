@@ -118,18 +118,17 @@ let
     "Read(${config.home.homeDirectory}/.config/sway/**)"
   ];
 
-  # Autonomous profile additions - full autonomy for trusted workflows
+  # Autonomous profile additions - full autonomy for trusted workflows.
+  #
+  # Bare "Bash" allows every Bash command. Enumerating them was losing fights
+  # it shouldn't: research subagents stalled waiting on a confirmation for
+  # `curl`, and `Bash(systemctl:*)` in autonomousAsk shadowed the read-only
+  # `systemctl status` entries below (deny > ask > allow).
+  #
+  # The floor is denyList plus the PreToolUse hook, both of which outrank
+  # allow: rm -rf /, dd, mkfs, curl|sh pipe-to-shell, fork bombs.
   autonomousAllow = standardAllow ++ [
-    # Git write operations
-    "Bash(git commit:*)"
-    "Bash(git checkout:*)"
-    "Bash(git switch:*)"
-    "Bash(git stash:*)"
-    "Bash(git restore:*)"
-    "Bash(git reset:*)"
-
-    # File operations
-    "Bash(rm:*)"
+    "Bash"
   ];
 
   # Operations requiring confirmation in non-autonomous mode
@@ -179,26 +178,39 @@ let
     "Bash(pkill:*)"
   ];
 
-  # Autonomous mode still requires confirmation for these
+  # Autonomous mode allows every Bash command (see autonomousAllow), so this
+  # list is the whole guardrail. It holds only operations that leave this
+  # machine, change system state, or rewrite published history - the ones
+  # worth waking someone up for. Everything a research subagent does
+  # (curl, wget, gh, nix, ps, read-only systemctl) runs unattended.
   autonomousAsk = [
-    # Always confirm pushing
+    # Publishing / history rewrites
     "Bash(git push:*)"
     "Bash(git merge:*)"
     "Bash(git rebase:*)"
 
-    # System operations
-    "Bash(systemctl:*)"
-    "Bash(nixos-rebuild:*)"
+    # Privilege escalation and system rebuilds
     "Bash(sudo:*)"
+    "Bash(nixos-rebuild:*)"
 
-    # Network operations
-    "Bash(curl:*)"
-    "Bash(rsync:*)"
-    "Bash(scp:*)"
+    # Mutating systemctl verbs only - `systemctl status`, `cat` and the
+    # `list-*` subcommands stay unprompted. A bare `systemctl:*` here used to
+    # shadow the read-only entries in standardAllow, since ask outranks allow.
+    "Bash(systemctl start:*)"
+    "Bash(systemctl stop:*)"
+    "Bash(systemctl restart:*)"
+    "Bash(systemctl reload:*)"
+    "Bash(systemctl enable:*)"
+    "Bash(systemctl disable:*)"
+    "Bash(systemctl mask:*)"
+    "Bash(systemctl unmask:*)"
+
+    # Anything that reaches another host
     "Bash(ssh:*)"
-    "Bash(wget:*)"
+    "Bash(scp:*)"
+    "Bash(rsync:*)"
 
-    # Process management
+    # Killing processes outside this session
     "Bash(kill:*)"
     "Bash(killall:*)"
     "Bash(pkill:*)"
