@@ -16,18 +16,24 @@ let
   # `--channels plugin:discord@claude-plugins-official` resolves. Sideloading
   # via `--plugin-dir` would tag it `@inline` and break channel routing.
   discordPlugin = pkgs.telperion.claude-discord-plugin;
+  figmaPlugin = pkgs.telperion.claude-figma-plugin;
+
+  # `claude plugin install` cannot run here: it rewrites ~/.claude/settings.json,
+  # which HM links read-only into the store. Plugins are declared instead.
+  installedPlugin = version: installPath: [
+    {
+      scope = "user";
+      inherit installPath version;
+      installedAt = "1970-01-01T00:00:00Z";
+      lastUpdated = "1970-01-01T00:00:00Z";
+    }
+  ];
+
   installedPlugins = (pkgs.formats.json { }).generate "installed_plugins.json" {
     version = 2;
     plugins = {
-      "discord@claude-plugins-official" = [
-        {
-          scope = "user";
-          installPath = "${discordPlugin}";
-          version = discordPlugin.version or "0.0.4";
-          installedAt = "1970-01-01T00:00:00Z";
-          lastUpdated = "1970-01-01T00:00:00Z";
-        }
-      ];
+      "discord@claude-plugins-official" = installedPlugin discordPlugin.version "${discordPlugin}";
+      "figma@claude-plugins-official" = installedPlugin figmaPlugin.version "${figmaPlugin}";
     };
   };
 in
@@ -80,6 +86,7 @@ in
         # commands are loaded. The presence of the key (any non-undefined
         # value) is what Claude Code's `Hu()` checks against.
         enabledPlugins."discord@claude-plugins-official" = true;
+        enabledPlugins."figma@claude-plugins-official" = true;
 
         hooks = lib.importDir ./hooks { inherit pkgs config lib; };
 
