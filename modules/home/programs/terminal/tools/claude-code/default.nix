@@ -124,8 +124,8 @@ in
 
         hooks = lib.importDir ./hooks { inherit pkgs config lib; };
 
-        # Let default do its job
-        # model = "claude-sonnet-4-6";
+        # `/model` can't persist a choice: this file is a read-only store link.
+        model = "claude-opus-5-5[1m]";
         verbose = true;
         includeCoAuthoredBy = false;
         gitAttribution = false;
