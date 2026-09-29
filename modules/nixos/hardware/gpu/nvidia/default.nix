@@ -64,7 +64,7 @@ in
           finegrained = mkDefault false;
         };
 
-        open = false;
+        open = true;
         nvidiaSettings = true;
         nvidiaPersistenced = true;
         forceFullCompositionPipeline = true;

@@ -1,4 +1,5 @@
-{ pkgs
+{ config
+, pkgs
 , lib
 , modulesPath
 , ...
@@ -13,7 +14,9 @@ in
     blacklistedKernelModules = [ "eeepc_wmi" ];
 
     kernelModules = [ "uinput" ];
-    kernelPackages = pkgs.linuxPackages_latest;
+    # LTS, not _latest: tried first for Xid 8/31/109 GPU faults (onset matched
+    # _latest 7.2.5 -> 7.2.6), but faults recurred on 6.18; see nvidia.package.
+    kernelPackages = pkgs.linuxPackages;
     kernel.sysctl."kernel.sysrq" = 1;
 
     # NVMe / PCIe power-management workaround: this board (MS-7C56, Ryzen 3600X)
@@ -46,6 +49,9 @@ in
 
   hardware = {
     enableRedistributableFirmware = true;
+    # 615 branch: 595.99.02 threw Xid 31/109 MMU faults under Dragonwilds
+    # (UE5/vkd3d) on both 7.2.x and 6.18 LTS kernels.
+    nvidia.package = config.boot.kernelPackages.nvidiaPackages.latest;
   };
 
   telperion.hardware = {
