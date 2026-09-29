@@ -29,9 +29,6 @@ in
         browsers = {
           zen-browser = enabled;
         };
-        editors = {
-          idea = enabled;
-        };
         quickshell = {
           ambxst = enabled;
         };

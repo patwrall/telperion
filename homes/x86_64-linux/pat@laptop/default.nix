@@ -2,7 +2,7 @@
 , ...
 }:
 let
-  inherit (lib.telperion) enabled;
+  inherit (lib.telperion) enabled disabled;
 in
 {
   telperion = {
@@ -14,7 +14,6 @@ in
     programs = {
       graphical = {
         apps = {
-          chatgpt-desktop = enabled;
           grok-bot = enabled;
           iloader = enabled;
           obsidian = enabled;
@@ -25,9 +24,6 @@ in
         };
         browsers = {
           zen-browser = enabled;
-        };
-        editors = {
-          idea = enabled;
         };
         quickshell = {
           ambxst = enabled;
@@ -46,6 +42,11 @@ in
             enableSshSocket = true;
             sshAgentVaults = [ "Personal" "Development" ];
           };
+          # The codex module reads home.file.".codex/config.toml".source, which
+          # home-manager only defines when codex settings are non-empty. They
+          # are empty here because the mcp module is off on this host, so
+          # leaving codex enabled aborts evaluation.
+          codex = disabled;
         };
       };
     };

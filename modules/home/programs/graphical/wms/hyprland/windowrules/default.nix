@@ -23,9 +23,6 @@ in
           "no_shadow on, match:xwayland true, match:title win[0-9]+"
           "no_dim on, match:xwayland true, match:title win[0-9]+"
 
-          "center 1, match:class ^(.*jetbrains.*)$, match:title ^(Confirm Exit|Open Project|win424|win201|splash)$"
-          "size 640 400, match:class ^(.*jetbrains.*)$, match:title ^(splash)$"
-
           # xwaylandvideobridge
           "opacity 0.0 override 0.0 override, match:class ^(xwaylandvideobridge)$"
           "no_anim on, match:class ^(xwaylandvideobridge)$"
