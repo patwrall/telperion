@@ -82,10 +82,6 @@ in
         distributedBuilds = true;
         gc.automatic = true;
 
-        # This will additionally add your inputs to the system's legacy channels
-        # Making legacy nix commands consistent as well
-        # NOTE: We link inputs here
-        nixPath = [ "/etc/nix/inputs" ];
         optimise.automatic = true;
 
         # pin the registry to avoid downloading and evaluating a new nixpkgs version every time
@@ -105,6 +101,10 @@ in
         ];
 
         settings = {
+          # This will additionally add your inputs to the system's legacy channels
+          # Making legacy nix commands consistent as well
+          # NOTE: We link inputs here
+          nix-path = [ "/etc/nix/inputs" ];
           allowed-users = users;
           auto-optimise-store = pkgs.stdenv.hostPlatform.isLinux;
           builders-use-substitutes = true;

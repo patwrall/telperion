@@ -22,6 +22,9 @@ in
       StandardOutPath = osConfig.telperion.programs.terminal.tools.atuin.logPaths.stdout;
     };
 
+    # Atuin owns Ctrl-R; stop fzf from also binding it.
+    programs.fzf.historyWidget.command = "";
+
     programs.atuin = {
       enable = true;
 
