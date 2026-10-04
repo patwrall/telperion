@@ -57,6 +57,9 @@
         nixpkgs.follows = "nixpkgs";
       };
     };
+    # Upstream supports Nix best-effort only (Tier 2): pin a release tag, and
+    # keep its own nixpkgs since that is what its CI builds against.
+    hermes-agent.url = "github:NousResearch/hermes-agent/v2026.9.24";
     hyprland = {
       url = "github:hyprwm/hyprland";
       inputs = {
