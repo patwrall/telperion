@@ -24,13 +24,31 @@
     # The plugin looks `claude` up on PATH when it loads, before Hermes reads .env
     extraPackages = [ pkgs.claude-code ];
 
-    settings.model = {
-      provider = "claude-subscription-directsdk-experimental";
-      default = "opus";
+    settings = {
+      model = {
+        provider = "claude-subscription-directsdk-experimental";
+        default = "opus";
+      };
+      # Speaks replies to voice memos (`/voice on` in Discord) and transcribes them
+      tts = {
+        provider = "elevenlabs";
+        elevenlabs.voice_id = "21m00Tcm4TlvDq8ikWAM"; # Rachel
+      };
+      stt.provider = "elevenlabs";
     };
 
-    # CLAUDE_CODE_OAUTH_TOKEN (from `claude setup-token`), DISCORD_BOT_TOKEN
-    # and DISCORD_ALLOWED_USERS; activation merges it into the service's .env.
+    hermesHomeFiles."SOUL.md" = ./SOUL.md;
+
+    # Web dashboard, password-protected; 9119 isn't open publicly, so it's
+    # reachable only over the tailnet at http://vps:9119
+    backend = {
+      mode = "dashboard";
+      host = "0.0.0.0";
+    };
+
+    # CLAUDE_CODE_OAUTH_TOKEN (from `claude setup-token`), DISCORD_BOT_TOKEN,
+    # DISCORD_ALLOWED_USERS, ELEVENLABS_API_KEY and HERMES_DASHBOARD_BASIC_AUTH_
+    # {USERNAME,PASSWORD,SECRET}; activation merges it into the service's .env.
     # No ANTHROPIC_* overrides: the plugin refuses to run with them set.
     environmentFiles = [ "/var/lib/secrets/hermes.env" ];
   };
