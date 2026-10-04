@@ -26,7 +26,7 @@
 
     settings.model = {
       provider = "claude-subscription-directsdk-experimental";
-      default = "sonnet";
+      default = "opus";
     };
 
     # CLAUDE_CODE_OAUTH_TOKEN (from `claude setup-token`), DISCORD_BOT_TOKEN
