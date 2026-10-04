@@ -32,7 +32,10 @@
       # Speaks replies to voice memos (`/voice on` in Discord) and transcribes them
       tts = {
         provider = "elevenlabs";
-        elevenlabs.voice_id = "21m00Tcm4TlvDq8ikWAM"; # Rachel
+        elevenlabs = {
+          voice_id = "21m00Tcm4TlvDq8ikWAM"; # Rachel
+          model_id = "eleven_v4_turbo";
+        };
       };
       stt.provider = "elevenlabs";
     };
