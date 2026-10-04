@@ -37,6 +37,9 @@ in
   # The user module sets zsh as the login shell.
   programs.zsh.enable = true;
 
+  # SSH only over the tailnet (tailscale0 is trusted); OVH's KVM console is the fallback.
+  services.openssh.openFirewall = lib.mkForce false;
+
   # SSH is key-only, so let wheel deploy with `nixos-rebuild --target-host --sudo`.
   security.sudo.wheelNeedsPassword = false;
 
