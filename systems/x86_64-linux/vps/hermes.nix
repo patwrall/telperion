@@ -83,6 +83,8 @@
     environment = {
       DISCORD_HOME_CHANNEL = "1555434806962167858"; # Private / #hermes
       DISCORD_HOME_CHANNEL_NAME = "#hermes";
+      # #hermes is a plain chat: no @mention needed and no thread per message
+      DISCORD_FREE_RESPONSE_CHANNELS = "1555434806962167858";
     };
   };
 }
