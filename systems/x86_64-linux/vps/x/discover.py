@@ -147,14 +147,14 @@ def bio(author):
     return from_pb or author.get("description") or ""
 
 
-def search(key, budget, days):
+def search(key, budget, days, pages):
     since = int(time.time()) - days * 86400
     authors = {}
     for tier, queries in QUERIES.items():
         for q, faves in queries:
             query = f"{q} lang:en -filter:replies -filter:retweets min_faves:{faves} since_time:{since}"
             cursor = ""
-            for _ in range(2):
+            for _ in range(pages):
                 if not budget.left():
                     return authors
                 data = get(
@@ -325,8 +325,9 @@ def funnel_score(p):
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--days", type=int, default=7)
-    ap.add_argument("--budget-usd", type=float, default=0.9)
-    ap.add_argument("--max-profiles", type=int, default=70)
+    ap.add_argument("--budget-usd", type=float, default=2.0)
+    ap.add_argument("--max-profiles", type=int, default=200)
+    ap.add_argument("--pages", type=int, default=4, help="search pages per topic")
     ap.add_argument("--min-followers", type=int, default=1500)
     ap.add_argument("--max-followers", type=int, default=400_000)
     ap.add_argument("--out", default="/var/lib/hermes/x/discovery.json")
@@ -338,7 +339,7 @@ def main():
     budget = Budget(args.budget_usd)
     now = datetime.now(timezone.utc)
 
-    authors = search(key, budget, args.days)
+    authors = search(key, budget, args.days, args.pages)
     picked = pick_for_profiling(authors, args)
 
     passed, rejected = [], []
