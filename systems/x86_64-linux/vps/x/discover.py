@@ -1,7 +1,7 @@
 """Find X accounts worth replying to for Pat's growth funnel.
 
 Searches niche topics through twitterapi.io, then profiles each promising
-author's last ~20 posts to check that real people see and reply to them.
+author's recent posts to check that real people see and reply to them.
 Writes a JSON report for Herm to review. It never follows, likes or posts.
 
 Needs TWITTERAPI_IO_KEY in the environment. Stdlib only.
@@ -36,9 +36,14 @@ DRAFT_HOURS_ET = (13, 21)  # 1pm to 9pm, Pat's drafting window
 # no replies or reposts, and the lookback window.
 QUERIES = {
     "A": [
-        ('(CUDA OR "GPU kernel" OR "GPU kernels")', 20),
+        # Bare "cuda" and "triton" also match sports and naval accounts, so
+        # these two require a second technical term
         (
-            '(triton OR cutlass OR "tensor cores" OR flashattention OR "flash attention")',
+            '(CUDA OR "GPU kernel" OR "GPU kernels") (GPU OR kernel OR nvcc OR warp OR PTX OR "shared memory")',
+            20,
+        ),
+        (
+            '(triton OR cutlass OR "tensor cores" OR flashattention OR "flash attention") (kernel OR GPU OR pytorch OR attention)',
             20,
         ),
         (
@@ -54,6 +59,14 @@ QUERIES = {
             25,
         ),
         ('(nixos OR nixpkgs OR "nix flake" OR "home-manager")', 15),
+        (
+            "(H100 OR B200 OR FP8 OR PTX OR quantization) (kernel OR throughput OR latency OR benchmark)",
+            20,
+        ),
+        (
+            "(JAX OR XLA OR Pallas OR MLIR OR Mojo) (kernel OR compiler OR performance)",
+            20,
+        ),
     ],
     "B": [
         (
@@ -70,18 +83,19 @@ QUERIES = {
         ),
         ('("Claude Code" OR codex OR cursor) (workflow OR setup OR agents)', 50),
     ],
+    # Investors rarely post topic keywords, so match the language of deal posts
     "C": [
         (
-            '("AI infrastructure" OR "AI infra" OR "inference costs") (seed OR investing OR backed OR portfolio OR invest)',
+            '("we led" OR "excited to back" OR "excited to lead" OR "led the seed" OR "led the pre-seed" OR "our investment in") (AI OR infra OR infrastructure OR "dev tools" OR developer)',
+            10,
+        ),
+        (
+            '("portfolio company" OR "our portfolio" OR "first check" OR "backing founders") (AI OR infrastructure OR agents)',
+            15,
+        ),
+        (
+            '(VC OR investor OR "we invest") ("AI infra" OR inference OR compute) (thesis OR market OR "why we")',
             20,
-        ),
-        (
-            '(VC OR investor OR "pre-seed" OR "seed round") ("AI infra" OR infrastructure OR "dev tools" OR automation)',
-            30,
-        ),
-        (
-            '(founders OR startups) ("AI agents" OR automation OR "decision making") (invest OR investing OR backed)',
-            40,
         ),
     ],
 }
@@ -151,28 +165,11 @@ def search(key, budget, days):
                 tweets = data.get("tweets") or []
                 budget.charge(len(tweets))
                 for t in tweets:
-                    a = t.get("author") or {}
-                    handle = (a.get("userName") or "").lower()
-                    if not handle or handle == SELF:
-                        continue
-                    c = authors.setdefault(
-                        handle,
-                        {
-                            "userName": a.get("userName"),
-                            "name": a.get("name"),
-                            "followers": a.get("followers") or 0,
-                            "following": a.get("following") or 0,
-                            "bio": bio(a),
-                            "location": a.get("location") or "",
-                            "automated": bool(a.get("isAutomated")),
-                            "tiers": set(),
-                            "hits": [],
-                        },
-                    )
-                    c["tiers"].add(tier)
-                    c["hits"].append(
-                        (t.get("likeCount") or 0) + 3 * (t.get("replyCount") or 0)
-                    )
+                    c = add_candidate(authors, t.get("author") or {}, tier)
+                    if c:
+                        c["hits"].append(
+                            (t.get("likeCount") or 0) + 3 * (t.get("replyCount") or 0)
+                        )
                 if not data.get("has_next_page"):
                     break
                 cursor = data.get("next_cursor") or ""
@@ -180,46 +177,80 @@ def search(key, budget, days):
     return authors
 
 
-def pick_for_profiling(authors, max_profiles, min_followers, max_followers):
+def add_candidate(authors, user, tier):
+    handle = (user.get("userName") or "").lower()
+    if not handle or handle == SELF:
+        return None
+    c = authors.setdefault(
+        handle,
+        {
+            "userName": user.get("userName"),
+            "name": user.get("name"),
+            "followers": user.get("followers") or 0,
+            "following": user.get("following") or 0,
+            "bio": bio(user),
+            "location": user.get("location") or "",
+            "automated": bool(user.get("isAutomated")),
+            "tiers": set(),
+            "hits": [],
+        },
+    )
+    c["tiers"].add(tier)
+    return c
+
+
+def pick_for_profiling(authors, args):
     pool = [
         c
         for c in authors.values()
-        if min_followers <= c["followers"] <= max_followers and not c["automated"]
+        if args.min_followers <= c["followers"] <= args.max_followers
+        and not c["automated"]
     ]
     for c in pool:
         c["tier_hint"] = min(c["tiers"])
-        # Engagement the search hits earned, scaled so big accounts don't win by size alone
-        c["prelim"] = sum(c["hits"]) / math.sqrt(max(c["followers"], 1))
+        # Engagement their matching posts earned. Scaling this down by size
+        # favored tiny accounts with one lucky post, which then fail the reach
+        # check; profile() already rejects accounts too big to reply under.
+        c["prelim"] = sum(c["hits"])
     pool.sort(key=lambda c: c["prelim"], reverse=True)
     picked, counts = [], {t: 0 for t in TIER_SHARE}
     for c in pool:
         t = c["tier_hint"]
-        if counts[t] < round(max_profiles * TIER_SHARE[t]):
+        if counts[t] < round(args.max_profiles * TIER_SHARE[t]):
             picked.append(c)
             counts[t] += 1
     for c in pool:
-        if len(picked) >= max_profiles:
+        if len(picked) >= args.max_profiles:
             break
         if c not in picked:
             picked.append(c)
-    return picked[:max_profiles]
+    return picked[: args.max_profiles]
+
+
+def last_tweets(handle, key, budget, include_replies):
+    params = {"userName": handle, "includeReplies": str(include_replies).lower()}
+    tweets = (get("user/last_tweets", params, key).get("data") or {}).get(
+        "tweets"
+    ) or []
+    budget.charge(len(tweets))
+    return [t for t in tweets if t.get("createdAt")]
 
 
 def profile(c, key, budget, now):
-    data = get(
-        "user/last_tweets", {"userName": c["userName"], "includeReplies": "true"}, key
-    )
-    tweets = (data.get("data") or {}).get("tweets") or []
-    budget.charge(len(tweets))
-    tweets = [t for t in tweets if t.get("createdAt")]
-    if not tweets:
-        return None
-    times = [parse_time(t["createdAt"]) for t in tweets]
+    # Reach and rhythm come from an originals-only feed and talking back from a
+    # feed with replies. One mixed feed of 20 hides a heavy replier's posts.
     originals = [
-        t for t in tweets if not t.get("isReply") and not t.get("retweeted_tweet")
+        t
+        for t in last_tweets(c["userName"], key, budget, include_replies=False)
+        if not t.get("isReply") and not t.get("retweeted_tweet")
     ]
-    replies = [t for t in tweets if t.get("isReply")]
-    span_days = max((max(times) - min(times)).total_seconds() / 86400, 1)
+    mixed = last_tweets(c["userName"], key, budget, include_replies=True)
+    if not originals and not mixed:
+        return None
+    times = [parse_time(t["createdAt"]) for t in originals + mixed]
+    orig_times = [parse_time(t["createdAt"]) for t in originals] or times
+    span_days = max((max(orig_times) - min(orig_times)).total_seconds() / 86400, 1)
+    replies = [t for t in mixed if t.get("isReply")]
 
     def med(field):
         vals = [t.get(field) or 0 for t in originals]
@@ -234,9 +265,8 @@ def profile(c, key, budget, now):
     ]
     n_orig = max(len(originals), 1)
     return {
-        "sample_size": len(tweets),
         "originals": len(originals),
-        "reply_share": round(len(replies) / len(tweets), 2),
+        "reply_share": round(len(replies) / max(len(mixed), 1), 2),
         "originals_per_day": round(len(originals) / span_days, 1),
         "median_views": int(med("viewCount")),
         "median_replies": med("replyCount"),
@@ -295,7 +325,7 @@ def funnel_score(p):
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--days", type=int, default=7)
-    ap.add_argument("--budget-usd", type=float, default=0.6)
+    ap.add_argument("--budget-usd", type=float, default=0.9)
     ap.add_argument("--max-profiles", type=int, default=70)
     ap.add_argument("--min-followers", type=int, default=1500)
     ap.add_argument("--max-followers", type=int, default=400_000)
@@ -309,9 +339,7 @@ def main():
     now = datetime.now(timezone.utc)
 
     authors = search(key, budget, args.days)
-    picked = pick_for_profiling(
-        authors, args.max_profiles, args.min_followers, args.max_followers
-    )
+    picked = pick_for_profiling(authors, args)
 
     passed, rejected = [], []
     for c in picked:
