@@ -40,6 +40,23 @@
       stt.provider = "elevenlabs";
       # Cron schedules and "today" follow Pat's clock, not the server's UTC
       timezone = "America/Chicago";
+
+      # The stock Discord hint invites markdown lists and bold labels, and it
+      # sits late in the prompt where it outweighs SOUL.md. Keep its media and
+      # table facts, but point formatting back at SOUL.md's chat style.
+      platform_hints.discord.replace = ''
+        You are in a Discord DM or channel with Pat. This is a chat, not a
+        document: follow the Style and Voice sections of your identity above
+        exactly, with short plain messages and no headings, bold labels, or
+        bullet lists. Markdown renders, but use it only for code Pat would
+        type. Tables do not render. To send a file, include
+        MEDIA:/absolute/path/to/file in your reply; images go as photos and
+        audio as attachments.
+      '';
+
+      # "auto" puts a "careful senior engineer" coding persona on top of
+      # SOUL.md in dashboard/CLI sessions whenever the workspace holds a repo.
+      agent.coding_context = "off";
     };
 
     hermesHomeFiles = {
