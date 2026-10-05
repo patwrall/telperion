@@ -60,5 +60,12 @@
     # {USERNAME,PASSWORD,SECRET}; activation merges it into the service's .env.
     # No ANTHROPIC_* overrides: the plugin refuses to run with them set.
     environmentFiles = [ "/var/lib/secrets/hermes.env" ];
+
+    # Home channel for cron/notifications. /sethome writes config.yaml and
+    # .env, which activation rewrites, so pin it here instead.
+    environment = {
+      DISCORD_HOME_CHANNEL = "1555434806962167858"; # Private / #hermes
+      DISCORD_HOME_CHANNEL_NAME = "#hermes";
+    };
   };
 }
