@@ -12,5 +12,8 @@
     settings.terminal.env_passthrough = [ "TWITTERAPI_IO_KEY" ];
     extraPackages = [ pkgs.python3 ];
     hermesHomeFiles."scripts/x_discover.py" = ./x/discover.py;
+    # Cron gate for reply drafting: polls targets, wakes the agent only
+    # when a fresh post passes the quotas
+    hermesHomeFiles."scripts/x_scout.py" = ./x/scout.py;
   };
 }
