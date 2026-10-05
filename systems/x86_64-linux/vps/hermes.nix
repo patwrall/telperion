@@ -38,9 +38,15 @@
         };
       };
       stt.provider = "elevenlabs";
+      # Cron schedules and "today" follow Pat's clock, not the server's UTC
+      timezone = "America/Chicago";
     };
 
-    hermesHomeFiles."SOUL.md" = ./SOUL.md;
+    hermesHomeFiles = {
+      "SOUL.md" = ./SOUL.md;
+      # Run by the hourly watchdog cron job (`--no-agent --script watchdog.sh`)
+      "scripts/watchdog.sh" = ./hermes-watchdog.sh;
+    };
 
     # Web dashboard, password-protected; 9119 isn't open publicly, so it's
     # reachable only over the tailnet at http://vps:9119
