@@ -48,9 +48,13 @@ PAGES_PER_QUERY = 2
 
 
 def load_targets(path):
-    tiers, tier = {}, None
+    """Handles by tier, plus the core set Pat replies to repeatedly."""
+    tiers, core, tier = {}, set(), None
     with open(path) as f:
         for line in f:
+            if line.startswith("core:"):
+                core |= {h.strip().lstrip("@").lower() for h in line[5:].split(",") if h.strip()}
+                continue
             m = re.match(r"## Tier ([ABC])", line)
             if m:
                 tier = m.group(1)
@@ -60,7 +64,7 @@ def load_targets(path):
                 tiers[m.group(1).lower()] = (m.group(1), tier)
     if not tiers:
         sys.exit(f"no targets parsed from {path}")
-    return tiers
+    return tiers, core
 
 
 def load_state():
@@ -119,7 +123,7 @@ def fetch(handles, since, key):
     return posts, credits
 
 
-def candidate(t, targets, now, max_age):
+def candidate(t, targets, core, now, max_age):
     """Slim record for a post worth drafting on, or None."""
     author = ((t.get("author") or {}).get("userName") or "").lower()
     if author not in targets or not t.get("id") or not t.get("createdAt"):
@@ -136,6 +140,7 @@ def candidate(t, targets, now, max_age):
         "id": str(t["id"]),
         "handle": handle,
         "tier": tier,
+        "core": author in core,
         "url": t.get("url") or f"https://x.com/{handle}/status/{t['id']}",
         "text": (t.get("text") or "")[:200],
         "created_at": created.isoformat(),
@@ -151,10 +156,15 @@ def pick(pool, day, now_et, slots, quotas):
     used = day["tiers"]
     total_left = sum(quotas.values()) - sum(used.values())
     open_quotas = now_et.hour >= OPEN_QUOTAS_AT_ET
-    # Quieter threads first (in steps of 5 replies), then freshest
+    # Core accounts first (relationships), then quieter threads in steps of
+    # 5 replies, then freshest
     ranked = sorted(
         pool,
-        key=lambda c: (c["replies"] // 5, -datetime.fromisoformat(c["created_at"]).timestamp()),
+        key=lambda c: (
+            not c.get("core"),
+            c["replies"] // 5,
+            -datetime.fromisoformat(c["created_at"]).timestamp(),
+        ),
     )
     chosen = []
     for c in ranked:
@@ -186,7 +196,7 @@ def main():
         print(json.dumps({"wakeAgent": False}))
         return
 
-    targets = load_targets(TARGETS)
+    targets, core = load_targets(TARGETS)
     state = {} if args.dry_run else load_state()
     today = now_et.date().isoformat()
     day = state.setdefault("days", {}).setdefault(today, {"tiers": {}, "accounts": [], "usd": 0.0})
@@ -198,7 +208,7 @@ def main():
     seen = state.setdefault("seen", {})  # post id -> unix time first seen
     pool = {c["id"]: c for c in state.get("pool", [])}
     for t in posts:
-        c = candidate(t, targets, now, args.max_age)
+        c = candidate(t, targets, core, now, args.max_age)
         if c and c["id"] not in seen:
             pool[c["id"]] = c
             seen[c["id"]] = int(now.timestamp())
