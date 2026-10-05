@@ -39,7 +39,7 @@
       };
       stt.provider = "elevenlabs";
       # Cron schedules and "today" follow Pat's clock, not the server's UTC
-      timezone = "America/Chicago";
+      timezone = "America/New_York";
 
       # The stock Discord hint invites markdown lists and bold labels, and it
       # sits late in the prompt where it outweighs SOUL.md. Keep its media and

@@ -9,6 +9,7 @@ in
     ./disks.nix
     ./hardware.nix
     ./hermes-admin.nix
+    ./hermes-x.nix
     ./hermes.nix
     ./network.nix
   ];
