@@ -8,6 +8,7 @@ in
   imports = [
     ./disks.nix
     ./hardware.nix
+    ./hermes-admin.nix
     ./hermes.nix
     ./network.nix
   ];
