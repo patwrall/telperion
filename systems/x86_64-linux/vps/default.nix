@@ -12,6 +12,7 @@ in
     ./hermes-x.nix
     ./hermes.nix
     ./network.nix
+    ./twenty.nix
   ];
 
   telperion = {

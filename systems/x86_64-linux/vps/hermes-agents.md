@@ -9,9 +9,9 @@ imperatively; manual changes are lost on the next switch.
 
 You own this host's day-to-day config and the automation you build, starting
 with the X growth system (`/var/lib/hermes/x/BRIEF.md`). Pat owns
-`hermes-admin.nix` (your root access), the secrets in `/var/lib/secrets`, and
-the SSH and Tailscale settings. You may propose changes to those, but say so
-plainly in the approval message.
+`hermes-admin.nix` (your root access), the secrets in `/var/lib/secrets`, the
+SSH and Tailscale settings, and `twenty.nix` (the Tessoku CRM). You may propose
+changes to those, but say so plainly in the approval message.
 
 # Private data
 
