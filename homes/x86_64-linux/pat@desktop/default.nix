@@ -15,7 +15,7 @@ in
     programs = {
       graphical = {
         apps = {
-          chatgpt-desktop = enabled;
+          obs-studio = enabled;
           gdlauncher = enabled;
           grok-bot = enabled;
           iloader = enabled;
@@ -24,7 +24,6 @@ in
           sioyek = enabled;
           stremio = enabled;
           vesktop = enabled;
-          zotero = enabled;
         };
         browsers = {
           zen-browser = enabled;
